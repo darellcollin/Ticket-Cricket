@@ -6,11 +6,11 @@
 export type MiniGameMode = "run" | "hide";
 
 /**
- * Retourne true avec une probabilité de ~8% (très rare).
+ * Retourne true avec une probabilité de ~2% (extrêmement rare).
  * Alterne aléatoirement entre "run" et "hide".
  */
 export function rollMiniGame(): { triggered: boolean; mode: MiniGameMode } {
-  const triggered = Math.random() < 0.08; // 8% de chance (très rare)
+  const triggered = Math.random() < 0.02; // 2% de chance (extrêmement rare)
   const mode: MiniGameMode = Math.random() < 0.5 ? "run" : "hide";
   return { triggered, mode };
 }

@@ -64,3 +64,25 @@ export const savedGames = mysqlTable("saved_games", {
 
 export type SavedGame = typeof savedGames.$inferSelect;
 export type InsertSavedGame = typeof savedGames.$inferInsert;
+
+/**
+ * Événements mini-jeu multijoueur — synchronise le déclenchement du mini-jeu
+ * pour tous les joueurs d'une session simultanément.
+ * Une entrée par session active, supprimée après résolution.
+ */
+export const miniGameEvents = mysqlTable("mini_game_events", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Code de la session multijoueur Supabase */
+  sessionCode: varchar("sessionCode", { length: 10 }).notNull(),
+  /** Mode du mini-jeu : 'run' ou 'hide' */
+  mode: mysqlEnum("mode", ["run", "hide"]).notNull(),
+  /** ID du joueur qui a déclenché le mini-jeu */
+  triggeredBy: varchar("triggeredBy", { length: 64 }).notNull(),
+  /** Timestamp de déclenchement (pour détecter les nouveaux événements via polling) */
+  triggeredAt: timestamp("triggeredAt").defaultNow().notNull(),
+  /** Indique si l'événement est terminé (tous les joueurs ont joué) */
+  resolved: int("resolved").notNull().default(0),
+});
+
+export type MiniGameEvent = typeof miniGameEvents.$inferSelect;
+export type InsertMiniGameEvent = typeof miniGameEvents.$inferInsert;

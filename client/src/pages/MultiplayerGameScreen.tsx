@@ -33,6 +33,7 @@ import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
 import { MiniGame } from "@/game/components/MiniGame";
 import { rollMiniGame } from "@/game/utils/miniGameUtils";
+import { trpc } from "@/lib/trpc";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -1394,9 +1395,14 @@ export function MultiplayerGameScreen() {
   const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel]     = useState(false);
 
-  // ─ Mini-jeu surprise ─
+  // ─ Mini-jeu surprise (synchronisé via tRPC) ─
   const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
-  const miniGamePendingDraw = useRef(false);
+  // spectateur : état du mini-jeu en cours déclenché par un autre joueur
+  const [spectatorMiniGame, setSpectatorMiniGame] = useState<{ mode: "run" | "hide"; triggeredBy: string } | null>(null);
+  const miniGamePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastMiniGameId = useRef<number | null>(null);
+  const triggerMiniGame = trpc.miniGame.trigger.useMutation();
+  const resolveMiniGame = trpc.miniGame.resolve.useMutation();
 
   const pollRef                = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevTurnIdx            = useRef<number>(-1);
@@ -1601,6 +1607,39 @@ export function MultiplayerGameScreen() {
     };
   }, [fetchSession]);
 
+  // ── Polling mini-jeu pour les spectateurs ───────────────────────────────────
+  // Interroge getActive toutes les 1.5s pour détecter un mini-jeu déclenché par un autre joueur
+  const fetchActiveMiniGame = useCallback(async () => {
+    if (!code || miniGameMode !== null) return; // Pas besoin si je joue déjà
+    try {
+      const res = await fetch(`/api/trpc/miniGame.getActive?input=${encodeURIComponent(JSON.stringify({ sessionCode: code }))}`, {
+        credentials: "include",
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      const event = json?.result?.data ?? null;
+      if (event && event.id !== lastMiniGameId.current) {
+        lastMiniGameId.current = event.id;
+        // Si ce mini-jeu a été déclenché par un autre joueur, afficher le mode spectateur
+        if (event.triggeredBy !== playerId) {
+          setSpectatorMiniGame({ mode: event.mode, triggeredBy: event.triggeredBy });
+        }
+      } else if (!event) {
+        // Plus de mini-jeu actif : fermer le mode spectateur
+        setSpectatorMiniGame(null);
+      }
+    } catch (e) {
+      // Silencieux
+    }
+  }, [code, miniGameMode, playerId]);
+  useEffect(() => {
+    fetchActiveMiniGame();
+    miniGamePollRef.current = setInterval(fetchActiveMiniGame, 1500);
+    return () => {
+      if (miniGamePollRef.current) clearInterval(miniGamePollRef.current);
+    };
+  }, [fetchActiveMiniGame]);
+
   // ── Auto-fermeture de la notif spectateur T3 ──────────────
   // Se ferme quand l'envoyeur termine son tour (currentTurnIndex change)
   useEffect(() => {
@@ -1640,22 +1679,23 @@ export function MultiplayerGameScreen() {
     return s;
   }, [code]);
 
-  // ── Piocher ─────────────────────────────────────────────
+  // ──  // ── Piocher ───────────────────────────────────────
   const handleDraw = async () => {
     if (!session || isDrawing || !isMyTurn(session)) return;
     const isEliminated = (session.eliminatedPlayers ?? []).includes(playerId);
     if (isEliminated) return;
-
-    // Vérifier si le mini-jeu se déclenche (8% de chance) — seulement pour le joueur actif
-    if (!miniGamePendingDraw.current) {
-      const { triggered, mode } = rollMiniGame();
-      if (triggered) {
-        miniGamePendingDraw.current = true;
-        setMiniGameMode(mode);
-        return; // Le mini-jeu s'affiche, la pioche se fera après
+    // Vérifier si le mini-jeu se déclenche (2% de chance) — seulement pour le joueur actif
+    const { triggered, mode } = rollMiniGame();
+    if (triggered) {
+      // Déclencher le mini-jeu pour tous les joueurs via tRPC
+      setMiniGameMode(mode);
+      try {
+        await triggerMiniGame.mutateAsync({ sessionCode: code, playerId, mode });
+      } catch (e) {
+        console.error("Erreur trigger mini-jeu:", e);
       }
+      return; // Le mini-jeu remplace le tour, pas de pioche après
     }
-    miniGamePendingDraw.current = false;
 
     setIsDrawing(true);
     showNotifRef.current = false;
@@ -1923,7 +1963,7 @@ export function MultiplayerGameScreen() {
 
   return (
     <div
-      className="h-[100dvh] max-w-md mx-auto flex flex-col overflow-hidden select-none relative"
+      className="h-[100dvh] w-full md:max-w-none mx-auto flex flex-col overflow-hidden select-none relative"
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       {/* ── Halos de police — coins ── */}
@@ -2714,7 +2754,7 @@ export function MultiplayerGameScreen() {
       </div>
 
       {/* ── Zone carte + bouton piocher ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 gap-2 pb-1 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center px-4 gap-4 pb-1 min-h-0 md:gap-8">
 
         {/* Bulle "carte précédente" — bouton pour voir la carte du joueur précédent */}
         <AnimatePresence>
@@ -2783,13 +2823,7 @@ export function MultiplayerGameScreen() {
                   ? <div className="w-full h-full"><GeneratedCard card={getCardConfig(session.lastCard)} size="md" style={{ width: '100%', height: '100%' }} /></div>
                   : <div className="w-full h-full"><GeneratedCardBack size="md" style={{ width: '100%', height: '100%' }} /></div>
                 }
-                {showCardFront && lastCardBy && !cardHiddenByViewer && !isT3Spectator && (
-                  <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-                    <div className="bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5">
-                      <span style={FONT_FREDOKA} className="text-white/80 text-xs">{lastCardBy.name}</span>
-                    </div>
-                  </div>
-                )}
+
                 {/* Bouton oeil — masquage local pour les non-actifs (masqué pour T3 spectateurs) */}
                 {showCardFront && !myTurn && !isT3Spectator && (
                   <motion.button
@@ -3348,24 +3382,33 @@ export function MultiplayerGameScreen() {
 
       {/* ─ Mini-jeu surprise (multijoueur) ─ */}
       <AnimatePresence>
+        {/* Joueur actif : joue le mini-jeu */}
         {miniGameMode !== null && (
           <MiniGame
             mode={miniGameMode}
             onComplete={(success, amount) => {
               setMiniGameMode(null);
-              miniGamePendingDraw.current = false;
-              // En multijoueur : appliquer la pénalité/récompense via addDebt
-              // puis continuer avec la pioche normale
+              // Résoudre le mini-jeu pour tous les joueurs
+              resolveMiniGame.mutateAsync({ sessionCode: code }).catch(() => {});
+              // Appliquer la pénalité/récompense via addDebt
               if (session && playerId) {
                 const delta = success ? -amount : amount;
-                // Appliquer pénalité (+) ou réduction (-) via addDebt
                 addDebt(code, playerId, playerId, delta, 0).then(res => {
                   setSession(res.session);
                 }).catch(() => {});
               }
-              // Continuer avec la pioche après le mini-jeu
-              handleDraw();
+              // Le mini-jeu remplace le tour : pas de pioche après
+              // Le joueur doit terminer son tour manuellement
             }}
+          />
+        )}
+        {/* Spectateurs : voient le mini-jeu en cours */}
+        {miniGameMode === null && spectatorMiniGame !== null && (
+          <MiniGame
+            mode={spectatorMiniGame.mode}
+            onComplete={() => {}}
+            isSpectator={true}
+            triggeredByName={session?.players.find(p => p.id === spectatorMiniGame.triggeredBy)?.name}
           />
         )}
       </AnimatePresence>

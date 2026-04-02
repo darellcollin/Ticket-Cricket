@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { gameAuthRouter } from "./gameAuthRouter";
 import { savedGamesRouter } from "./savedGamesRouter";
+import { miniGameRouter } from "./miniGameRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -23,6 +24,9 @@ export const appRouter = router({
 
   /** Sauvegarde et chargement de parties (mode solo) */
   savedGames: savedGamesRouter,
+
+  /** Synchronisation des mini-jeux multijoueur */
+  miniGame: miniGameRouter,
 });
 
 export type AppRouter = typeof appRouter;

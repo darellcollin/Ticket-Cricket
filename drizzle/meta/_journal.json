@@ -22,6 +22,13 @@
       "when": 1775138126922,
       "tag": "0002_purple_ben_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1775151200037,
+      "tag": "0003_fuzzy_boom_boom",
+      "breakpoints": true
     }
   ]
 }

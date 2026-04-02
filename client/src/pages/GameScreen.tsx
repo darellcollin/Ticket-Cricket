@@ -1015,7 +1015,7 @@ export function GameScreen() {
 
   return (
     <div
-      className="h-[100dvh] max-w-md mx-auto flex flex-col overflow-hidden select-none relative"
+      className="h-[100dvh] w-full md:max-w-none mx-auto flex flex-col overflow-hidden select-none relative"
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       {/* ── Halos de police — coins ── */}
@@ -1189,9 +1189,9 @@ export function GameScreen() {
       </AnimatePresence>
 
       {/* Zone carte */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 gap-2 pb-1 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center px-4 gap-4 pb-1 min-h-0 md:gap-8">
         {/* Wrapper qui aligne la carte et les boutons sur la même largeur */}
-        <div className="flex flex-col gap-2 items-stretch" style={{ width: "min(calc(57dvh * 5 / 7), 300px)" }}>
+        <div className="flex flex-col gap-2 items-stretch flex-shrink-0" style={{ width: "min(calc(57dvh * 5 / 7), clamp(240px, 30vw, 360px))" }}>
         <div className="relative flex-shrink-0" style={{ aspectRatio: "5/7", perspective: "1200px" }}>
           <AnimatePresence mode="wait">
             {isGameOver ? (
@@ -1346,6 +1346,56 @@ export function GameScreen() {
           </motion.button>
         )}
         </div>{/* /wrapper */}
+
+        {/* Panneau latéral desktop — stats & historique */}
+        <div className="hidden md:flex flex-col gap-4 flex-1 min-w-0 py-4 overflow-y-auto">
+          {/* Stats rapides */}
+          <div className="rounded-2xl border-[3px] border-yellow-400/30 p-4 flex flex-col gap-3" style={{ background: "rgba(0,0,0,0.4)" }}>
+            <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.08em" }} className="text-yellow-400">STATISTIQUES</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-white/10 p-3 flex flex-col gap-1" style={{ background: "rgba(255,255,255,0.04)" }}>
+                <span style={FONT_FREDOKA} className="text-white/40 text-xs">Cartes piochées</span>
+                <span style={{ ...FONT_BANGERS, fontSize: "1.6rem" }} className="text-white">{drawnCount}</span>
+              </div>
+              <div className="rounded-xl border border-white/10 p-3 flex flex-col gap-1" style={{ background: "rgba(255,255,255,0.04)" }}>
+                <span style={FONT_FREDOKA} className="text-white/40 text-xs">Restantes</span>
+                <span style={{ ...FONT_BANGERS, fontSize: "1.6rem" }} className="text-white">{deck.length}</span>
+              </div>
+              <div className="rounded-xl border border-white/10 p-3 flex flex-col gap-1 col-span-2" style={{ background: isEliminated ? "rgba(239,68,68,0.12)" : "rgba(255,215,0,0.08)", borderColor: isEliminated ? "rgba(239,68,68,0.3)" : "rgba(255,215,0,0.2)" }}>
+                <span style={FONT_FREDOKA} className="text-white/40 text-xs">Dette totale</span>
+                <span style={{ ...FONT_BANGERS, fontSize: "2rem" }} className={isEliminated ? "text-red-400" : "text-yellow-400"}>{formatPrice(total)}</span>
+              </div>
+            </div>
+          </div>
+          {/* Historique des dernières cartes */}
+          <div className="rounded-2xl border-[3px] border-white/10 p-4 flex flex-col gap-3 flex-1" style={{ background: "rgba(0,0,0,0.3)" }}>
+            <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.08em" }} className="text-white/60">DERNIÈRES CARTES</div>
+            {drawn.length === 0 ? (
+              <div style={FONT_FREDOKA} className="text-white/25 text-sm text-center py-4">Aucune carte piochée</div>
+            ) : (
+              <div className="flex flex-col gap-2 overflow-y-auto">
+                {[...drawn].reverse().slice(0, 10).map((cardId) => {
+                  const cfg = getCardConfig(cardId);
+                  const amt = drawerNetAmount(cfg);
+                  const catInfo = CATEGORY_INFO[cfg.category];
+                  return (
+                    <div key={cardId} className="flex items-center gap-2 rounded-xl border border-white/8 px-3 py-2" style={{ background: "rgba(255,255,255,0.04)" }}>
+                      <div className="w-7 h-7 rounded-lg border border-black/30 flex items-center justify-center flex-shrink-0" style={{ background: catInfo?.color ?? "#333" }}>
+                        <span style={{ ...FONT_BANGERS, fontSize: "0.65rem" }} className="text-white">{cardId}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div style={FONT_FREDOKA} className="text-white/70 text-xs truncate">{cfg.category}</div>
+                      </div>
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem" }} className={amt > 0 ? "text-red-400" : amt < 0 ? "text-green-400" : "text-white/30"}>
+                        {amt > 0 ? `+${formatPrice(amt)}` : amt < 0 ? formatPrice(amt) : "—"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div
