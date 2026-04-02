@@ -476,7 +476,7 @@ export function RulesScreen() {
 
   return (
     <div
-      className="h-[100dvh] max-w-md mx-auto flex flex-col overflow-hidden"
+      className="h-[100dvh] max-w-md md:max-w-lg lg:max-w-xl mx-auto flex flex-col overflow-hidden"
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       {/* ── Header ── */}

@@ -452,7 +452,7 @@ export function CardCatalogScreen() {
 
   return (
     <div
-      className="h-[100dvh] max-w-md mx-auto flex flex-col overflow-hidden"
+      className="h-[100dvh] max-w-md md:max-w-2xl lg:max-w-4xl mx-auto flex flex-col overflow-hidden"
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       {/* Header */}
@@ -600,7 +600,7 @@ export function CardCatalogScreen() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
             {filtered.map((id) => (
               <CardThumb
                 key={id}

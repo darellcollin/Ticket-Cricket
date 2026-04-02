@@ -1893,7 +1893,7 @@ export function MultiplayerGameScreen() {
   // ── Rendu de chargement ──────────────────────────────────
   if (!session) {
     return (
-      <div className="h-[100dvh] max-w-md mx-auto flex flex-col items-center justify-center gap-4"
+      <div className="h-[100dvh] max-w-md md:max-w-lg lg:max-w-xl mx-auto flex flex-col items-center justify-center gap-4"
         style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 100%)" }}>
         <motion.div animate={{ rotate: [-10, 10, -10], scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
           <img src={ticketImg} alt="" style={{ width: "5rem" }} />

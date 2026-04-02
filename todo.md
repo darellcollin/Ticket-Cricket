@@ -75,7 +75,7 @@
 
 - [x] Interface responsive: GameScreen adapté PC + Mobile (max-width, layout flexible, taille des éléments)
 - [x] Interface responsive: MultiplayerGameScreen adapté PC + Mobile
-- [ ] Interface responsive: Home, Lobby, Rules, CardCatalog adaptés PC + Mobile
+- [x] Interface responsive: Home, LobbyScreen, RulesScreen, CardCatalogScreen adaptés PC + Mobile
 - [x] Mini-jeu: le joueur qui déclenche le mini-jeu NE pioche PAS de carte après (le mini-jeu remplace son tour)
 - [x] Mini-jeu: synchronisation via champ miniGame dans la session Supabase (tous les joueurs voient le mini-jeu simultanément)
 - [x] Mini-jeu: synchronisation via table mini_game_events en DB (tRPC) — tous les joueurs voient le mini-jeu simultanément
