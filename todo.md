@@ -57,4 +57,4 @@
 - [x] Mini-jeu: déclenchement très rare (probabilité ~8%) au début du tour en solo et multijoueur
 - [x] Mini-jeu: barre de progression, timer 10 sec, animations de clic/swipe- [x] Mini-jeu: résultat — réussite: -1000\$ dette, échec: +1000\$ dette- [x] Mini-jeu: intégration dans GameScreen (solo)
 - [x] Mini-jeu: intégration dans MultiplayerGameScreen (visible par tous les joueurs simultanément)
-- [ ] Tests vitest pour les endpoints de sauvegarde (en attente)
+- [x] Tests vitest pour les endpoints de sauvegarde (saveGame, loadGame, deleteSave) — 7 tests, tous passent
