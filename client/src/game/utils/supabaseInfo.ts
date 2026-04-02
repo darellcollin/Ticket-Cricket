@@ -1,0 +1,3 @@
+/* Supabase project info for multiplayer session API */
+export const projectId = "erffiifdvocybltyatuh";
+export const publicAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmZpaWZkdm9jeWJsdHlhdHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjYyOTIsImV4cCI6MjA5MDMwMjI5Mn0.pZ7_ornEwFcEzqwZM2krjSLcCyAgUbvdlzRvB-yvNU8";
