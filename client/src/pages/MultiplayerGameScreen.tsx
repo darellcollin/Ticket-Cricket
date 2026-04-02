@@ -1743,9 +1743,9 @@ export function MultiplayerGameScreen() {
         setTimeout(() => setShowCardFront(true), 320);
       }, 50);
 
-      // Vérifier mon élimination après avoir pioché
-      s = await checkAndEliminate(s, playerId, playerName);
-      setSession(s);
+      // NOTE : L'élimination n'est PAS vérifiée ici après la pioche.
+      // Le joueur doit d'abord lire sa carte et terminer son tour.
+      // checkAndEliminate sera appelé dans handleEndTurn.
 
       // Carte Type 3 : préparer l'envoi manuel (via bouton "Envoyer le ticket")
       if (s.lastCard !== null && s.turnOrder.length > 1 && s.state === "playing") {
@@ -1781,14 +1781,8 @@ export function MultiplayerGameScreen() {
       setSession(s2);
       setPendingT3(null);
 
-      // Vérifier l'élimination du piocheur et du destinataire
-      s2 = await checkAndEliminate(s2, playerId, playerName);
-      setSession(s2);
-      const nextPlayer = s2.players.find((p) => p.id === nextPlayerId);
-      if (nextPlayer) {
-        s2 = await checkAndEliminate(s2, nextPlayerId, nextPlayer.name);
-        setSession(s2);
-      }
+      // NOTE : L'élimination du piocheur et du destinataire n'est PAS vérifiée ici.
+      // Elle sera vérifiée dans handleEndTurn, après que le joueur a lu sa carte.
 
       // Afficher la notification de taxe pour le piocheur
       if (taxAmt > 0) {
@@ -1800,12 +1794,42 @@ export function MultiplayerGameScreen() {
       setIsSendingT3(false);
     }
   };
-
-  // ── Terminer le tour ────────────────────────────────────
+  // ── Terminer le tour ────────────────────────────────────────
+  // L'élimination est vérifiée ICI (après que le joueur a lu sa carte)
+  // et non pas immédiatement après la pioche.
   const handleEndTurn = async () => {
     if (!session || isEndingTurn) return;
     setIsEndingTurn(true);
     try {
+      // Vérifier l'élimination du joueur AVANT de terminer le tour
+      // Cela garantit que le joueur a eu le temps de lire sa carte
+      let currentSession = session;
+      currentSession = await checkAndEliminate(currentSession, playerId, playerName);
+      setSession(currentSession);
+
+      // Vérifier aussi l'élimination du destinataire T3 s'il y en avait un
+      if (currentSession.lastCard !== null) {
+        const lastCfg = getCardConfig(currentSession.lastCard);
+        if (lastCfg.cardType === 3 && currentSession.lastCardDrawnBy === playerId) {
+          const t3TargetId = getNextActivePlayerId(currentSession, playerId);
+          if (t3TargetId) {
+            const t3Target = currentSession.players.find((p) => p.id === t3TargetId);
+            if (t3Target) {
+              currentSession = await checkAndEliminate(currentSession, t3TargetId, t3Target.name);
+              setSession(currentSession);
+            }
+          }
+        }
+      }
+
+      // Si le joueur vient d'être éliminé, ne pas terminer le tour
+      // (le système de pendingEliminationAck prend le relais)
+      const justElim = (currentSession.eliminatedPlayers ?? []).includes(playerId);
+      if (justElim) {
+        setIsEndingTurn(false);
+        return;
+      }
+
       const { session: s } = await endTurn(code, playerId);
       // Mettre à jour la bulle immédiatement pour le joueur courant
       if (s.lastCard !== null && s.lastCardDrawnBy) {
@@ -1826,7 +1850,7 @@ export function MultiplayerGameScreen() {
     }
   };
 
-  // ── Mélanger (host) ─────────────────────────────────────
+  // ── Mélanger (host) ───────────────────────────────────
   const handleReset = async () => {
     if (!isHost || isResetting) return;
     setIsResetting(true);

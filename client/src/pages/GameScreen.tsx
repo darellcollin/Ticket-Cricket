@@ -954,13 +954,28 @@ function SoloMyTicketsPanel({
 export function GameScreen() {
   const [, navigate] = useLocation();
 
-  // Lire le seuil et les filtres depuis localStorage à chaque montage du composant
-  const ELIMINATION_THRESHOLD = readEliminationThreshold();
+  // Lire le seuil et les filtres depuis localStorage UNE SEULE FOIS au montage
+  const thresholdRef = useRef<number | null>(null);
+  if (thresholdRef.current === null) {
+    thresholdRef.current = readEliminationThreshold();
+  }
+  const ELIMINATION_THRESHOLD = thresholdRef.current;
   const noContribuable = readNoContribuable();
 
+  // Sauvegarder le seuil précédent pour détecter un changement de difficulté
+  const PREV_THRESHOLD_KEY = "ticket_cricket_prev_threshold";
   const initialState = useRef<{ deck: number[]; drawn: number[] } | null>(null);
   if (initialState.current === null) {
-    initialState.current = loadState();
+    // Si la difficulté a changé depuis la dernière partie, on reset le deck
+    const prevThreshold = parseInt(localStorage.getItem(PREV_THRESHOLD_KEY) || "0", 10);
+    if (prevThreshold !== ELIMINATION_THRESHOLD) {
+      // Nouvelle difficulté → nouveau deck
+      localStorage.setItem(PREV_THRESHOLD_KEY, String(ELIMINATION_THRESHOLD));
+      initialState.current = { deck: freshDeck(), drawn: [] };
+      saveState(initialState.current.deck, initialState.current.drawn);
+    } else {
+      initialState.current = loadState();
+    }
   }
 
   const [{ deck, drawn }, setState]       = useState(initialState.current);
@@ -979,24 +994,32 @@ export function GameScreen() {
   const total            = computePlayerTotal(drawn);
   const isEliminated     = total >= ELIMINATION_THRESHOLD;
   const [showElimOverlay, setShowElimOverlay] = useState(() => {
-    // Afficher l'overlay si déjà éliminé au chargement
+    // Afficher l'overlay si déjà éliminé au chargement (reprise de partie)
     return computePlayerTotal(initialState.current!.drawn) >= ELIMINATION_THRESHOLD;
   });
 
-  // Détecter l'élimination après chaque carte piochée
-  useEffect(() => {
-    if (isEliminated && !showElimOverlay) {
-      // Petit délai pour laisser l'animation de la carte se terminer
-      const t = setTimeout(() => setShowElimOverlay(true), 700);
-      return () => clearTimeout(t);
-    }
-  }, [isEliminated]);
+  // L'overlay d'élimination ne s'affiche PAS automatiquement après une pioche.
+  // Le joueur doit d'abord lire sa carte, puis cliquer sur "VOIR MON RÉSULTAT"
+  // pour déclencher l'overlay. Cela est géré par le bouton principal qui
+  // appelle setShowElimOverlay(true) quand isEliminated est vrai.
 
   const remaining  = deck.length;
   const drawnCount = drawn.length;
   // Taille totale réelle du deck courant (varie selon les filtres actifs)
   const deckTotal  = remaining + drawnCount;
   const isGameOver = remaining === 0 && drawnCount > 0;
+
+  // ─ Victoire solo : retarder l'overlay pour laisser le joueur lire sa dernière carte ─
+  const [showWinnerOverlay, setShowWinnerOverlay] = useState(false);
+  useEffect(() => {
+    if (isGameOver && !isEliminated) {
+      // Attendre 3 secondes pour que le joueur puisse lire sa dernière carte
+      const t = setTimeout(() => setShowWinnerOverlay(true), 3000);
+      return () => clearTimeout(t);
+    } else {
+      setShowWinnerOverlay(false);
+    }
+  }, [isGameOver, isEliminated]);
 
   // ─ Piocher ─
   const handleDraw = useCallback(() => {
@@ -1070,8 +1093,9 @@ export function GameScreen() {
         transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0 }} />
 
       {/* ── Overlay victoire solo (deck épuisé sans élimination) ── */}
+      {/* Retardé de 3s pour laisser le joueur lire sa dernière carte */}
       <AnimatePresence>
-        {isGameOver && !isEliminated && (
+        {showWinnerOverlay && (
           <WinnerOverlay
             winnerName="Toi"
             isMe={true}

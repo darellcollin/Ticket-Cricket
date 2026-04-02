@@ -4,6 +4,8 @@ import { useState } from "react";
 import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 import { MultiplayerModal } from "@/game/components/MultiplayerModal";
+import { AccountModal } from "@/game/components/AccountModal";
+import { useGameAuth } from "@/hooks/useGameAuth";
 
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 
@@ -130,6 +132,8 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [rulesAnimating, setRulesAnimating] = useState(false);
   const [showMpModal, setShowMpModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const { profile, isAuthenticated, logout } = useGameAuth();
 
   const handleRulesClick = () => {
     if (rulesAnimating) return;
@@ -146,6 +150,46 @@ export default function Home() {
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       <PoliceTape />
+
+      {/* ── ICÔNE COMPTE — haut à droite ── */}
+      <div className="absolute top-[22px] right-3 z-50">
+        {isAuthenticated ? (
+          <div className="flex items-center gap-2">
+            <span
+              style={{ ...FONT_FREDOKA, fontSize: '0.75rem' }}
+              className="text-yellow-400/80 hidden sm:inline"
+            >
+              {profile?.pseudo}
+            </span>
+            <motion.button
+              className="w-10 h-10 rounded-full bg-yellow-400 border-[3px] border-black flex items-center justify-center"
+              style={{ boxShadow: '3px 3px 0px #000' }}
+              whileHover={{ scale: 1.1 } as any}
+              whileTap={{ scale: 0.9 } as any}
+              onClick={() => setShowAccountModal(true)}
+              title={profile?.pseudo}
+            >
+              <span style={{ ...FONT_FREDOKA, fontSize: '1rem', color: '#000' }}>
+                {profile?.pseudo?.charAt(0).toUpperCase()}
+              </span>
+            </motion.button>
+          </div>
+        ) : (
+          <motion.button
+            className="w-10 h-10 rounded-full bg-white/15 border-[2px] border-white/30 flex items-center justify-center backdrop-blur-sm"
+            style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.3)' }}
+            whileHover={{ scale: 1.1, borderColor: 'rgba(255,215,0,0.6)' } as any}
+            whileTap={{ scale: 0.9 } as any}
+            onClick={() => setShowAccountModal(true)}
+            title="Se connecter"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </motion.button>
+        )}
+      </div>
 
       {/* ── ZONE BLEUE CENTRALE avec particules confinées ── */}
       <div className="flex-1 relative overflow-hidden">
@@ -359,6 +403,65 @@ export default function Home() {
       {/* ── Modal Multijoueur ── */}
       <AnimatePresence>
         {showMpModal && <MultiplayerModal onClose={() => setShowMpModal(false)} />}
+      </AnimatePresence>
+
+      {/* ── Modal Compte ── */}
+      <AnimatePresence>
+        {showAccountModal && (
+          isAuthenticated ? (
+            <motion.div
+              className="fixed inset-0 z-[100] flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowAccountModal(false)} />
+              <motion.div
+                className="relative w-[85%] max-w-[340px] rounded-2xl overflow-hidden p-5"
+                style={{
+                  background: 'linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)',
+                  border: '3px solid rgba(255,215,0,0.4)',
+                  boxShadow: '0 0 40px rgba(255,215,0,0.15), 0 20px 60px rgba(0,0,0,0.5)',
+                }}
+                initial={{ scale: 0.8, y: 40 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 40 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              >
+                <button
+                  onClick={() => setShowAccountModal(false)}
+                  className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                >
+                  <span className="text-white text-lg leading-none">&times;</span>
+                </button>
+
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-yellow-400 border-[3px] border-black flex items-center justify-center" style={{ boxShadow: '4px 4px 0px #000' }}>
+                    <span style={{ ...FONT_FREDOKA, fontSize: '1.8rem', color: '#000' }}>
+                      {profile?.pseudo?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <h3 style={{ ...FONT_FREDOKA, fontSize: '1.3rem' }} className="text-yellow-400">{profile?.pseudo}</h3>
+                    <p className="text-white/50 text-sm mt-1">{profile?.email}</p>
+                  </div>
+
+                  <motion.button
+                    className="w-full py-2.5 bg-red-500 border-[3px] border-black rounded-xl text-white"
+                    style={{ ...FONT_FREDOKA, fontSize: '0.95rem', boxShadow: '4px 4px 0px #000' }}
+                    whileHover={{ scale: 1.03 } as any}
+                    whileTap={{ scale: 0.97 } as any}
+                    onClick={async () => { await logout(); setShowAccountModal(false); }}
+                  >
+                    SE DECONNECTER
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          ) : (
+            <AccountModal onClose={() => setShowAccountModal(false)} />
+          )
+        )}
       </AnimatePresence>
     </div>
   );

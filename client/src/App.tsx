@@ -13,8 +13,8 @@ import { MultiplayerGameScreen } from "./pages/MultiplayerGameScreen";
 import { CardAdminScreen } from "./pages/CardAdminScreen";
 import { TestCarteScreen } from "./pages/TestCarteScreen";
 import { CardConfigEditor } from "./pages/CardConfigEditor";
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
