@@ -24,6 +24,7 @@ import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY } from "@/game/components/MultiplayerModal";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
+import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -845,7 +846,7 @@ function SoloMyTicketsPanel({
                       className="relative rounded-xl border-[3px] border-black overflow-hidden cursor-pointer"
                       style={{ aspectRatio: "5/7", boxShadow: "3px 3px 0px #000", background: "#0c1a4e", borderColor: catInfo.color }}
                     >
-                      <MiniCardFace cardNumber={cardNum} />
+                      <GeneratedCard card={getCardConfig(cardNum)} size="xs" style={{ width: '100%', height: '100%' }} />
                       <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: catInfo.color + "ee" }}>
                         <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
                           {net >= 0 ? "+" : ""}{formatPrice(net)}
@@ -892,7 +893,7 @@ function SoloMyTicketsPanel({
                 style={{ width: "min(78vw, 260px)", aspectRatio: "5/7", boxShadow: "10px 10px 0px #000" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <CardFace cardNumber={focusedCard} />
+                <GeneratedCard card={getCardConfig(focusedCard)} size="md" style={{ width: '100%', height: '100%' }} />
               </motion.div>
 
               <div
@@ -1265,7 +1266,15 @@ export function GameScreen() {
                   backfaceVisibility: "hidden",
                 }}
               >
-                {showFront ? <CardFace cardNumber={currentCard} /> : <CardBack />}
+                {showFront ? (
+                  <div className="w-full h-full flex items-center justify-center p-1">
+                    <GeneratedCard card={getCardConfig(currentCard)} size="md" style={{ width: '100%', height: '100%' }} />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <GeneratedCardBack size="md" style={{ width: '100%', height: '100%' }} />
+                  </div>
+                )}
               </motion.div>
             ) : (
               <motion.div

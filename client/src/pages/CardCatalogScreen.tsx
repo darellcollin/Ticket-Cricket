@@ -7,8 +7,8 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
 import { Home, Search, X, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Plus } from "lucide-react";
-import { getCardAssetUrl } from "@/game/utils/cardAssets";
-import { getCardImageUrl } from "@/game/utils/imageDB";
+import { getCardConfig } from "@/game/utils/cardConfig";
+import { GeneratedCard } from "@/game/components/GeneratedCard";
 import {
   CARD_PRICES, getCardData, getCardNetAmount, computeTotal,
   MECHANIC_LABELS, MECHANIC_COLORS,
@@ -22,9 +22,9 @@ const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive"
 
 // ── Palette par mécanisme ──────────────────────────────────────────────────────
 const MECH_STYLE: Record<CardMechanic, { bg: string; border: string; label: string; emoji: string }> = {
-  contravention: { bg: "#DC2626", border: "#991B1B", label: "Contravention", emoji: "🚨" },
-  contribuable:  { bg: "#D97706", border: "#92400E", label: "Contribuable",  emoji: "📋" },
-  investisseur:  { bg: "#7C3AED", border: "#4C1D95", label: "Investisseur",  emoji: "💼" },
+  contravention: { bg: "#D97706", border: "#92400E", label: "Contravention", emoji: "🚨" },
+  contribuable:  { bg: "#16A34A", border: "#14532D", label: "Contribuable",  emoji: "📋" },
+  investisseur:  { bg: "#DB2777", border: "#BE185D", label: "Investisseur",  emoji: "💼" },
   frais_only:    { bg: "#0891B2", border: "#0E7490", label: "Frais",         emoji: "🧾" },
   bonus:         { bg: "#16A34A", border: "#14532D", label: "Bonus",         emoji: "✅" },
 };
@@ -45,23 +45,10 @@ function CardThumb({
   onClick: () => void;
   highlight?: boolean;
 }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
   const data = getCardData(cardNum);
+  const cfg  = getCardConfig(cardNum);
   const net  = getCardNetAmount(cardNum);
   const ms   = MECH_STYLE[data.mechanic];
-
-  useEffect(() => {
-    let cancelled = false;
-    setImgUrl(null);
-    setLoaded(false);
-    const s = getCardAssetUrl(cardNum);
-    if (s) { if (!cancelled) { setImgUrl(s); setLoaded(true); } return; }
-    getCardImageUrl(cardNum).then((url) => {
-      if (!cancelled) { setImgUrl(url); setLoaded(true); }
-    });
-    return () => { cancelled = true; };
-  }, [cardNum]);
 
   return (
     <motion.div
@@ -76,15 +63,7 @@ function CardThumb({
         borderColor: highlight ? ms.bg : "#000",
       }}
     >
-      {loaded && imgUrl ? (
-        <img src={imgUrl} alt={`#${cardNum}`} className="w-full h-full object-contain" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <span style={{ ...FONT_BANGERS, fontSize: "0.7rem" }} className="text-white/30">
-            #{String(cardNum).padStart(3, "0")}
-          </span>
-        </div>
-      )}
+      <GeneratedCard card={cfg} size="xs" style={{ width: '100%', height: '100%' }} />
       {/* Overlay bas — prix net */}
       <div
         className="absolute bottom-0 left-0 right-0 py-[2px] flex flex-col items-center"
@@ -112,26 +91,16 @@ function CardDetail({
   onPrev: () => void;
   onNext: () => void;
 }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
   const [zoomedIn, setZoomedIn] = useState(false);
 
   const data = getCardData(cardNum);
+  const cfg  = getCardConfig(cardNum);
   const net  = getCardNetAmount(cardNum);
   const ms   = MECH_STYLE[data.mechanic];
   const idx  = allFiltered.indexOf(cardNum);
 
   useEffect(() => {
-    let cancelled = false;
-    setImgUrl(null);
-    setLoaded(false);
     setZoomedIn(false);
-    const s = getCardAssetUrl(cardNum);
-    if (s) { if (!cancelled) { setImgUrl(s); setLoaded(true); } return; }
-    getCardImageUrl(cardNum).then((url) => {
-      if (!cancelled) { setImgUrl(url); setLoaded(true); }
-    });
-    return () => { cancelled = true; };
   }, [cardNum]);
 
   return (
@@ -153,36 +122,26 @@ function CardDetail({
         style={{ width: "min(72vw, 270px)", aspectRatio: "5/7" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Image cliquable */}
+        {/* Carte générée */}
         <div
           className="w-full h-full rounded-3xl border-[5px] border-black overflow-hidden cursor-pointer"
           style={{ boxShadow: "10px 10px 0px #000" }}
-          onClick={() => { if (loaded && imgUrl) setZoomedIn(true); }}
+          onClick={() => setZoomedIn(true)}
         >
-          {loaded && imgUrl ? (
-            <img src={imgUrl} alt={`#${cardNum}`} className="w-full h-full object-contain bg-white" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-[#0c1a4e]">
-              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity }}>
-                <img src={ticketImg} alt="" style={{ width: "4rem" }} />
-              </motion.div>
-            </div>
-          )}
+          <GeneratedCard card={cfg} size="md" style={{ width: '100%', height: '100%' }} />
         </div>
 
         {/* Bouton + zoom — déborde en coin bas droit */}
-        {loaded && imgUrl && (
-          <motion.button
-            className="absolute -bottom-4 -right-4 w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center z-20 cursor-pointer"
-            style={{ background: "#FFD700", boxShadow: "3px 3px 0px #000" }}
-            animate={{ scale: [1, 1.18, 1] }}
-            transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-            onClick={() => setZoomedIn(true)}
-            title="Agrandir l'image"
-          >
-            <Plus className="w-5 h-5 text-black" style={{ strokeWidth: 3 }} />
-          </motion.button>
-        )}
+        <motion.button
+          className="absolute -bottom-4 -right-4 w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center z-20 cursor-pointer"
+          style={{ background: "#FFD700", boxShadow: "3px 3px 0px #000" }}
+          animate={{ scale: [1, 1.18, 1] }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+          onClick={() => setZoomedIn(true)}
+          title="Agrandir l'image"
+        >
+          <Plus className="w-5 h-5 text-black" style={{ strokeWidth: 3 }} />
+        </motion.button>
       </motion.div>
 
       {/* Fiche de données */}
@@ -203,40 +162,28 @@ function CardDetail({
             {/* Miniature cliquable avec badge + */}
             <motion.button
               whileTap={{ scale: 0.9 } as any}
-              onClick={() => { if (loaded && imgUrl) setZoomedIn(true); }}
+              onClick={() => setZoomedIn(true)}
               className="relative flex-shrink-0 rounded-xl border-[2px] border-yellow-300 overflow-visible cursor-pointer"
               style={{
                 width: "42px",
                 aspectRatio: "5/7",
                 background: "#0c1a4e",
                 boxShadow: "2px 2px 0px #000",
-                opacity: loaded && imgUrl ? 1 : 0.4,
               }}
-              disabled={!loaded || !imgUrl}
               title="Agrandir la carte"
             >
               <div className="w-full h-full rounded-[10px] overflow-hidden">
-                {loaded && imgUrl ? (
-                  <img src={imgUrl} alt="" className="w-full h-full object-contain" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span style={{ ...FONT_BANGERS, fontSize: "0.45rem" }} className="text-white/30">
-                      #{String(cardNum).padStart(3, "0")}
-                    </span>
-                  </div>
-                )}
+                <GeneratedCard card={cfg} size="xs" style={{ width: '100%', height: '100%' }} />
               </div>
               {/* Badge + jaune en coin supérieur droit */}
-              {loaded && imgUrl && (
-                <motion.div
-                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full border-[2px] border-black flex items-center justify-center z-20"
-                  style={{ background: "#FFD700", boxShadow: "1px 1px 0px #000" }}
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Plus className="w-3 h-3 text-black" style={{ strokeWidth: 3 }} />
-                </motion.div>
-              )}
+              <motion.div
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full border-[2px] border-black flex items-center justify-center z-20"
+                style={{ background: "#FFD700", boxShadow: "1px 1px 0px #000" }}
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Plus className="w-3 h-3 text-black" style={{ strokeWidth: 3 }} />
+              </motion.div>
             </motion.button>
 
             <div>
@@ -343,9 +290,9 @@ function CardDetail({
         </motion.button>
       </motion.div>
 
-      {/* ── Vue plein écran de l'image ── */}
+      {/* ── Vue plein écran de la carte ── */}
       <AnimatePresence>
-        {zoomedIn && imgUrl && (
+        {zoomedIn && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -387,7 +334,7 @@ function CardDetail({
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <img src={imgUrl} alt={`#${cardNum}`} className="w-full h-full object-contain bg-white" />
+              <GeneratedCard card={cfg} size="lg" style={{ width: '100%', height: '100%' }} />
             </motion.div>
 
             {/* Bouton fermer */}

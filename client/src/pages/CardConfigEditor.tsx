@@ -15,7 +15,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft, ChevronRight, Home, Copy, Check, RotateCcw, Code } from "lucide-react";
-import { getCardAssetUrl } from "@/game/utils/cardAssets";
+import { getCardConfig } from "@/game/utils/cardConfig";
+import { GeneratedCard } from "@/game/components/GeneratedCard";
 
 // ─── Types locaux ────────────────────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ export function CardConfigEditor() {
   const [copied,    setCopied]    = useState(false);
   const [skipBlank, setSkipBlank] = useState(false);
 
-  const imgUrl     = getCardAssetUrl(cardNum);
+  const cardCfg    = getCardConfig(cardNum);
   const configured = saved[cardNum] !== undefined;
   const doneCount  = Object.keys(saved).length;
   const progress   = Math.round((doneCount / TOTAL) * 100);
@@ -300,16 +301,7 @@ export function CardConfigEditor() {
               boxShadow: "5px 5px 0 #000",
             }}
           >
-            {imgUrl ? (
-              <img src={imgUrl} alt={`Carte ${cardNum}`} className="w-full h-full object-contain" />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                <span className="text-4xl opacity-20">🃏</span>
-                <span className="text-white/20 text-xs" style={{ fontFamily: "'Fredoka One', cursive" }}>
-                  Cartes ({cardNum})
-                </span>
-              </div>
-            )}
+            <GeneratedCard card={cardCfg} size="sm" style={{ width: '100%', height: '100%' }} />
           </div>
         </div>
 

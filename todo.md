@@ -17,3 +17,17 @@
 - [x] Tests vitest pour les endpoints d'authentification
 - [x] Fix bug: limite de difficulté qui changeait entre les pioches (threshold figé avec useRef + reset deck si difficulté change)
 - [x] Ajustement visuel : bouton de compte décalé de 9px vers le bas (marginTop)
+- [x] Créer cardMefaits.ts — mapping numéro de carte → texte du méfait (placeholders initiaux)
+- [x] Créer composant GeneratedCard — design contravention policière avec type/méfait/prix/détails
+- [x] Intégrer GeneratedCard dans GameScreen (solo) à la place des images PNG
+- [x] Intégrer GeneratedCard dans MultiplayerGameScreen
+- [x] Intégrer GeneratedCard dans CardCatalogScreen / CardAdminScreen
+- [x] Intégrer GeneratedCard dans TestCarteScreen
+- [ ] Générer la liste complète des 324 cartes organisée par catégorie pour l'utilisateur
+- [ ] Terminer migration GameScreen: supprimer tous les rendus legacy CardFace/CardBack et getCardAssetUrl/getCardImageUrl
+- [ ] Terminer migration MultiplayerGameScreen: supprimer tous les rendus legacy CardFace/CardBack et getCardAssetUrl/getCardImageUrl
+- [ ] Vérification technique: grep confirmant aucun rendu actif n'utilise getCardAssetUrl/getCardImageUrl dans les écrans de jeu
+- [x] Refonte design cartes: couleur jaune pour contraventions, vert pour contribuables, rose pour investisseurs
+- [x] Refonte design cartes: texte et prix beaucoup plus gros et lisibles
+- [x] Refonte design cartes: style cohérent avec le thème arcade/police du jeu (Bangers, Fredoka, bordures épaisses)
+- [ ] Nettoyer les composants legacy CardFace/CardBack/MiniCardFace et imports getCardAssetUrl/getCardImageUrl

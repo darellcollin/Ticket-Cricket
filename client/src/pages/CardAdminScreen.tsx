@@ -9,8 +9,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
 import { Home, X, ChevronLeft, ChevronRight, Target, User, ArrowRight, Banknote, Layers, Plus } from "lucide-react";
-import { getCardAssetUrl } from "@/game/utils/cardAssets";
-import { getCardImageUrl } from "@/game/utils/imageDB";
+import { GeneratedCard } from "@/game/components/GeneratedCard";
 import {
   getCardConfig, drawerNetAmount, nextPlayerAmount,
   formatPrice, CATEGORY_INFO, CATEGORY_ORDER, ALL_CARD_IDS,
@@ -31,16 +30,6 @@ function CardThumb({
   isSelected: boolean;
   onClick:    () => void;
 }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const s = getCardAssetUrl(cardNum);
-    if (s) { setImgUrl(s); return; }
-    getCardImageUrl(cardNum).then((u) => { if (!cancelled) setImgUrl(u); });
-    return () => { cancelled = true; };
-  }, [cardNum]);
-
   const catInfo  = CATEGORY_INFO[cfg.category];
   const net      = drawerNetAmount(cfg);
 
@@ -56,16 +45,7 @@ function CardThumb({
         background:  "#0c1a4e",
       }}
     >
-      {imgUrl
-        ? <img src={imgUrl} alt="" className="w-full h-full object-contain" />
-        : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span style={{ ...FONT_BANGERS, fontSize: "0.55rem" }} className="text-white/20">
-              #{String(cardNum).padStart(3, "0")}
-            </span>
-          </div>
-        )
-      }
+      <GeneratedCard card={cfg} size="xs" style={{ width: '100%', height: '100%' }} />
 
       {/* Prix net en bas */}
       <div
@@ -107,7 +87,6 @@ function CardDetail({
   onNext:      () => void;
   filteredIds: number[];
 }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const cfg      = getCardConfig(cardId);
   const catInfo  = CATEGORY_INFO[cfg.category];
@@ -116,13 +95,7 @@ function CardDetail({
   const idx      = filteredIds.indexOf(cardId);
 
   useEffect(() => {
-    let cancelled = false;
-    setImgUrl(null);
     setZoomed(false);
-    const s = getCardAssetUrl(cardId);
-    if (s) { setImgUrl(s); return; }
-    getCardImageUrl(cardId).then((u) => { if (!cancelled) setImgUrl(u); });
-    return () => { cancelled = true; };
   }, [cardId]);
 
   return (
@@ -199,36 +172,22 @@ function CardDetail({
               <div
                 className="w-full h-full rounded-2xl border-[4px] border-black overflow-hidden cursor-pointer"
                 style={{ boxShadow: "8px 8px 0px #000", background: "#0c1a4e" }}
-                onClick={() => { if (imgUrl) setZoomed(true); }}
+                onClick={() => setZoomed(true)}
               >
-                {imgUrl ? (
-                  <img src={imgUrl} alt={`#${cardId}`} className="w-full h-full object-contain bg-white" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <motion.img
-                      src={ticketImg}
-                      alt=""
-                      style={{ width: "3.5rem" }}
-                      animate={{ opacity: [0.4, 1, 0.4] }}
-                      transition={{ duration: 1.2, repeat: Infinity }}
-                    />
-                  </div>
-                )}
+                <GeneratedCard card={cfg} size="sm" style={{ width: '100%', height: '100%' }} />
               </div>
 
               {/* Bouton + zoom — déborde en coin bas droit */}
-              {imgUrl && (
-                <motion.button
-                  className="absolute -bottom-4 -right-4 w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center z-20"
-                  style={{ background: "#FFD700", boxShadow: "3px 3px 0px #000" }}
-                  animate={{ scale: [1, 1.18, 1] }}
-                  transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-                  onClick={() => setZoomed(true)}
-                  title="Agrandir la carte"
-                >
-                  <Plus className="w-5 h-5 text-black" style={{ strokeWidth: 3 }} />
-                </motion.button>
-              )}
+              <motion.button
+                className="absolute -bottom-4 -right-4 w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center z-20"
+                style={{ background: "#FFD700", boxShadow: "3px 3px 0px #000" }}
+                animate={{ scale: [1, 1.18, 1] }}
+                transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                onClick={() => setZoomed(true)}
+                title="Agrandir la carte"
+              >
+                <Plus className="w-5 h-5 text-black" style={{ strokeWidth: 3 }} />
+              </motion.button>
             </div>
           </div>
 
@@ -302,7 +261,7 @@ function CardDetail({
 
       {/* ── Overlay zoom plein écran ── */}
       <AnimatePresence>
-        {zoomed && imgUrl && (
+        {zoomed && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -334,7 +293,7 @@ function CardDetail({
               style={{ width: "min(90vw, 380px)", aspectRatio: "5/7", boxShadow: "12px 12px 0px #000" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <img src={imgUrl} alt={`#${cardId}`} className="w-full h-full object-contain bg-white" />
+              <GeneratedCard card={cfg} size="lg" style={{ width: '100%', height: '100%' }} />
             </motion.div>
 
             {/* Bouton fermer */}

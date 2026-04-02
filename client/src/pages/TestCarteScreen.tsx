@@ -6,13 +6,14 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Home, Grid, Maximize } from "lucide-react";
 import { useLocation } from "wouter";
-import { getCardAssetUrl } from "@/game/utils/cardAssets";
+import { getCardConfig } from "@/game/utils/cardConfig";
+import { GeneratedCard } from "@/game/components/GeneratedCard";
 
 const TOTAL = 324;
 
 // ── Vue unique (une carte à la fois) ────────────────────────────────────────
 function SingleView({ num, setNum }: { num: number; setNum: (n: number) => void }) {
-  const imgUrl = getCardAssetUrl(num);
+  const cfg = getCardConfig(num);
 
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-4 flex-1">
@@ -31,14 +32,7 @@ function SingleView({ num, setNum }: { num: number; setNum: (n: number) => void 
         className="w-full max-w-[240px] rounded-2xl border-4 border-yellow-400 overflow-hidden"
         style={{ aspectRatio: "5/7", background: "#111827", boxShadow: "4px 4px 0 #000" }}
       >
-        {imgUrl
-          ? <img src={imgUrl} alt={`Carte ${num}`} className="w-full h-full object-contain" />
-          : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-white/20 text-4xl">?</span>
-            </div>
-          )
-        }
+        <GeneratedCard card={cfg} size="md" style={{ width: '100%', height: '100%' }} />
       </div>
 
       {/* Navigation gauche/droite */}
@@ -149,7 +143,7 @@ function GridView({ onSelectCard }: { onSelectCard: (n: number) => void }) {
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         <div className="grid grid-cols-4 gap-2">
           {cards.map((num) => {
-            const imgUrl = getCardAssetUrl(num);
+            const cfg = getCardConfig(num);
             return (
               <button
                 key={num}
@@ -160,10 +154,7 @@ function GridView({ onSelectCard }: { onSelectCard: (n: number) => void }) {
                   className="w-full rounded-xl border-[2px] border-white/20 overflow-hidden"
                   style={{ aspectRatio: "5/7", background: "#111827", boxShadow: "2px 2px 0 #000" }}
                 >
-                  {imgUrl
-                    ? <img src={imgUrl} alt={`Carte ${num}`} className="w-full h-full object-contain" />
-                    : <div className="w-full h-full flex items-center justify-center"><span className="text-white/20 text-xs">?</span></div>
-                  }
+                  <GeneratedCard card={cfg} size="xs" style={{ width: '100%', height: '100%' }} />
                 </div>
                 <span className="text-yellow-400 text-xs font-bold leading-none" style={{ fontFamily: "'Bangers', cursive" }}>
                   #{num}

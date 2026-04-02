@@ -31,6 +31,7 @@ import { filterByCategory } from "@/game/utils/cardCategories";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 import ticketImg from "@/game/utils/ticketImg";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
+import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -1206,7 +1207,7 @@ function MyTicketsPanel({
                               borderColor: cfg.cardType === 2 ? "#16A34A" : cfg.cardType === 3 ? "#7C3AED" : "#000",
                             }}
                           >
-                            <CardFace cardNumber={cardNum} mini />
+                            <GeneratedCard card={getCardConfig(cardNum)} size="xs" style={{ width: '100%', height: '100%' }} />
                             <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: bgC + "ee" }}>
                               <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
                                 {net >= 0 ? "+" : ""}{formatPrice(net)}
@@ -1252,7 +1253,7 @@ function MyTicketsPanel({
                               background: "#0c1a4e",
                             }}
                           >
-                            <CardFace cardNumber={cardNum} mini />
+                            <GeneratedCard card={getCardConfig(cardNum)} size="xs" style={{ width: '100%', height: '100%' }} />
                             <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: "#EC4899ee" }}>
                               <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
                                 +{formatPrice(nextAmt)}
@@ -1305,7 +1306,7 @@ function MyTicketsPanel({
                 style={{ width: "min(78vw, 260px)", aspectRatio: "5/7", boxShadow: "10px 10px 0px #000", borderColor: focusedIsReceived ? "#EC4899" : "#000" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <CardFace cardNumber={focusedCard} />
+                <GeneratedCard card={getCardConfig(focusedCard)} size="md" style={{ width: '100%', height: '100%' }} />
               </motion.div>
 
               <div
@@ -2850,8 +2851,8 @@ export function MultiplayerGameScreen() {
                 style={{ boxShadow: "8px 8px 0px #000", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
               >
                 {showCardFront && !cardHiddenByViewer && !isT3Spectator
-                  ? <CardFace cardNumber={session.lastCard} />
-                  : <CardBack />
+                  ? <div className="w-full h-full"><GeneratedCard card={getCardConfig(session.lastCard)} size="md" style={{ width: '100%', height: '100%' }} /></div>
+                  : <div className="w-full h-full"><GeneratedCardBack size="md" style={{ width: '100%', height: '100%' }} /></div>
                 }
                 {showCardFront && lastCardBy && !cardHiddenByViewer && !isT3Spectator && (
                   <div className="absolute bottom-3 left-0 right-0 flex justify-center">
@@ -3108,7 +3109,7 @@ export function MultiplayerGameScreen() {
                 className="rounded-3xl border-[5px] border-yellow-400 overflow-hidden mt-[14px]"
                 style={{ width: "min(78vw, 260px)", aspectRatio: "5/7", boxShadow: "10px 10px 0px #000" }}
               >
-                <CardFace cardNumber={bubbleCard.cardNum} />
+                <GeneratedCard card={getCardConfig(bubbleCard.cardNum)} size="sm" style={{ width: '100%', height: '100%' }} />
               </div>
               <motion.button
                 whileTap={{ scale: 0.9 } as any}
