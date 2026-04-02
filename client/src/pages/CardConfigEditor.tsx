@@ -158,7 +158,7 @@ export function CardConfigEditor() {
   };
 
   const catColor = cardNum <= 108 ? "#DC2626" : cardNum <= 216 ? "#D97706" : "#7C3AED";
-  const catLabel = cardNum <= 108 ? "🚨 Contravention" : cardNum <= 216 ? "📋 Contribuable" : "💼 Investisseur";
+  const catLabel = cardNum <= 108 ? "Contravention" : cardNum <= 216 ? "Contribuable" : "Investisseur";
 
   // ── Rendu ──────────────────────────────────────────────────────────────────
 
@@ -362,7 +362,7 @@ export function CardConfigEditor() {
           {draft.cardType === 1 && (
             <div className="flex flex-col gap-2">
               <PriceInput
-                label="💵 Ticket (dette du piocheur)"
+                label="Ticket (dette du piocheur)"
                 value={draft.ticketPrice}
                 onChange={(v) => updateDraft("ticketPrice", v)}
                 placeholder="ex: 150"
@@ -370,7 +370,7 @@ export function CardConfigEditor() {
                 required
               />
               <PriceInput
-                label="📄 Frais additionnels (optionnel)"
+                label="Frais additionnels (optionnel)"
                 value={draft.frais}
                 onChange={(v) => updateDraft("frais", v)}
                 placeholder="ex: 50 — laisser vide si aucun"
@@ -383,7 +383,7 @@ export function CardConfigEditor() {
           {draft.cardType === 2 && (
             <div className="flex flex-col gap-2">
               <PriceInput
-                label="📉 Impôts = réduction de dette (optionnel)"
+                label="Impôts = réduction de dette (optionnel)"
                 value={draft.impots}
                 onChange={(v) => updateDraft("impots", v)}
                 placeholder="ex: 75 — laisser vide si aucun"
@@ -399,7 +399,7 @@ export function CardConfigEditor() {
           {draft.cardType === 3 && (
             <div className="flex flex-col gap-2">
               <PriceInput
-                label="➡️ Ticket du joueur SUIVANT"
+                label="Ticket du joueur SUIVANT"
                 value={draft.ticketPrice}
                 onChange={(v) => updateDraft("ticketPrice", v)}
                 placeholder="ex: 500"
@@ -407,7 +407,7 @@ export function CardConfigEditor() {
                 required
               />
               <PriceInput
-                label="✅ Taxe = réduction du PIOCHEUR (optionnel)"
+                label="Taxe = réduction du PIOCHEUR (optionnel)"
                 value={draft.taxe}
                 onChange={(v) => updateDraft("taxe", v)}
                 placeholder="ex: 100 — laisser vide si aucune"
@@ -497,7 +497,7 @@ export function CardConfigEditor() {
             }}
           >
             <span className="text-white text-lg tracking-wide">
-              {cardNum === TOTAL ? "💾 SAUVEGARDER" : "✅ SAUVEGARDER & SUIVANT"}
+              {cardNum === TOTAL ? "SAUVEGARDER" : "SAUVEGARDER & SUIVANT"}
             </span>
             {cardNum < TOTAL && <ChevronRight className="w-5 h-5 text-white" />}
           </button>

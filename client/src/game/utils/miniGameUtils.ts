@@ -1,5 +1,5 @@
 /**
- * Utilitaires pour le mini-jeu surprise.
+ * Utilitaires pour les Perquisitions.
  * Séparé du composant MiniGame pour permettre le Fast Refresh de Vite.
  */
 

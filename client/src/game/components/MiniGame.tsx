@@ -1,5 +1,5 @@
 /**
- * MiniGame — Mini-jeu surprise qui se déclenche rarement en début de tour.
+ * MiniGame — Perquisition qui se déclenche rarement en début de tour.
  * Deux modes :
  *  - "run"  : Clics/taps rapides pour s'enfuir de la police (10 sec)
  *  - "hide" : Clics sur flèches / swipe / touches clavier dans les directions indiquées (10 sec)
@@ -16,6 +16,8 @@
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { Trophy } from "lucide-react";
+import ticketImg from "@/game/utils/ticketImg";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -235,11 +237,11 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
             style={{ background: isRun ? "#DC2626" : "#065F46" }}
           >
             <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }} className="text-white">
-              MINI-JEU EN COURS
+              PERQUISITION EN COURS
             </div>
             <div className="px-3 py-1 rounded-xl border-[2px] border-black" style={{ background: "rgba(0,0,0,0.3)" }}>
               <span style={{ ...FONT_BANGERS, fontSize: "1.1rem" }} className="text-yellow-400">
-                {isRun ? "🏃 ENFUIS-TOI" : "🫣 CACHE-TOI"}
+                {isRun ? "ENFUIS-TOI" : "CACHE-TOI"}
               </span>
             </div>
           </div>
@@ -247,9 +249,8 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
             <motion.div
               animate={{ scale: [1, 1.1, 1], rotate: [-5, 5, -5] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              style={{ fontSize: "4rem" }}
             >
-              {isRun ? "🏃" : "🫣"}
+              <img src={ticketImg} alt="" style={{ width: "4rem" }} />
             </motion.div>
             <div style={{ ...FONT_BANGERS, fontSize: "1.5rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center">
               {triggeredByName ? `${triggeredByName} joue !` : "Un joueur joue !"}
@@ -313,11 +314,11 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
           style={{ background: isRun ? "#DC2626" : "#065F46" }}
         >
           <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }} className="text-white">
-            MINI-JEU SURPRISE
+            PERQUISITION !
           </div>
           <div className="px-3 py-1 rounded-xl border-[2px] border-black" style={{ background: "rgba(0,0,0,0.3)" }}>
             <span style={{ ...FONT_BANGERS, fontSize: "1.1rem" }} className="text-yellow-400">
-              {isRun ? "🏃 ENFUIS-TOI" : "🫣 CACHE-TOI"}
+              {isRun ? "ENFUIS-TOI" : "CACHE-TOI"}
             </span>
           </div>
         </div>
@@ -338,9 +339,8 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                   animate={{ rotate: [-5, 5, -5], scale: [1, 1.1, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                   className="text-center"
-                  style={{ fontSize: "4rem" }}
                 >
-                  {isRun ? "🏃" : "🫣"}
+                  <img src={ticketImg} alt="" style={{ width: "4rem" }} />
                 </motion.div>
                 <div style={{ ...FONT_BANGERS, fontSize: "1.8rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center leading-tight">
                   {isRun ? "ENFUIS-TOI DE LA POLICE !" : "CACHE-TOI DE LA POLICE !"}
@@ -430,9 +430,8 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                       <motion.div
                         animate={{ scale: [1, 1.15, 1], rotate: [-3, 3, -3] }}
                         transition={{ duration: 0.4, repeat: Infinity }}
-                        style={{ fontSize: "3rem" }}
                       >
-                        🏃
+                        <img src={ticketImg} alt="" style={{ width: "2.5rem" }} />
                       </motion.div>
                       <div style={{ ...FONT_BANGERS, fontSize: "1.3rem", letterSpacing: "0.08em" }} className="text-yellow-400">
                         CLIQUE ICI !
@@ -442,9 +441,9 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                       className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
                       animate={{ x: [0, -8, 0], rotate: [-5, 5, -5] }}
                       transition={{ duration: 0.5, repeat: Infinity }}
-                      style={{ fontSize: "2.5rem", opacity: 0.6 }}
+                      style={{ opacity: 0.7 }}
                     >
-                      🚔
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="10" width="22" height="11" rx="2" /><path d="M7 10V7a5 5 0 0 1 10 0v3" /><circle cx="8" cy="16" r="1.5" fill="#3b82f6" /><circle cx="16" cy="16" r="1.5" fill="#3b82f6" /></svg>
                     </motion.div>
                   </div>
                 ) : (
@@ -500,7 +499,10 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                   className="w-24 h-24 rounded-2xl border-[4px] border-black flex items-center justify-center"
                   style={{ background: success ? "#16a34a" : "#DC2626", boxShadow: "6px 6px 0px #000" }}
                 >
-                  <span style={{ fontSize: "3rem" }}>{success ? "🏆" : "🚨"}</span>
+                  {success
+                    ? <Trophy className="w-12 h-12 text-white" />
+                    : <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                  }
                 </motion.div>
                 <div style={{ ...FONT_BANGERS, fontSize: "2rem", letterSpacing: "0.08em" }} className={success ? "text-green-400" : "text-red-400"}>
                   {success ? "RÉUSSI !" : "ATTRAPÉ !"}

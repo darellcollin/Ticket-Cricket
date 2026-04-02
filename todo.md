@@ -83,3 +83,13 @@
 - [x] Mini-jeu PC: clics de souris pour "Enfuis-toi" (au lieu de taps tactiles uniquement)
 - [x] Mini-jeu PC: clics de souris sur les flèches directionnelles pour "Cache-toi" (au lieu de swipe uniquement)
 - [x] Supprimer le nom du joueur sur la carte piochée (ni sur la carte, ni sous la carte)
+
+## Modifications session 5
+
+- [x] Image ticket: remplacer le SVG jaune par le nouveau PNG violet (ticket 3D avec étoiles et pièce)
+- [x] Titre accueil: même police (Bangers) et couleur que le dos des cartes piochées
+- [x] Élimination: ajouter bouton "Voir le dernier ticket reçu" dans l'animation d'élimination (accessible à tous)
+- [x] Emojis: supprimer tous les emojis des interfaces et boutons (sauf fond d'accueil)
+- [x] Méfaits T2 contribuables: intégrer les textes des cartes 76-129 dans cardMefaits.ts
+- [x] Règles: améliorer la section "mécaniques" avec explication des Perquisitions (ex-mini-jeux)
+- [x] Renommer "mini-jeu surprise" en "Perquisition" partout dans le jeu

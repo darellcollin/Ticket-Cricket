@@ -14,6 +14,11 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle,
+  Search,
+  MousePointerClick,
+  MoveHorizontal,
+  Timer,
+  Users,
 } from "lucide-react";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 
@@ -267,6 +272,82 @@ function SectionMechanics() {
         </div>
       </RuleBlock>
 
+      {/* Perquisitions */}
+      <RuleBlock
+        icon={<Search className="w-5 h-5" />}
+        title="PERQUISITIONS"
+        color="text-red-300"
+        bg="rgba(127,29,29,0.45)"
+        border="border-red-700"
+        delay={0.15}
+      >
+        <InfoLine
+          icon={<AlertTriangle className="w-3.5 h-3.5 text-red-400/80 mt-0.5" />}
+          text="Une Perquisition peut se déclencher aléatoirement (2% de chance) quand un joueur pioche une carte. Elle s'active pour TOUS les joueurs simultanément."
+        />
+        <InfoLine
+          icon={<AlertTriangle className="w-3.5 h-3.5 text-red-400/80 mt-0.5" />}
+          text="Le joueur qui déclenche la Perquisition ne pioche pas de carte ce tour-là. La Perquisition remplace son tour."
+        />
+        <div className="mt-2 flex flex-col gap-2">
+          <p style={FONT_FREDOKA} className="text-yellow-300 text-xs uppercase tracking-wider">
+            Deux types de Perquisitions :
+          </p>
+          <div className="flex items-start gap-3 bg-black/30 rounded-xl p-2.5 border border-red-800/50">
+            <div className="w-9 h-9 bg-red-600 border-[2px] border-black rounded-lg flex items-center justify-center flex-shrink-0"
+                 style={{ boxShadow: "2px 2px 0px #000" }}>
+              <MousePointerClick className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p style={FONT_FREDOKA} className="text-red-300 text-sm font-bold">ENFUIS-TOI !</p>
+              <p style={FONT_FREDOKA} className="text-white/80 text-xs leading-snug">
+                Clique (ou tape) le plus vite possible sur la zone centrale. Atteins le seuil de clics avant la fin du compte à rebours de 10 secondes pour t'en sortir.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 bg-black/30 rounded-xl p-2.5 border border-blue-800/50">
+            <div className="w-9 h-9 bg-blue-600 border-[2px] border-black rounded-lg flex items-center justify-center flex-shrink-0"
+                 style={{ boxShadow: "2px 2px 0px #000" }}>
+              <MoveHorizontal className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p style={FONT_FREDOKA} className="text-blue-300 text-sm font-bold">CACHE-TOI !</p>
+              <p style={FONT_FREDOKA} className="text-white/80 text-xs leading-snug">
+                Fais glisser (ou clique sur les flèches) dans la bonne direction indiquée. Enchaîne les bons mouvements avant la fin du compte à rebours de 10 secondes.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 mt-1">
+            <Timer className="w-4 h-4 text-yellow-400/70 mt-0.5 flex-shrink-0" />
+            <p style={FONT_FREDOKA} className="text-white/70 text-xs leading-snug">
+              <span className="text-green-400">Réussite :</span> tu t'échappes sans conséquence.  <span className="text-red-400">Échec :</span> tu reçois une amende supplémentaire. Le résultat s'applique à chaque joueur individuellement.
+            </p>
+          </div>
+        </div>
+      </RuleBlock>
+
+      {/* Multijoueur */}
+      <RuleBlock
+        icon={<Users className="w-5 h-5" />}
+        title="MULTIJOUEUR"
+        color="text-purple-300"
+        bg="rgba(88,28,135,0.45)"
+        border="border-purple-700"
+        delay={0.2}
+      >
+        <InfoLine
+          icon={<ArrowRight className="w-3.5 h-3.5 text-purple-400/70 mt-0.5" />}
+          text="Jusqu'à 10 joueurs. Crée une partie et partage le code à tes amis. Chacun doit marquer Prêt avant que le host puisse lancer."
+        />
+        <InfoLine
+          icon={<ArrowRight className="w-3.5 h-3.5 text-purple-400/70 mt-0.5" />}
+          text="Les tours s'enchainent automatiquement. Un indicateur montre toujours de qui c'est le tour."
+        />
+        <InfoLine
+          icon={<ArrowRight className="w-3.5 h-3.5 text-purple-400/70 mt-0.5" />}
+          text="Quand un joueur est éliminé, la partie continue avec les joueurs restants jusqu'à ce qu'il n'en reste qu'un."
+        />
+      </RuleBlock>
 
     </div>
   );

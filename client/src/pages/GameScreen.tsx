@@ -152,17 +152,20 @@ function EliminationOverlay({
   drawnCount,
   threshold,
   totalCards,
+  lastCardNum,
   onRestart,
   onMenu,
 }: {
-  total:      number;
-  drawnCount: number;
-  threshold:  number;
+  total:       number;
+  drawnCount:  number;
+  threshold:   number;
   totalCards?: number;
-  onRestart:  () => void;
-  onMenu:     () => void;
+  lastCardNum?: number | null;
+  onRestart:   () => void;
+  onMenu:      () => void;
 }) {
   const [confirmMenu, setConfirmMenu] = useState(false);
+  const [showLastCard, setShowLastCard] = useState(false);
 
   return (
     <motion.div
@@ -260,6 +263,18 @@ function EliminationOverlay({
         transition={{ delay: 0.55 }}
         className="flex flex-col gap-2.5 w-full max-w-xs flex-shrink-0"
       >
+        {/* Bouton voir le dernier ticket */}
+        {lastCardNum != null && (
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowLastCard(true)}
+            className="w-full py-3.5 bg-[#1a083d] border-[4px] border-purple-500 rounded-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+            style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em", color: "#c084fc", boxShadow: "4px 4px 0px #000" }}
+          >
+            <Layers className="w-5 h-5" />
+            VOIR LE DERNIER TICKET
+          </motion.button>
+        )}
         <div className="relative">
           <motion.div
             className="absolute inset-0 rounded-2xl bg-yellow-400 -z-10"
@@ -293,6 +308,48 @@ function EliminationOverlay({
           RETOUR AU MENU
         </motion.button>
       </motion.div>
+
+      {/* ── Modal dernier ticket ── */}
+      <AnimatePresence>
+        {showLastCard && lastCardNum != null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[95] flex items-center justify-center p-6"
+            style={{ background: "rgba(0,0,0,0.90)" }}
+            onClick={() => setShowLastCard(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.7, rotate: -5 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 22 }}
+              className="flex flex-col items-center gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", color: "#c084fc", textShadow: "2px 2px 0px #000" }}>
+                DERNIER TICKET RECU
+              </div>
+              <div
+                className="rounded-2xl border-[5px] border-black overflow-hidden"
+                style={{ width: 220, height: 310, boxShadow: "8px 8px 0px #000, 0 0 40px rgba(192,132,252,0.3)" }}
+              >
+                <GeneratedCard card={getCardConfig(lastCardNum)} size="md" style={{ width: "100%", height: "100%" }} />
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.93 }}
+                onClick={() => setShowLastCard(false)}
+                className="px-8 py-3 bg-purple-600 border-[4px] border-black rounded-2xl flex items-center gap-2"
+                style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em", color: "#fff", boxShadow: "4px 4px 0px #000" }}
+              >
+                <X className="w-5 h-5" />
+                FERMER
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Confirmation quitter depuis l'overlay élimination ── */}
       <AnimatePresence>
@@ -891,7 +948,7 @@ export function GameScreen() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showSaveLeaveOptions, setShowSaveLeaveOptions] = useState(false);
 
-  // ─ Mini-jeu surprise ─
+  // ─ Perquisition ─
   const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
   const [miniGameBonus, setMiniGameBonus] = useState(0); // Bonus/pénalité cumulé des mini-jeux
 
@@ -1415,6 +1472,7 @@ export function GameScreen() {
             drawnCount={drawnCount}
             threshold={ELIMINATION_THRESHOLD}
             totalCards={deckTotal}
+            lastCardNum={currentCard}
             onRestart={doReset}
             onMenu={() => {
               // Effacer la partie sauvegardée → repartir à zéro au prochain lancement
@@ -1655,7 +1713,7 @@ export function GameScreen() {
         )}
       </AnimatePresence>
 
-      {/* ─ Mini-jeu surprise ─ */}
+      {/* ─ Perquisition ─ */}
       <AnimatePresence>
         {miniGameMode !== null && (
           <MiniGame

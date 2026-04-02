@@ -261,12 +261,12 @@ export function LobbyScreen() {
                 </div>
                 <div className="flex items-center gap-1">
                   {player.id === session.hostId ? (
-                    <span style={FONT_FREDOKA} className="text-yellow-400 text-xs bg-yellow-400/10 px-2 py-0.5 rounded-full border border-yellow-400/30">
-                      Host ✓
+                    <span style={FONT_FREDOKA} className="text-yellow-400 text-xs bg-yellow-400/10 px-2 py-0.5 rounded-full border border-yellow-400/30 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Host
                     </span>
                   ) : player.ready ? (
-                    <span style={FONT_FREDOKA} className="text-green-400 text-xs bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/30">
-                      ✓ Prêt
+                    <span style={FONT_FREDOKA} className="text-green-400 text-xs bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/30 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Prêt
                     </span>
                   ) : (
                     <span style={FONT_FREDOKA} className="text-white/40 text-xs bg-white/5 px-2 py-0.5 rounded-full border border-white/10">

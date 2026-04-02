@@ -336,15 +336,17 @@ function PrisonBars() {
 // EliminationPauseOverlay — overlay pour le joueur éliminé
 // ────────────────────────────────────────────────────────────
 function EliminationPauseOverlay({
-  playerName, total, threshold, myCardsCount, onAcknowledge, isAcknowledging,
+  playerName, total, threshold, myCardsCount, lastCardNum, onAcknowledge, isAcknowledging,
 }: {
   playerName: string;
   total: number;
   threshold: number;
   myCardsCount: number;
+  lastCardNum?: number | null;
   onAcknowledge: () => void;
   isAcknowledging: boolean;
 }) {
+  const [showLastCard, setShowLastCard] = useState(false);
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -458,6 +460,26 @@ function EliminationPauseOverlay({
         Appuie sur le bouton pour devenir spectateur<br />et laisser la partie continuer.
       </motion.p>
 
+      {/* Bouton voir le dernier ticket */}
+      {lastCardNum != null && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.65 }}
+          className="relative z-10 w-full max-w-xs flex-shrink-0"
+        >
+          <motion.button
+            whileTap={{ scale: 0.95 } as any}
+            onClick={() => setShowLastCard(true)}
+            className="w-full py-3.5 bg-[#1a083d] border-[4px] border-purple-500 rounded-2xl flex items-center justify-center gap-2"
+            style={{ ...FONT_BANGERS, fontSize: "1.05rem", letterSpacing: "0.06em", color: "#c084fc", boxShadow: "4px 4px 0px #000" }}
+          >
+            <Layers className="w-5 h-5" />
+            VOIR LE DERNIER TICKET
+          </motion.button>
+        </motion.div>
+      )}
+
       {/* Bouton terminer */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
@@ -487,6 +509,48 @@ function EliminationPauseOverlay({
           </span>
         </motion.button>
       </motion.div>
+
+      {/* ── Modal dernier ticket ── */}
+      <AnimatePresence>
+        {showLastCard && lastCardNum != null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center p-6"
+            style={{ background: "rgba(0,0,0,0.90)" }}
+            onClick={() => setShowLastCard(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.7, rotate: -5 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 22 }}
+              className="flex flex-col items-center gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", color: "#c084fc", textShadow: "2px 2px 0px #000" }}>
+                DERNIER TICKET RECU
+              </div>
+              <div
+                className="rounded-2xl border-[5px] border-black overflow-hidden"
+                style={{ width: 220, height: 310, boxShadow: "8px 8px 0px #000, 0 0 40px rgba(192,132,252,0.3)" }}
+              >
+                <GeneratedCard card={getCardConfig(lastCardNum)} size="md" style={{ width: "100%", height: "100%" }} />
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.93 } as any}
+                onClick={() => setShowLastCard(false)}
+                className="px-8 py-3 bg-purple-600 border-[4px] border-black rounded-2xl flex items-center gap-2"
+                style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em", color: "#fff", boxShadow: "4px 4px 0px #000" }}
+              >
+                <X className="w-5 h-5" />
+                FERMER
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -1395,7 +1459,7 @@ export function MultiplayerGameScreen() {
   const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel]     = useState(false);
 
-  // ─ Mini-jeu surprise (synchronisé via tRPC) ─
+  // ─ Perquisition (synchronisée via tRPC) ─
   const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
   // spectateur : état du mini-jeu en cours déclenché par un autre joueur
   const [spectatorMiniGame, setSpectatorMiniGame] = useState<{ mode: "run" | "hide"; triggeredBy: string } | null>(null);
@@ -2001,6 +2065,7 @@ export function MultiplayerGameScreen() {
             total={myTotal}
             threshold={ELIMINATION_THRESHOLD}
             myCardsCount={myCards.length}
+            lastCardNum={myCards.length > 0 ? myCards[myCards.length - 1] : null}
             onAcknowledge={handleAcknowledge}
             isAcknowledging={isAcknowledging}
           />
@@ -3380,7 +3445,7 @@ export function MultiplayerGameScreen() {
         )}
       </AnimatePresence>
 
-      {/* ─ Mini-jeu surprise (multijoueur) ─ */}
+      {/* ─ Perquisition (multijoueur) ─ */}
       <AnimatePresence>
         {/* Joueur actif : joue le mini-jeu */}
         {miniGameMode !== null && (

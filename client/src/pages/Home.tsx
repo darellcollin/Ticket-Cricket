@@ -274,7 +274,7 @@ export default function Home() {
               }}
               transition={{ duration: 3.0, repeat: Infinity, ease: "easeInOut" }}
             >
-              <img src={ticketImg} alt="Ticket" style={{ width: "100%", display: "block" }} />
+              <img src={ticketImg} alt="Ticket" style={{ width: "100%", display: "block", marginTop: '-23px' }} />
             </motion.div>
 
             <motion.div
@@ -282,24 +282,39 @@ export default function Home() {
               animate={{ rotate: [-2, 2, -2], scale: [1, 1.04, 1] }}
               transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span
-                style={{
-                  ...FONT_FREDOKA,
-                  fontSize: "2.4rem",
-                  letterSpacing: "0.05em",
-                  lineHeight: 1,
-                  display: "block",
-                  textAlign: "center",
-                  background: "linear-gradient(135deg, #FF3B30 0%, #FFD700 50%, #007AFF 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  filter:
-                    "drop-shadow(3px 3px 0px rgba(0,0,0,0.8)) drop-shadow(0px 0px 20px rgba(255,215,0,0.3))",
-                }}
-              >
-                TICKET CRICKET
-              </span>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                <span
+                  style={{
+                    fontFamily: "'Bangers', cursive",
+                    fontSize: "2.8rem",
+                    letterSpacing: "0.1em",
+                    lineHeight: 1,
+                    display: "block",
+                    textAlign: "center",
+                    color: "#FFD700",
+                    fontWeight: 900,
+                    textShadow: "3px 3px 0px #000, -1px -1px 0px rgba(255,255,255,0.1), 0px 0px 20px rgba(255,215,0,0.4)",
+                    transform: "skewX(-3deg)",
+                  }}
+                >
+                  TICKET
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Bangers', cursive",
+                    fontSize: "2.0rem",
+                    letterSpacing: "0.15em",
+                    lineHeight: 1,
+                    display: "block",
+                    textAlign: "center",
+                    color: "#FFFFFF",
+                    fontWeight: 900,
+                    textShadow: "2px 2px 0px #000",
+                  }}
+                >
+                  CRICKET
+                </span>
+              </div>
             </motion.div>
           </div>
 
