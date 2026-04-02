@@ -1,148 +1,365 @@
-/**
- * HomeScreen — Ticket Cricket 2026
- * Design: Arcade Urbaine — fond sombre, particules flottantes, Bangers + Fredoka One
- */
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
-import { BookOpen, Layers } from "lucide-react";
+import { useState } from "react";
+import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 import { MultiplayerModal } from "@/game/components/MultiplayerModal";
 
-const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 
-// Floating background particles
+// ── Particules flottantes en arrière-plan ──
 const BG_PARTICLES = [
-  { e: "🎫", top: 5, left: 4, size: 2.4, fd: 4.2, dist: 18, rd: 5.1, d: 0.0, o: 0.60 },
-  { e: "🚨", top: 12, left: 80, size: 2.2, fd: 3.5, dist: 14, rd: 3.8, d: 0.7, o: 0.50 },
-  { e: "🚔", top: 20, left: 52, size: 2.6, fd: 5.0, dist: 22, rd: 6.5, d: 1.2, o: 0.45 },
-  { e: "🚓", top: 30, left: 88, size: 2.2, fd: 3.8, dist: 16, rd: 4.2, d: 0.3, o: 0.50 },
-  { e: "🎫", top: 38, left: 2, size: 2.5, fd: 4.6, dist: 20, rd: 5.8, d: 1.8, o: 0.55 },
-  { e: "🚨", top: 50, left: 72, size: 2.4, fd: 3.2, dist: 12, rd: 3.5, d: 0.5, o: 0.52 },
-  { e: "🚔", top: 60, left: 16, size: 2.5, fd: 4.8, dist: 24, rd: 7.0, d: 2.1, o: 0.45 },
-  { e: "🚓", top: 68, left: 84, size: 2.2, fd: 3.6, dist: 15, rd: 4.5, d: 0.9, o: 0.50 },
-  { e: "🎫", top: 78, left: 42, size: 2.6, fd: 5.2, dist: 19, rd: 6.0, d: 1.5, o: 0.58 },
-  { e: "🚨", top: 88, left: 8, size: 2.3, fd: 3.3, dist: 13, rd: 3.9, d: 0.4, o: 0.45 },
-  { e: "🚔", top: 93, left: 68, size: 2.5, fd: 4.0, dist: 17, rd: 5.3, d: 2.5, o: 0.50 },
-  { e: "🚓", top: 25, left: 30, size: 2.2, fd: 3.7, dist: 14, rd: 4.8, d: 1.0, o: 0.45 },
-  { e: "🎫", top: 55, left: 94, size: 2.4, fd: 4.4, dist: 21, rd: 5.6, d: 0.2, o: 0.55 },
-  { e: "🚔", top: 44, left: 38, size: 2.2, fd: 3.4, dist: 11, rd: 4.0, d: 1.7, o: 0.45 },
-  { e: "🚨", top: 72, left: 58, size: 2.4, fd: 4.9, dist: 23, rd: 6.2, d: 0.8, o: 0.50 },
-  { e: "🚓", top: 15, left: 45, size: 2.1, fd: 3.9, dist: 15, rd: 4.4, d: 1.3, o: 0.45 },
-  { e: "🎫", top: 83, left: 22, size: 2.5, fd: 4.3, dist: 18, rd: 5.7, d: 0.6, o: 0.58 },
+  { e: "🎫",  top: 5,   left: 4,   size: 2.4, fd: 4.2, dist: 18, rd: 5.1, d: 0.0, o: 0.60, t: true  },
+  { e: "🚨",  top: 12,  left: 80,  size: 2.2, fd: 3.5, dist: 14, rd: 3.8, d: 0.7, o: 0.50, t: false },
+  { e: "🚔",  top: 20,  left: 52,  size: 2.6, fd: 5.0, dist: 22, rd: 6.5, d: 1.2, o: 0.45, t: false },
+  { e: "🚓",  top: 30,  left: 88,  size: 2.2, fd: 3.8, dist: 16, rd: 4.2, d: 0.3, o: 0.50, t: false },
+  { e: "🎫",  top: 38,  left: 2,   size: 2.5, fd: 4.6, dist: 20, rd: 5.8, d: 1.8, o: 0.55, t: true  },
+  { e: "🚨",  top: 50,  left: 72,  size: 2.4, fd: 3.2, dist: 12, rd: 3.5, d: 0.5, o: 0.52, t: false },
+  { e: "🚔",  top: 60,  left: 16,  size: 2.5, fd: 4.8, dist: 24, rd: 7.0, d: 2.1, o: 0.45, t: false },
+  { e: "🚓",  top: 68,  left: 84,  size: 2.2, fd: 3.6, dist: 15, rd: 4.5, d: 0.9, o: 0.50, t: false },
+  { e: "🎫",  top: 78,  left: 42,  size: 2.6, fd: 5.2, dist: 19, rd: 6.0, d: 1.5, o: 0.58, t: true  },
+  { e: "🚨",  top: 88,  left: 8,   size: 2.3, fd: 3.3, dist: 13, rd: 3.9, d: 0.4, o: 0.45, t: false },
+  { e: "🚔",  top: 93,  left: 68,  size: 2.5, fd: 4.0, dist: 17, rd: 5.3, d: 2.5, o: 0.50, t: false },
+  { e: "🚓",  top: 25,  left: 30,  size: 2.2, fd: 3.7, dist: 14, rd: 4.8, d: 1.0, o: 0.45, t: false },
+  { e: "🎫",  top: 55,  left: 94,  size: 2.4, fd: 4.4, dist: 21, rd: 5.6, d: 0.2, o: 0.55, t: true  },
+  { e: "🚔",  top: 44,  left: 38,  size: 2.2, fd: 3.4, dist: 11, rd: 4.0, d: 1.7, o: 0.45, t: false },
+  { e: "🚨",  top: 72,  left: 58,  size: 2.4, fd: 4.9, dist: 23, rd: 6.2, d: 0.8, o: 0.50, t: false },
+  { e: "🚓",  top: 15,  left: 45,  size: 2.1, fd: 3.9, dist: 15, rd: 4.4, d: 1.3, o: 0.45, t: false },
+  { e: "🎫",  top: 83,  left: 22,  size: 2.5, fd: 4.3, dist: 18, rd: 5.7, d: 0.6, o: 0.58, t: true  },
+  { e: "🎫",  top: 8,   left: 58,  size: 2.3, fd: 4.5, dist: 16, rd: 5.0, d: 0.9, o: 0.55, t: true  },
+  { e: "🚔",  top: 33,  left: 62,  size: 2.2, fd: 3.6, dist: 13, rd: 4.3, d: 2.0, o: 0.45, t: false },
+  { e: "🎫",  top: 47,  left: 22,  size: 2.4, fd: 4.8, dist: 20, rd: 5.5, d: 1.1, o: 0.58, t: true  },
+  { e: "🚨",  top: 62,  left: 46,  size: 2.3, fd: 3.4, dist: 15, rd: 4.0, d: 0.3, o: 0.48, t: false },
+  { e: "🚓",  top: 18,  left: 10,  size: 2.2, fd: 4.1, dist: 14, rd: 4.6, d: 1.6, o: 0.45, t: false },
+  { e: "🎫",  top: 90,  left: 46,  size: 2.5, fd: 5.0, dist: 19, rd: 6.1, d: 0.5, o: 0.55, t: true  },
+  { e: "🚔",  top: 75,  left: 76,  size: 2.3, fd: 3.8, dist: 16, rd: 4.7, d: 1.4, o: 0.48, t: false },
+  { e: "🎫",  top: 3,   left: 76,  size: 2.2, fd: 4.2, dist: 15, rd: 5.2, d: 2.2, o: 0.52, t: true  },
 ];
+
+function BackgroundParticles() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {BG_PARTICLES.map((p, i) => (
+        <motion.div
+          key={i}
+          style={{
+            position: "absolute",
+            top: `${p.top}%`,
+            left: `${p.left}%`,
+            width: p.t ? `${p.size * 16}px` : undefined,
+            fontSize: p.t ? undefined : `${p.size}rem`,
+            lineHeight: 1,
+            opacity: p.o,
+            display: "block",
+            userSelect: "none",
+          }}
+          animate={{
+            y: [0, -p.dist, p.dist * 0.4, -p.dist * 0.6, 0],
+            x: [0, p.dist * 0.3, -p.dist * 0.2, p.dist * 0.15, 0],
+            rotate: [0, 180, 360],
+            scale: [1, 1.15, 0.9, 1.05, 1],
+          }}
+          transition={{
+            y:      { duration: p.fd,        repeat: Infinity, ease: "easeInOut", delay: p.d },
+            x:      { duration: p.fd * 1.3,  repeat: Infinity, ease: "easeInOut", delay: p.d + 0.4 },
+            rotate: { duration: p.rd,        repeat: Infinity, ease: "linear",    delay: p.d },
+            scale:  { duration: p.fd * 0.8,  repeat: Infinity, ease: "easeInOut", delay: p.d + 0.2 },
+          }}
+        >
+          {p.t
+            ? <img src={ticketImg} alt="" style={{ width: `${p.size * 16}px`, display: "block" }} />
+            : p.e
+          }
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function SpeechBubble() {
+  return (
+    <motion.div
+      className="relative"
+      animate={{ y: [0, -5, 0], rotate: [-1, 1.5, -1] }}
+      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+    >
+      <div
+        className="absolute inset-0 bg-black"
+        style={{ transform: "translate(4px, 4px)", borderRadius: "1rem" }}
+      />
+      <div
+        className="relative px-4 py-1.5 border-[3px] border-black"
+        style={{ background: "#fffbe6", borderRadius: "1rem" }}
+      >
+        <span
+          style={{
+            ...FONT_FREDOKA,
+            fontSize: "0.88rem",
+            color: "#1a1a1a",
+            display: "block",
+            textAlign: "center",
+            letterSpacing: "0.02em",
+          }}
+        >
+          Prêt à recevoir vos tickets ?
+        </span>
+        <div
+          className="absolute -bottom-[14px] left-6"
+          style={{
+            width: 0, height: 0,
+            borderLeft: "10px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "14px solid #1a1a1a",
+          }}
+        />
+        <div
+          className="absolute -bottom-[10px] left-[26px]"
+          style={{
+            width: 0, height: 0,
+            borderLeft: "8px solid transparent",
+            borderRight: "5px solid transparent",
+            borderTop: "12px solid #fffbe6",
+          }}
+        />
+      </div>
+    </motion.div>
+  );
+}
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const [showModal, setShowModal] = useState(false);
+  const [rulesAnimating, setRulesAnimating] = useState(false);
+  const [showMpModal, setShowMpModal] = useState(false);
+
+  const handleRulesClick = () => {
+    if (rulesAnimating) return;
+    setRulesAnimating(true);
+    setTimeout(() => {
+      navigate("/rules");
+      setRulesAnimating(false);
+    }, 320);
+  };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950">
-      {/* Background particles */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {BG_PARTICLES.map((p, i) => (
-          <motion.div
-            key={i}
-            className="absolute select-none"
-            style={{
-              top: `${p.top}%`,
-              left: `${p.left}%`,
-              fontSize: `${p.size}rem`,
-              opacity: p.o,
-            }}
-            animate={{
-              y: [0, -p.dist, 0],
-              rotate: [0, 360],
-            }}
-            transition={{
-              y: { duration: p.fd, repeat: Infinity, ease: "easeInOut", delay: p.d },
-              rotate: { duration: p.rd, repeat: Infinity, ease: "linear", delay: p.d },
-            }}
-          >
-            {p.e}
-          </motion.div>
-        ))}
+    <div
+      className="h-[100dvh] max-w-md mx-auto flex flex-col overflow-hidden"
+      style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
+    >
+      <PoliceTape />
+
+      {/* ── ZONE BLEUE CENTRALE avec particules confinées ── */}
+      <div className="flex-1 relative overflow-hidden">
+
+        {/* ── HALOS DE POLICE — coins ── */}
+        <motion.div
+          className="absolute pointer-events-none z-0"
+          style={{ top: -60, left: -60, width: 220, height: 220, borderRadius: "50%" }}
+          animate={{
+            background: [
+              "radial-gradient(circle, rgba(255,40,30,0.62) 0%, rgba(255,40,30,0.22) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(255,40,30,0.10) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(0,100,255,0.10) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(0,100,255,0.62) 0%, rgba(0,100,255,0.22) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(255,40,30,0.62) 0%, rgba(255,40,30,0.22) 38%, transparent 68%)",
+            ],
+            scale: [1, 1.08, 1.03, 1.08, 1],
+          }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+        />
+        <motion.div
+          className="absolute pointer-events-none z-0"
+          style={{ top: -60, right: -60, width: 220, height: 220, borderRadius: "50%" }}
+          animate={{
+            background: [
+              "radial-gradient(circle, rgba(0,100,255,0.62) 0%, rgba(0,100,255,0.22) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(0,100,255,0.10) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(255,40,30,0.10) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(255,40,30,0.62) 0%, rgba(255,40,30,0.22) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(0,100,255,0.62) 0%, rgba(0,100,255,0.22) 38%, transparent 68%)",
+            ],
+            scale: [1, 1.08, 1.03, 1.08, 1],
+          }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0.55 }}
+        />
+        <motion.div
+          className="absolute pointer-events-none z-0"
+          style={{ bottom: -60, left: -60, width: 200, height: 200, borderRadius: "50%" }}
+          animate={{
+            background: [
+              "radial-gradient(circle, rgba(0,100,255,0.50) 0%, rgba(0,100,255,0.18) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(0,100,255,0.08) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(255,40,30,0.08) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(255,40,30,0.50) 0%, rgba(255,40,30,0.18) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(0,100,255,0.50) 0%, rgba(0,100,255,0.18) 38%, transparent 68%)",
+            ],
+          }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0.55 }}
+        />
+        <motion.div
+          className="absolute pointer-events-none z-0"
+          style={{ bottom: -60, right: -60, width: 200, height: 200, borderRadius: "50%" }}
+          animate={{
+            background: [
+              "radial-gradient(circle, rgba(255,40,30,0.50) 0%, rgba(255,40,30,0.18) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(255,40,30,0.08) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(0,100,255,0.08) 0%, transparent 55%)",
+              "radial-gradient(circle, rgba(0,100,255,0.50) 0%, rgba(0,100,255,0.18) 38%, transparent 68%)",
+              "radial-gradient(circle, rgba(255,40,30,0.50) 0%, rgba(255,40,30,0.18) 38%, transparent 68%)",
+            ],
+          }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+        />
+
+        <BackgroundParticles />
+
+        {/* ── MAIN CONTENT ── */}
+        <div className="relative z-10 flex flex-col items-center justify-between h-full px-6 pt-2 pb-3 overflow-hidden">
+
+          {/* ── LOGO + TITRE groupés en haut ── */}
+          <div className="flex flex-col items-center w-full">
+            <motion.div
+              style={{ width: "8.5rem", lineHeight: 1, display: "block", userSelect: "none" }}
+              animate={{
+                y: [0, -16, 0],
+                rotate: [-8, 8, -8],
+                filter: [
+                  "drop-shadow(0 6px 0px rgba(0,0,0,0.5))",
+                  "drop-shadow(0 14px 0px rgba(0,0,0,0.35))",
+                  "drop-shadow(0 6px 0px rgba(0,0,0,0.5))",
+                ],
+              }}
+              transition={{ duration: 3.0, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <img src={ticketImg} alt="Ticket" style={{ width: "100%", display: "block" }} />
+            </motion.div>
+
+            <motion.div
+              style={{ marginTop: "-2.5rem", zIndex: 2, position: "relative" }}
+              animate={{ rotate: [-2, 2, -2], scale: [1, 1.04, 1] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <span
+                style={{
+                  ...FONT_FREDOKA,
+                  fontSize: "2.4rem",
+                  letterSpacing: "0.05em",
+                  lineHeight: 1,
+                  display: "block",
+                  textAlign: "center",
+                  background: "linear-gradient(135deg, #FF3B30 0%, #FFD700 50%, #007AFF 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  filter:
+                    "drop-shadow(3px 3px 0px rgba(0,0,0,0.8)) drop-shadow(0px 0px 20px rgba(255,215,0,0.3))",
+                }}
+              >
+                TICKET CRICKET
+              </span>
+            </motion.div>
+          </div>
+
+          {/* ── BOUTONS — toujours visibles en bas ── */}
+          <div className="flex flex-col items-center gap-3 w-full">
+            <div style={{ zIndex: 2, position: "relative" }}>
+              <SpeechBubble />
+            </div>
+
+            {/* ── JOUER BUTTON ── */}
+            <div className="relative w-full max-w-[220px]">
+              <motion.div
+                className="absolute inset-0 rounded-2xl bg-yellow-400 -z-10"
+                animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <motion.button
+                className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-black relative overflow-hidden"
+                style={{
+                  ...FONT_FREDOKA,
+                  letterSpacing: "0.1em",
+                  fontSize: "1.7rem",
+                  boxShadow: "5px 5px 0px #000",
+                }}
+                whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
+                whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                onClick={() => setShowMpModal(true)}
+              >
+                <motion.div
+                  className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                  animate={{ x: ["-100%", "400%"] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+                />
+                JOUER
+              </motion.button>
+            </div>
+
+            {/* ── RÈGLES BUTTON ── */}
+            <div className="relative w-full max-w-[220px]">
+              <motion.div
+                className="absolute inset-0 rounded-2xl bg-blue-500 -z-10"
+                animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <motion.button
+                className="w-full py-2.5 bg-[#1565C0] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                style={{
+                  ...FONT_FREDOKA,
+                  letterSpacing: "0.1em",
+                  fontSize: "1.7rem",
+                  boxShadow: "5px 5px 0px #000",
+                }}
+                whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
+                whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                onClick={handleRulesClick}
+              >
+                <motion.div
+                  className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                  animate={{ x: ["-100%", "400%"] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+                />
+                RÈGLES
+              </motion.button>
+            </div>
+
+            {/* ── CATALOGUE BUTTON ── */}
+            <div className="relative w-full max-w-[220px]">
+              <motion.button
+                className="w-full py-2 bg-[#7C3AED] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                style={{
+                  ...FONT_FREDOKA,
+                  letterSpacing: "0.08em",
+                  fontSize: "1.1rem",
+                  boxShadow: "5px 5px 0px #000",
+                }}
+                whileHover={{ scale: 1.05, y: -2, boxShadow: "7px 7px 0px #000" } as any}
+                whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                onClick={() => navigate("/admin")}
+              >
+                <motion.div
+                  className="absolute inset-0 w-1/3 bg-white/15 skew-x-[-20deg]"
+                  animate={{ x: ["-100%", "400%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+                />
+                CATALOGUE DES CARTES
+              </motion.button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4">
-        {/* Police tape top */}
-        <div className="absolute top-0 left-0 right-0">
-          <PoliceTape>
-            <span className="text-sm tracking-widest">TICKET CRICKET — NE PAS FRANCHIR</span>
-          </PoliceTape>
-        </div>
+      <PoliceTape />
 
-        {/* Logo / Title */}
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", damping: 12, delay: 0.2 }}
-          className="mb-8 text-center"
-        >
-          <div className="mb-2 text-6xl">🎫</div>
-          <h1
-            className="text-6xl sm:text-7xl text-yellow-400 drop-shadow-[0_4px_8px_rgba(251,191,36,0.3)]"
-            style={FONT_BANGERS}
-          >
-            TICKET
-          </h1>
-          <h1
-            className="text-6xl sm:text-7xl text-emerald-400 drop-shadow-[0_4px_8px_rgba(52,211,153,0.3)] -mt-2"
-            style={FONT_BANGERS}
-          >
-            CRICKET
-          </h1>
-          <p className="mt-2 text-slate-400 text-sm tracking-wider" style={FONT_FREDOKA}>
-            Le jeu de cartes d'amendes
-          </p>
-        </motion.div>
-
-        {/* Buttons */}
-        <motion.div
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col gap-3 w-full max-w-xs"
-        >
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-full rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-500 px-8 py-4 text-2xl font-bold text-black shadow-lg shadow-yellow-500/20 transition-transform hover:scale-105 active:scale-95"
-            style={FONT_BANGERS}
-          >
-            JOUER
-          </button>
-
-          <button
-            onClick={() => navigate("/rules")}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-800 border border-slate-700 px-8 py-3 text-lg text-slate-200 transition-colors hover:bg-slate-700"
-            style={FONT_FREDOKA}
-          >
-            <BookOpen size={20} />
-            Règles du jeu
-          </button>
-
-          <button
-            onClick={() => navigate("/catalog")}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-800 border border-slate-700 px-8 py-3 text-lg text-slate-200 transition-colors hover:bg-slate-700"
-            style={FONT_FREDOKA}
-          >
-            <Layers size={20} />
-            Catalogue des cartes
-          </button>
-        </motion.div>
-
-        {/* Police tape bottom */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <PoliceTape>
-            <span className="text-sm tracking-widest">ZONE DE CONTRAVENTIONS</span>
-          </PoliceTape>
-        </div>
+      {/* Bottom label */}
+      <div className="w-full bg-[#111] py-1 text-center flex-shrink-0" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
+        <span style={FONT_FREDOKA} className="text-yellow-400/60 text-xs tracking-widest">
+          © TICKET CRICKET 2026
+        </span>
       </div>
 
-      {/* Multiplayer modal */}
-      <MultiplayerModal open={showModal} onClose={() => setShowModal(false)} />
+      {/* ── Modal Multijoueur ── */}
+      <AnimatePresence>
+        {showMpModal && <MultiplayerModal onClose={() => setShowMpModal(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

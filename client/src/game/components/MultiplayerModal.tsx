@@ -1,306 +1,774 @@
 /**
- * Modal multijoueur — Créer / Rejoindre une session, ou lancer le solo.
+ * Modal multijoueur — affiché quand on clique sur JOUER.
+ * 3 options : Jouer seul / Créer une partie / Rejoindre.
  */
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  X, Plus, Users, Gamepad2, ChevronRight, Coins, Crosshair, Skull,
+  Check, AlertTriangle, FileText, User, TrendingUp,
+} from "lucide-react";
+import { createSession, joinSession, mpStorage } from "@/game/utils/sessionApi";
 import { useLocation } from "wouter";
-import { X, Users, Plus, LogIn, Gamepad2, ChevronLeft } from "lucide-react";
-import { createSession, joinSession, mpStorage } from "../utils/sessionApi";
-import { getCardConfig, ALL_CARD_IDS } from "../utils/cardConfig";
+import { ALL_CARD_IDS, getCardConfig } from "@/game/utils/cardConfig";
+import ticketImg from "@/game/utils/ticketImg";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 
-export const SOLO_DIFFICULTY_KEY = "solo_difficulty";
-export const SOLO_NO_CONTRIBUABLE_KEY = "solo_no_contribuable";
+// ── Clés localStorage ─────────────────────────────────────────
+export const SOLO_DIFFICULTY_KEY       = "ticket_cricket_difficulty";
+export const SOLO_NO_CONTRIBUABLE_KEY  = "ticket_cricket_no_contribuable";
 
+// ── Niveaux de difficulté ──────────────────────────────────────
 export const DIFFICULTIES = [
-  { label: "Facile", threshold: 20000, emoji: "😊" },
-  { label: "Normal", threshold: 10000, emoji: "😐" },
-  { label: "Difficile", threshold: 5000, emoji: "😈" },
-];
+  {
+    key: "bandit",
+    label: "BANDIT",
+    subtitle: "Mode rapide",
+    desc: "Limite faible — Pour ceux qui veulent aller en prison rapidement",
+    threshold: 5_000,
+    color: "#16A34A",
+    border: "#15803D",
+    Icon: Coins,
+  },
+  {
+    key: "delinquant",
+    label: "DÉLINQUANT",
+    subtitle: "Mode normal",
+    desc: "Limite classique — Pour ceux qui veulent éviter la prison facilement",
+    threshold: 10_000,
+    color: "#CA8A04",
+    border: "#A16207",
+    Icon: Crosshair,
+  },
+  {
+    key: "criminel",
+    label: "CRIMINEL",
+    subtitle: "Mode difficile",
+    desc: "Limite élevée — Pour ceux qui veulent s'enfuir de prison",
+    threshold: 20_000,
+    color: "#DC2626",
+    border: "#991B1B",
+    Icon: Skull,
+  },
+] as const;
 
-type View = "menu" | "create" | "join" | "solo";
+type DifficultyKey = (typeof DIFFICULTIES)[number]["key"];
+type View = "menu" | "create" | "join" | "difficulty-solo";
 
-interface MultiplayerModalProps {
-  open: boolean;
+interface Props {
   onClose: () => void;
 }
 
-function computeAllowedCardIds(noContribuable: boolean): number[] {
+// ── Utilitaires deck ──────────────────────────────────────────
+function computeAllowedCardIds(disableT2: boolean, disableT3: boolean): number[] {
   return ALL_CARD_IDS.filter((id) => {
     const cfg = getCardConfig(id);
-    if (noContribuable && cfg.cardType === 2) return false;
+    if (disableT2 && cfg.cardType === 2) return false;
+    if (disableT3 && cfg.cardType === 3) return false;
     return true;
   });
 }
 
-export function MultiplayerModal({ open, onClose }: MultiplayerModalProps) {
+// ── DifficultySelector ────────────────────────────────────────
+function DifficultySelector({
+  selected,
+  onChange,
+}: {
+  selected: DifficultyKey;
+  onChange: (k: DifficultyKey) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label style={FONT_FREDOKA} className="text-white/70 text-sm">
+        Limite de tickets avant élimination
+      </label>
+      {DIFFICULTIES.map((d) => {
+        const isActive = selected === d.key;
+        return (
+          <motion.button
+            key={d.key}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => onChange(d.key)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+            style={{
+              borderColor: isActive ? d.color : "rgba(255,255,255,0.15)",
+              background: isActive ? d.color + "22" : "rgba(255,255,255,0.05)",
+              boxShadow: isActive ? `3px 3px 0px #000` : "2px 2px 0px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+              style={{ background: isActive ? d.color : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+            >
+              <d.Icon className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span
+                  style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }}
+                  className={isActive ? "text-white" : "text-white/50"}
+                >
+                  {d.label}
+                </span>
+                <span
+                  style={FONT_FREDOKA}
+                  className={`text-xs ${isActive ? "text-white/70" : "text-white/30"}`}
+                >
+                  {d.subtitle}
+                </span>
+              </div>
+              <div style={FONT_FREDOKA} className={`text-xs leading-none mt-0.5 ${isActive ? "text-white/60" : "text-white/25"}`}>
+                {d.desc}
+              </div>
+            </div>
+            <div
+              className="flex-shrink-0 px-2 py-1 rounded-lg border-[2px] border-black"
+              style={{ background: isActive ? d.color : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+            >
+              <span style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.04em" }} className="text-white">
+                {d.threshold.toLocaleString("fr-CA")}$
+              </span>
+            </div>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── CardFilterToggle — bascule individuelle avec confirmation ──
+interface FilterToggleProps {
+  label: string;
+  sublabel: string;
+  confirmMsg: string;
+  active: boolean;
+  color: string;
+  Icon: React.ElementType;
+  onConfirm: (val: boolean) => void;
+}
+function CardFilterToggle({ label, sublabel, confirmMsg, active, color, Icon, onConfirm }: FilterToggleProps) {
+  // "idle" | "confirm-on" | "confirm-off"
+  const [pendingState, setPendingState] = useState<"idle" | "confirm-on" | "confirm-off">("idle");
+
+  const handleClick = () => {
+    if (active) {
+      // Pas de confirmation pour réactiver — action immédiate
+      onConfirm(false);
+    } else {
+      setPendingState("confirm-on");
+    }
+  };
+
+  const handleYes = () => {
+    onConfirm(true);
+    setPendingState("idle");
+  };
+
+  const handleNo = () => {
+    setPendingState("idle");
+  };
+
+  // INCLUSES (active=false) → bulle colorée ; RETIRÉES (active=true) → bulle simple grise
+  const isIncluded = !active;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        onClick={handleClick}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+        style={{
+          borderColor: isIncluded ? color : "rgba(255,255,255,0.15)",
+          background: isIncluded ? color + "33" : "rgba(255,255,255,0.05)",
+          boxShadow: isIncluded ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+        }}
+      >
+        {/* Icône */}
+        <div
+          className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0 relative"
+          style={{ background: isIncluded ? color : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+        >
+          <Icon className="w-5 h-5 text-white" />
+          {!isIncluded && (
+            <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 border-[2px] border-black rounded-full flex items-center justify-center">
+              <X className="w-2 h-2 text-white" />
+            </div>
+          )}
+        </div>
+
+        {/* Texte */}
+        <div className="flex-1 min-w-0">
+          <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={isIncluded ? "text-white" : "text-white/50"}>
+            {label}
+          </div>
+          <div style={FONT_FREDOKA} className={`text-xs leading-none mt-0.5 ${isIncluded ? "text-white/70" : "text-white/25"}`}>
+            {sublabel}
+          </div>
+        </div>
+
+        {/* Badge état */}
+        <div
+          className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+          style={{
+            background: isIncluded ? color : "rgba(255,255,255,0.08)",
+            boxShadow: "2px 2px 0px #000",
+          }}
+        >
+          <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={isIncluded ? "text-white" : "text-red-400"}>
+            {isIncluded ? "INCLUSES" : "RETIRÉES"}
+          </span>
+        </div>
+      </motion.button>
+
+      {/* Zone de confirmation inline */}
+      <AnimatePresence>
+        {pendingState === "confirm-on" && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div
+              className="flex flex-col gap-2 px-4 py-3 rounded-xl border-[3px] border-yellow-500"
+              style={{ background: "rgba(202,138,4,0.18)", boxShadow: "2px 2px 0px #000" }}
+            >
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <p style={FONT_FREDOKA} className="text-yellow-300 text-sm leading-snug">
+                  {confirmMsg}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleYes}
+                  className="flex-1 py-2 rounded-xl border-[3px] border-black flex items-center justify-center gap-1.5"
+                  style={{ background: "#DC2626", boxShadow: "3px 3px 0px #000" }}
+                >
+                  <Check className="w-4 h-4 text-white" />
+                  <span style={{ ...FONT_BANGERS, fontSize: "0.95rem", letterSpacing: "0.05em" }} className="text-white">
+                    OUI, RETIRER
+                  </span>
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleNo}
+                  className="flex-1 py-2 rounded-xl border-[3px] border-black flex items-center justify-center gap-1.5"
+                  style={{ background: "rgba(255,255,255,0.12)", boxShadow: "3px 3px 0px #000" }}
+                >
+                  <X className="w-4 h-4 text-white/70" />
+                  <span style={{ ...FONT_BANGERS, fontSize: "0.95rem", letterSpacing: "0.05em" }} className="text-white/70">
+                    NON, GARDER
+                  </span>
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── CardFiltersSection ─────────────────────────────────────────
+function CardFiltersSection({
+  disableT2, disableT3,
+  onChangeT2, onChangeT3,
+  showT3 = true,
+}: {
+  disableT2: boolean;
+  disableT3?: boolean;
+  onChangeT2: (v: boolean) => void;
+  onChangeT3?: (v: boolean) => void;
+  showT3?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label style={FONT_FREDOKA} className="text-white/70 text-sm">
+        Types de cartes dans la partie
+      </label>
+
+      {/* Contraventions — toujours obligatoires */}
+      <div
+        className="flex items-center gap-3 px-4 py-3 rounded-xl border-[3px]"
+        style={{ borderColor: "rgba(255,165,0,0.4)", background: "rgba(255,165,0,0.07)", boxShadow: "2px 2px 0px rgba(0,0,0,0.3)" }}
+      >
+        <div
+          className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+          style={{ background: "#C2410C", boxShadow: "2px 2px 0px #000" }}
+        >
+          <FileText className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className="text-orange-300">
+            CONTRAVENTIONS
+          </div>
+          <div style={FONT_FREDOKA} className="text-orange-400/50 text-xs leading-none mt-0.5">
+            Toujours incluses — obligatoires
+          </div>
+        </div>
+        <div
+          className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+          style={{ background: "#C2410C", boxShadow: "2px 2px 0px #000" }}
+        >
+          <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className="text-white">
+            OBLIGATOIRE
+          </span>
+        </div>
+      </div>
+
+      {/* Contribuables — optionnel */}
+      <CardFilterToggle
+        label="CONTRIBUABLES"
+        sublabel="Cartes qui réduisent ta dette"
+        confirmMsg="Voulez-vous vraiment retirer les contribuables de la partie ? Vous ne recevrez plus de cartes de réduction de dette."
+        active={disableT2}
+        color="#16A34A"
+        Icon={User}
+        onConfirm={onChangeT2}
+      />
+
+      {/* Investisseurs — optionnel, seulement en multi */}
+      {showT3 && onChangeT3 && (
+        <CardFilterToggle
+          label="INVESTISSEURS"
+          sublabel="Cartes qui transfèrent de la dette"
+          confirmMsg="Voulez-vous vraiment retirer les investisseurs de la partie ? Il n'y aura plus de transferts de dette entre joueurs."
+          active={disableT3 ?? false}
+          color="#7C3AED"
+          Icon={TrendingUp}
+          onConfirm={onChangeT3}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Résumé du deck filtré ──────────────────────────────────────
+function DeckSummary({
+  disableT2,
+  disableT3,
+  isSolo = false,
+}: {
+  disableT2: boolean;
+  disableT3?: boolean;
+  isSolo?: boolean;
+}) {
+  // En solo, T3 n'existe jamais — on les exclut toujours
+  const effectiveDisableT3 = isSolo ? true : (disableT3 ?? false);
+
+  const total = ALL_CARD_IDS.filter((id) => {
+    const cfg = getCardConfig(id);
+    if (disableT2 && cfg.cardType === 2) return false;
+    if (effectiveDisableT3 && cfg.cardType === 3) return false;
+    return true;
+  }).length;
+
+  return (
+    <div
+      className="flex items-center justify-between px-4 py-2.5 rounded-xl border-[2px] border-black/30"
+      style={{ background: "rgba(255,255,255,0.06)" }}
+    >
+      <span style={FONT_FREDOKA} className="text-white/50 text-xs">
+        Deck actuel
+      </span>
+      <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }} className="text-yellow-400">
+        {total} cartes
+      </span>
+    </div>
+  );
+}
+
+export function MultiplayerModal({ onClose }: Props) {
   const [, navigate] = useLocation();
   const [view, setView] = useState<View>("menu");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [difficulty, setDifficulty] = useState(1); // Normal
-  const [noContribuable, setNoContribuable] = useState(false);
+  const [error, setError] = useState("");
+  const [difficulty, setDifficulty] = useState<DifficultyKey>("delinquant");
 
-  const reset = () => {
-    setView("menu");
-    setName("");
-    setCode("");
-    setError("");
-    setLoading(false);
-  };
+  // Filtres solo
+  const [soloDisableT2, setSoloDisableT2] = useState(false);
 
-  const handleClose = () => {
-    reset();
-    onClose();
-  };
+  // Filtres multi (création)
+  const [mpDisableT2, setMpDisableT2] = useState(false);
+  const [mpDisableT3, setMpDisableT3] = useState(false);
 
+  const resetError = () => setError("");
+
+  const selectedDiff = DIFFICULTIES.find((d) => d.key === difficulty) ?? DIFFICULTIES[1];
+
+  // ── CREATE ──────────────────────────────────────────────────
   const handleCreate = async () => {
-    if (!name.trim()) { setError("Entrez votre nom"); return; }
+    if (!name.trim()) { setError("Entre ton prénom !"); return; }
     setLoading(true);
     setError("");
     try {
-      const threshold = DIFFICULTIES[difficulty].threshold;
-      const allowedCardIds = computeAllowedCardIds(noContribuable);
-      const disabledCardTypes = noContribuable ? [2] : [];
-      const res = await createSession(name.trim(), threshold, allowedCardIds, disabledCardTypes);
-      mpStorage.save(res.code, res.playerId, name.trim(), true);
-      handleClose();
+      const allowedCardIds = computeAllowedCardIds(mpDisableT2, mpDisableT3);
+      const disabledCardTypes: number[] = [
+        ...(mpDisableT2 ? [2] : []),
+        ...(mpDisableT3 ? [3] : []),
+      ];
+      const { code: sessionCode, playerId } = await createSession(
+        name.trim(),
+        selectedDiff.threshold,
+        allowedCardIds,
+        disabledCardTypes,
+      );
+      mpStorage.save(sessionCode, playerId, name.trim(), true);
       navigate("/lobby");
     } catch (e: any) {
-      setError(e.message || "Erreur de création");
+      setError(e.message || "Erreur réseau");
     } finally {
       setLoading(false);
     }
   };
 
+  // ── JOIN ─────────────────────────────────────────────────────
   const handleJoin = async () => {
-    if (!name.trim()) { setError("Entrez votre nom"); return; }
-    if (!code.trim()) { setError("Entrez le code"); return; }
+    if (!code.trim()) { setError("Entre le code de la partie !"); return; }
+    if (!name.trim()) { setError("Entre ton prénom !"); return; }
     setLoading(true);
     setError("");
     try {
-      const res = await joinSession(code.trim(), name.trim());
-      mpStorage.save(code.trim().toUpperCase(), res.playerId, name.trim(), false);
-      handleClose();
+      const { playerId } = await joinSession(code.trim().toUpperCase(), name.trim());
+      mpStorage.save(code.trim().toUpperCase(), playerId, name.trim(), false);
       navigate("/lobby");
     } catch (e: any) {
-      setError(e.message || "Erreur de connexion");
+      setError(e.message || "Code invalide");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSoloStart = () => {
-    sessionStorage.setItem(SOLO_DIFFICULTY_KEY, String(difficulty));
-    sessionStorage.setItem(SOLO_NO_CONTRIBUABLE_KEY, noContribuable ? "1" : "0");
-    handleClose();
+  // ── SOLO : sauvegarder les préfs et naviguer ─────────────────
+  const handlePlaySolo = () => {
+    try {
+      localStorage.setItem(SOLO_DIFFICULTY_KEY, String(selectedDiff.threshold));
+      localStorage.setItem(SOLO_NO_CONTRIBUABLE_KEY, soloDisableT2 ? "1" : "0");
+    } catch {}
     navigate("/game");
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          onClick={handleClose}
-        >
-          <motion.div
-            initial={{ scale: 0.8, y: 30 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.8, y: 30 }}
-            transition={{ type: "spring", damping: 20 }}
-            className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ background: "rgba(0,0,0,0.75)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ y: "100%", scale: 0.96 }}
+        animate={{ y: 0, scale: 1 }}
+        exit={{ y: "100%", scale: 0.96 }}
+        transition={{ type: "spring", stiffness: 320, damping: 30 }}
+        className="w-full max-w-md rounded-t-3xl border-t-4 border-x-4 border-black overflow-hidden"
+        style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 100%)", boxShadow: "0 -6px 0 #000" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="bg-[#111] border-b-4 border-yellow-400 flex items-center justify-between px-5 py-3">
+          <div className="flex items-center gap-2">
+            <img src={ticketImg} alt="" style={{ width: "1.8rem" }} />
+            <span style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em" }} className="text-yellow-400">
+              MODE DE JEU
+            </span>
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={onClose}
+            className="w-9 h-9 bg-red-500 border-[3px] border-black rounded-full flex items-center justify-center"
+            style={{ boxShadow: "3px 3px 0px #000" }}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              {view !== "menu" && (
-                <button onClick={() => { setView("menu"); setError(""); }} className="text-slate-400 hover:text-white">
-                  <ChevronLeft size={24} />
-                </button>
-              )}
-              <h2 className="text-2xl text-yellow-400 flex-1 text-center" style={FONT_BANGERS}>
-                {view === "menu" && "MODE DE JEU"}
-                {view === "create" && "CRÉER UNE PARTIE"}
-                {view === "join" && "REJOINDRE"}
-                {view === "solo" && "MODE SOLO"}
-              </h2>
-              <button onClick={handleClose} className="text-slate-400 hover:text-white">
-                <X size={24} />
-              </button>
-            </div>
+            <X className="w-5 h-5 text-white" />
+          </motion.button>
+        </div>
 
-            {/* Menu view */}
+        <div className="px-5 py-5 overflow-y-auto" style={{ maxHeight: "82dvh" }}>
+          <AnimatePresence mode="wait">
+
+            {/* ── MENU ── */}
             {view === "menu" && (
-              <div className="space-y-3">
-                <button
-                  onClick={() => setView("solo")}
-                  className="w-full flex items-center gap-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-4 text-white font-bold transition-colors"
-                  style={FONT_FREDOKA}
+              <motion.div
+                key="menu"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="flex flex-col gap-3"
+              >
+                {/* JOUER SEUL */}
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => { setView("difficulty-solo"); resetError(); }}
+                  className="w-full py-4 bg-yellow-400 border-[4px] border-black rounded-2xl flex items-center gap-3 px-5"
+                  style={{ boxShadow: "5px 5px 0px #000" }}
                 >
-                  <Gamepad2 size={24} />
-                  <span className="text-lg">JOUER SOLO</span>
-                </button>
-                <button
-                  onClick={() => setView("create")}
-                  className="w-full flex items-center gap-3 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-4 text-white font-bold transition-colors"
-                  style={FONT_FREDOKA}
-                >
-                  <Plus size={24} />
-                  <span className="text-lg">CRÉER UNE PARTIE</span>
-                </button>
-                <button
-                  onClick={() => setView("join")}
-                  className="w-full flex items-center gap-3 rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-4 text-white font-bold transition-colors"
-                  style={FONT_FREDOKA}
-                >
-                  <LogIn size={24} />
-                  <span className="text-lg">REJOINDRE</span>
-                </button>
-              </div>
-            )}
-
-            {/* Solo view */}
-            {view === "solo" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-slate-400 mb-2 block" style={FONT_FREDOKA}>Difficulté</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {DIFFICULTIES.map((d, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setDifficulty(i)}
-                        className={`rounded-lg py-3 text-center font-bold transition-all ${
-                          difficulty === i
-                            ? "bg-yellow-400 text-black scale-105"
-                            : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                        }`}
-                        style={FONT_FREDOKA}
-                      >
-                        <div className="text-xl">{d.emoji}</div>
-                        <div className="text-xs">{d.label}</div>
-                        <div className="text-[10px] opacity-70">{(d.threshold).toLocaleString()}$</div>
-                      </button>
-                    ))}
+                  <Gamepad2 className="w-7 h-7 text-black flex-shrink-0" />
+                  <div className="text-left flex-1">
+                    <div style={{ ...FONT_BANGERS, fontSize: "1.35rem", letterSpacing: "0.06em" }} className="text-black leading-none">
+                      JOUER SEUL
+                    </div>
+                    <div style={FONT_FREDOKA} className="text-black/60 text-xs mt-0.5">
+                      Partie solo classique
+                    </div>
                   </div>
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={noContribuable}
-                    onChange={(e) => setNoContribuable(e.target.checked)}
-                    className="rounded"
-                  />
-                  <span style={FONT_FREDOKA}>Sans cartes Contribuable</span>
-                </label>
-                <button
-                  onClick={handleSoloStart}
-                  className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 py-4 text-xl font-bold text-white transition-colors"
-                  style={FONT_BANGERS}
+                  <ChevronRight className="w-5 h-5 text-black/60 flex-shrink-0" />
+                </motion.button>
+
+                {/* CRÉER UNE PARTIE */}
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => { setView("create"); resetError(); }}
+                  className="w-full py-4 bg-[#1565C0] border-[4px] border-black rounded-2xl flex items-center gap-3 px-5"
+                  style={{ boxShadow: "5px 5px 0px #000" }}
                 >
-                  COMMENCER !
-                </button>
-              </div>
+                  <Plus className="w-7 h-7 text-white flex-shrink-0" />
+                  <div className="text-left flex-1">
+                    <div style={{ ...FONT_BANGERS, fontSize: "1.35rem", letterSpacing: "0.06em" }} className="text-white leading-none">
+                      CRÉER UNE PARTIE
+                    </div>
+                    <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-0.5">
+                      Inviter jusqu'à 9 criminels
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/60 flex-shrink-0" />
+                </motion.button>
+
+                {/* REJOINDRE */}
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => { setView("join"); resetError(); }}
+                  className="w-full py-4 border-[4px] border-black rounded-2xl flex items-center gap-3 px-5"
+                  style={{ background: "#9C27B0", boxShadow: "5px 5px 0px #000" }}
+                >
+                  <Users className="w-7 h-7 text-white flex-shrink-0" />
+                  <div className="text-left flex-1">
+                    <div style={{ ...FONT_BANGERS, fontSize: "1.35rem", letterSpacing: "0.06em" }} className="text-white leading-none">
+                      REJOINDRE
+                    </div>
+                    <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-0.5">
+                      Entrer le code d'une partie
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/60 flex-shrink-0" />
+                </motion.button>
+              </motion.div>
             )}
 
-            {/* Create view */}
+            {/* ── DIFFICULTÉ SOLO ── */}
+            {view === "difficulty-solo" && (
+              <motion.div
+                key="difficulty-solo"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col gap-4"
+              >
+                <button
+                  onClick={() => { setView("menu"); resetError(); }}
+                  style={FONT_FREDOKA}
+                  className="text-yellow-400/70 text-sm text-left hover:text-yellow-400 transition-colors"
+                >
+                  ← Retour
+                </button>
+
+                <div style={{ ...FONT_BANGERS, fontSize: "1.5rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center">
+                  CHOISIR LA DIFFICULTÉ
+                </div>
+
+                <DifficultySelector selected={difficulty} onChange={setDifficulty} />
+
+                {/* Séparateur */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/15" />
+                  <span style={FONT_FREDOKA} className="text-white/40 text-xs">Types de cartes</span>
+                  <div className="h-px flex-1 bg-white/15" />
+                </div>
+
+                {/* Filtre cartes solo : seulement T2 (T3 déjà exclu du solo) */}
+                <CardFiltersSection
+                  disableT2={soloDisableT2}
+                  onChangeT2={setSoloDisableT2}
+                  showT3={false}
+                />
+
+                <DeckSummary disableT2={soloDisableT2} disableT3={false} isSolo={true} />
+
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={handlePlaySolo}
+                  className="w-full py-4 bg-yellow-400 border-[4px] border-black rounded-2xl flex items-center justify-center gap-2 text-black relative overflow-hidden"
+                  style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", boxShadow: "5px 5px 0px #000" }}
+                >
+                  <motion.div
+                    className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                    animate={{ x: ["-100%", "400%"] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.8 }}
+                  />
+                  <span className="relative z-10 flex items-center gap-2">
+                    <img src={ticketImg} alt="" style={{ width: "1.5rem" }} />
+                    JOUER — {selectedDiff.threshold.toLocaleString("fr-CA")}$
+                  </span>
+                </motion.button>
+              </motion.div>
+            )}
+
+            {/* ── CREATE ── */}
             {view === "create" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-slate-400 mb-1 block" style={FONT_FREDOKA}>Votre nom</label>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Entrez votre nom..."
-                    className="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-3 text-white placeholder-slate-500 focus:border-blue-400 focus:outline-none"
-                    maxLength={20}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-slate-400 mb-2 block" style={FONT_FREDOKA}>Difficulté</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {DIFFICULTIES.map((d, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setDifficulty(i)}
-                        className={`rounded-lg py-2 text-center font-bold transition-all text-sm ${
-                          difficulty === i
-                            ? "bg-yellow-400 text-black scale-105"
-                            : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                        }`}
-                        style={FONT_FREDOKA}
-                      >
-                        <div>{d.emoji} {d.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={noContribuable}
-                    onChange={(e) => setNoContribuable(e.target.checked)}
-                    className="rounded"
-                  />
-                  <span style={FONT_FREDOKA}>Sans cartes Contribuable</span>
-                </label>
-                {error && <p className="text-red-400 text-sm">{error}</p>}
+              <motion.div
+                key="create"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col gap-4"
+              >
                 <button
+                  onClick={() => { setView("menu"); resetError(); }}
+                  style={FONT_FREDOKA}
+                  className="text-yellow-400/70 text-sm text-left hover:text-yellow-400 transition-colors"
+                >
+                  ← Retour
+                </button>
+
+                <div style={{ ...FONT_BANGERS, fontSize: "1.5rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center">
+                  CRÉER UNE PARTIE
+                </div>
+
+                {/* Difficulté */}
+                <DifficultySelector selected={difficulty} onChange={setDifficulty} />
+
+                {/* Séparateur */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/15" />
+                  <span style={FONT_FREDOKA} className="text-white/40 text-xs">Types de cartes</span>
+                  <div className="h-px flex-1 bg-white/15" />
+                </div>
+
+                {/* Filtres cartes multi : T2 et T3 */}
+                <CardFiltersSection
+                  disableT2={mpDisableT2}
+                  disableT3={mpDisableT3}
+                  onChangeT2={setMpDisableT2}
+                  onChangeT3={setMpDisableT3}
+                  showT3={true}
+                />
+
+                <DeckSummary disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} />
+
+                {/* Prénom */}
+                <div className="flex flex-col gap-1">
+                  <label style={FONT_FREDOKA} className="text-white/70 text-sm">Ton prénom</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value.slice(0, 16))}
+                    placeholder="Ex: Alice"
+                    maxLength={16}
+                    className="w-full px-4 py-3 rounded-xl border-[3px] border-black text-black text-lg outline-none"
+                    style={{ ...FONT_FREDOKA, boxShadow: "3px 3px 0px #000", background: "#fffbe6" }}
+                    onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                  />
+                </div>
+
+                {error && (
+                  <div style={{ ...FONT_FREDOKA, background: "#FF3B30" }} className="text-white text-sm text-center px-3 py-2 rounded-xl border-[2px] border-black">
+                    {error}
+                  </div>
+                )}
+
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
                   onClick={handleCreate}
                   disabled={loading}
-                  className="w-full rounded-xl bg-blue-500 hover:bg-blue-400 disabled:opacity-50 py-4 text-xl font-bold text-white transition-colors"
-                  style={FONT_BANGERS}
+                  className="w-full py-4 bg-[#1565C0] border-[4px] border-black rounded-2xl text-white disabled:opacity-50"
+                  style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", boxShadow: "5px 5px 0px #000" }}
                 >
                   {loading ? "CRÉATION..." : "CRÉER LA PARTIE"}
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
 
-            {/* Join view */}
+            {/* ── JOIN ── */}
             {view === "join" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-slate-400 mb-1 block" style={FONT_FREDOKA}>Votre nom</label>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Entrez votre nom..."
-                    className="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-3 text-white placeholder-slate-500 focus:border-purple-400 focus:outline-none"
-                    maxLength={20}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-slate-400 mb-1 block" style={FONT_FREDOKA}>Code de la partie</label>
-                  <input
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    placeholder="ABCD"
-                    className="w-full rounded-lg bg-slate-800 border border-slate-600 px-4 py-3 text-white text-center text-2xl tracking-[0.3em] placeholder-slate-500 focus:border-purple-400 focus:outline-none uppercase"
-                    style={FONT_BANGERS}
-                    maxLength={6}
-                  />
-                </div>
-                {error && <p className="text-red-400 text-sm">{error}</p>}
+              <motion.div
+                key="join"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col gap-4"
+              >
                 <button
+                  onClick={() => { setView("menu"); resetError(); }}
+                  style={FONT_FREDOKA}
+                  className="text-yellow-400/70 text-sm text-left hover:text-yellow-400 transition-colors"
+                >
+                  ← Retour
+                </button>
+
+                <div style={{ ...FONT_BANGERS, fontSize: "1.5rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center">
+                  REJOINDRE
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label style={FONT_FREDOKA} className="text-white/70 text-sm">Code de la partie</label>
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
+                    placeholder="Ex: ABC123"
+                    maxLength={6}
+                    className="w-full px-4 py-3 rounded-xl border-[3px] border-black text-black text-2xl text-center outline-none tracking-widest uppercase"
+                    style={{ ...FONT_BANGERS, boxShadow: "3px 3px 0px #000", background: "#fffbe6" }}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label style={FONT_FREDOKA} className="text-white/70 text-sm">Ton prénom</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value.slice(0, 16))}
+                    placeholder="Ex: Bob"
+                    maxLength={16}
+                    className="w-full px-4 py-3 rounded-xl border-[3px] border-black text-black text-lg outline-none"
+                    style={{ ...FONT_FREDOKA, boxShadow: "3px 3px 0px #000", background: "#fffbe6" }}
+                    onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+                  />
+                </div>
+
+                {error && (
+                  <div style={{ ...FONT_FREDOKA, background: "#FF3B30" }} className="text-white text-sm text-center px-3 py-2 rounded-xl border-[2px] border-black">
+                    {error}
+                  </div>
+                )}
+
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
                   onClick={handleJoin}
                   disabled={loading}
-                  className="w-full rounded-xl bg-purple-500 hover:bg-purple-400 disabled:opacity-50 py-4 text-xl font-bold text-white transition-colors"
-                  style={FONT_BANGERS}
+                  className="w-full py-4 border-[4px] border-black rounded-2xl text-white disabled:opacity-50"
+                  style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", background: "#9C27B0", boxShadow: "5px 5px 0px #000" }}
                 >
                   {loading ? "CONNEXION..." : "REJOINDRE"}
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+
+          </AnimatePresence>
+        </div>
+
+        {/* Bottom spacing pour safe area */}
+        <div className="h-4" />
+      </motion.div>
+    </motion.div>
   );
 }
