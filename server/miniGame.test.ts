@@ -101,14 +101,22 @@ describe("miniGame.trigger", () => {
     // insert pour créer le nouvel événement
     mockInsertChain.values = vi.fn().mockResolvedValue(undefined);
 
+    // Mock du select pour simuler l'événement créé
+    mockSelectChain.from = vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue([{ id: 1, sessionCode: "ABC123", mode: "run", triggeredBy: "player-1", resolved: 0 }]),
+      }),
+    });
+
     const result = await createCaller().miniGame.trigger({
       sessionCode: "ABC123",
       playerId: "player-1",
       mode: "run",
+      totalPlayers: 3,
     });
 
-    expect(result).toEqual({ success: true });
-    expect(mockDb.delete).toHaveBeenCalled();
+    expect(result.success).toBe(true);
+    expect(result.eventId).toBeDefined();
     expect(mockDb.insert).toHaveBeenCalled();
     expect(mockInsertChain.values).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -124,10 +132,17 @@ describe("miniGame.trigger", () => {
     mockDeleteChain.where = vi.fn().mockResolvedValue(undefined);
     mockInsertChain.values = vi.fn().mockResolvedValue(undefined);
 
+    mockSelectChain.from = vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue([]),
+      }),
+    });
+
     await createCaller().miniGame.trigger({
       sessionCode: "abc123",
       playerId: "player-1",
       mode: "hide",
+      totalPlayers: 2,
     });
 
     expect(mockInsertChain.values).toHaveBeenCalledWith(
@@ -138,11 +153,17 @@ describe("miniGame.trigger", () => {
   it("accepte le mode 'hide'", async () => {
     mockDeleteChain.where = vi.fn().mockResolvedValue(undefined);
     mockInsertChain.values = vi.fn().mockResolvedValue(undefined);
+    mockSelectChain.from = vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue([{ id: 2, sessionCode: "XYZ789", mode: "hide", triggeredBy: "player-2", resolved: 0 }]),
+      }),
+    });
 
     const result = await createCaller().miniGame.trigger({
       sessionCode: "XYZ789",
       playerId: "player-2",
       mode: "hide",
+      totalPlayers: 4,
     });
 
     expect(result.success).toBe(true);
@@ -213,10 +234,15 @@ describe("miniGame.resolve", () => {
   it("marque l'événement comme résolu et retourne success: true", async () => {
     const mockSetChain = { where: vi.fn().mockResolvedValue(undefined) };
     mockUpdateChain.set = vi.fn().mockReturnValue(mockSetChain);
+    // Mock du select pour récupérer les résultats
+    mockSelectChain.from = vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue([]),
+    });
 
-    const result = await createCaller().miniGame.resolve({ sessionCode: "ABC123" });
+    const result = await createCaller().miniGame.resolve({ sessionCode: "ABC123", eventId: 1 });
 
-    expect(result).toEqual({ success: true });
+    expect(result.success).toBe(true);
+    expect(result.results).toBeDefined();
     expect(mockDb.update).toHaveBeenCalled();
     expect(mockUpdateChain.set).toHaveBeenCalledWith({ resolved: 1 });
     expect(mockSetChain.where).toHaveBeenCalled();
@@ -225,8 +251,11 @@ describe("miniGame.resolve", () => {
   it("normalise le code de session en majuscules", async () => {
     const mockSetChain = { where: vi.fn().mockResolvedValue(undefined) };
     mockUpdateChain.set = vi.fn().mockReturnValue(mockSetChain);
+    mockSelectChain.from = vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue([]),
+    });
 
-    const result = await createCaller().miniGame.resolve({ sessionCode: "xyz456" });
+    const result = await createCaller().miniGame.resolve({ sessionCode: "xyz456", eventId: 2 });
 
     expect(result.success).toBe(true);
     expect(mockDb.update).toHaveBeenCalled();

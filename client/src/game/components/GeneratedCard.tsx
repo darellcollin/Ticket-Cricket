@@ -101,6 +101,8 @@ interface GeneratedCardProps {
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   style?: React.CSSProperties;
+  /** Texte de méfait à afficher à la place du registre statique (pour les cartes personnalisées) */
+  mefaitOverride?: string;
 }
 
 export function GeneratedCard({
@@ -108,10 +110,12 @@ export function GeneratedCard({
   size = "md",
   className = "",
   style,
+  mefaitOverride,
 }: GeneratedCardProps) {
   const catInfo = CATEGORY_INFO[card.category];
   const catStyle = CATEGORY_STYLES[card.category];
-  const mefait = getCardMefait(card.id);
+  // Pour les cartes personnalisées (IDs négatifs), utiliser le texte fourni
+  const mefait = mefaitOverride ?? getCardMefait(card.id);
 
   // ── Dimensions responsive — polices plus grandes ──
   const dims = {
@@ -121,9 +125,9 @@ export function GeneratedCard({
       headerPadY: 3, headerPadX: 4,
       catFontSize: "0.45rem",
       numFontSize: "0.35rem",
-      bodyPadX: 4, bodyPadY: 3,
-      textFontSize: "0.44rem",
-      textMaxLines: 3,
+      bodyPadX: 4, bodyPadY: 2,
+      textFontSize: "0.38rem",
+      textMaxLines: 5,
       detailFontSize: "0.32rem",
       detailPadX: 3, detailPadY: 1,
       priceFontSize: "0.85rem",
@@ -135,9 +139,9 @@ export function GeneratedCard({
       headerPadY: 6, headerPadX: 9,
       catFontSize: "1.0rem",
       numFontSize: "0.7rem",
-      bodyPadX: 9, bodyPadY: 5,
-      textFontSize: "0.95rem",
-      textMaxLines: 3,
+      bodyPadX: 9, bodyPadY: 3,
+      textFontSize: "0.78rem",
+      textMaxLines: 5,
       detailFontSize: "0.75rem",
       detailPadX: 9, detailPadY: 3,
       priceFontSize: "1.7rem",
@@ -149,9 +153,9 @@ export function GeneratedCard({
       headerPadY: 7, headerPadX: 11,
       catFontSize: "1.25rem",
       numFontSize: "0.85rem",
-      bodyPadX: 11, bodyPadY: 6,
-      textFontSize: "1.18rem",
-      textMaxLines: 4,
+      bodyPadX: 11, bodyPadY: 4,
+      textFontSize: "0.92rem",
+      textMaxLines: 6,
       detailFontSize: "0.95rem",
       detailPadX: 11, detailPadY: 4,
       priceFontSize: "2.3rem",
@@ -163,9 +167,9 @@ export function GeneratedCard({
       headerPadY: 10, headerPadX: 15,
       catFontSize: "1.6rem",
       numFontSize: "1.05rem",
-      bodyPadX: 15, bodyPadY: 10,
-      textFontSize: "1.5rem",
-      textMaxLines: 4,
+      bodyPadX: 15, bodyPadY: 6,
+      textFontSize: "1.15rem",
+      textMaxLines: 6,
       detailFontSize: "1.2rem",
       detailPadX: 15, detailPadY: 6,
       priceFontSize: "2.9rem",
@@ -305,7 +309,7 @@ export function GeneratedCard({
             transform: "rotate(-2deg)",
           }}
         >
-          #{card.id}
+          #{card.id < 0 ? `C${Math.abs(card.id)}` : card.id}
         </div>
       </div>
 
@@ -319,7 +323,7 @@ export function GeneratedCard({
           alignItems: "center",
           padding: `${dims.bodyPadY}px ${dims.bodyPadX}px`,
           textAlign: "center",
-          overflow: "hidden",
+          overflow: "visible",
           position: "relative",
           minHeight: 0,
           zIndex: 1,
@@ -331,17 +335,14 @@ export function GeneratedCard({
             color: catStyle.bodyText,
             fontFamily: "'Fredoka One', 'Arial', sans-serif",
             fontWeight: 700,
-            lineHeight: 1.2,
+            lineHeight: 1.25,
             margin: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "-webkit-box",
-            WebkitLineClamp: dims.textMaxLines,
-            WebkitBoxOrient: "vertical" as const,
+            overflow: "visible",
             position: "relative",
             zIndex: 1,
             letterSpacing: "0.01em",
             textShadow: "0px 1px 0px rgba(255,255,255,0.6)",
+            wordBreak: "break-word",
           }}
         >
           {mefait}

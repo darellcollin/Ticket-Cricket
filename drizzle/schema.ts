@@ -86,3 +86,71 @@ export const miniGameEvents = mysqlTable("mini_game_events", {
 
 export type MiniGameEvent = typeof miniGameEvents.$inferSelect;
 export type InsertMiniGameEvent = typeof miniGameEvents.$inferInsert;
+
+/**
+ * Résultats individuels des joueurs pour un mini-jeu multijoueur.
+ * Chaque joueur enregistre son résultat (succès/échec + montant) ici.
+ * Le piocheur attend que tous les joueurs actifs aient soumis leur résultat.
+ */
+export const miniGameResults = mysqlTable("mini_game_results", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID de l'événement mini-jeu associé */
+  eventId: int("eventId").notNull(),
+  /** Code de la session multijoueur */
+  sessionCode: varchar("sessionCode", { length: 10 }).notNull(),
+  /** ID du joueur qui a soumis ce résultat */
+  playerId: varchar("playerId", { length: 64 }).notNull(),
+  /** Succès (1) ou échec (0) */
+  success: int("success").notNull().default(0),
+  /** Montant de la pénalité/récompense */
+  amount: int("amount").notNull().default(0),
+  /** Timestamp de soumission */
+  submittedAt: timestamp("submittedAt").defaultNow().notNull(),
+});
+export type MiniGameResult = typeof miniGameResults.$inferSelect;
+export type InsertMiniGameResult = typeof miniGameResults.$inferInsert;
+
+/**
+ * Cartes personnalisées — créées par les joueurs connectés.
+ * Maximum 100 cartes par joueur.
+ * Peuvent être ajoutées au deck en solo ou partagées en multi (host uniquement).
+ */
+export const customCards = mysqlTable("custom_cards", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID du profil de jeu du créateur */
+  profileId: int("profileId").notNull(),
+  /** Catégorie : contravention | contribuable | investisseur */
+  category: mysqlEnum("category", ["contravention", "contribuable", "investisseur"]).notNull(),
+  /** Texte du méfait (max 150 chars, null pour investisseur) */
+  mefait: varchar("mefait", { length: 150 }),
+  /** Prix du ticket en dollars (0 pour contribuable) */
+  ticketPrice: int("ticketPrice").notNull().default(0),
+  /** Frais additionnels (contravention) : 0, 10, 20, 30, 40, 50 */
+  frais: int("frais").notNull().default(0),
+  /** Remboursement d'impôts (contribuable) : 0, 10, 20, 30, 40, 50 */
+  impots: int("impots").notNull().default(0),
+  /** Taxe de réduction (investisseur) : 0, 10, 20, 30, 40, 50 */
+  taxe: int("taxe").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CustomCard = typeof customCards.$inferSelect;
+export type InsertCustomCard = typeof customCards.$inferInsert;
+
+/**
+ * Cartes personnalisées partagées pour une session multijoueur.
+ * L'hôte publie ses cartes ici au démarrage, les autres joueurs les récupèrent.
+ * Supprimées automatiquement quand la session se termine.
+ */
+export const sessionCustomCards = mysqlTable("session_custom_cards", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Code de la session multijoueur */
+  sessionCode: varchar("sessionCode", { length: 10 }).notNull(),
+  /** Données des cartes personnalisées en JSON */
+  cardsJson: text("cardsJson").notNull(),
+  /** Timestamp de publication */
+  publishedAt: timestamp("publishedAt").defaultNow().notNull(),
+});
+
+export type SessionCustomCards = typeof sessionCustomCards.$inferSelect;
+export type InsertSessionCustomCards = typeof sessionCustomCards.$inferInsert;

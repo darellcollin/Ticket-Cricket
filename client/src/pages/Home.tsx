@@ -146,7 +146,7 @@ export default function Home() {
 
   return (
     <div
-      className="h-[100dvh] max-w-md md:max-w-lg lg:max-w-xl mx-auto flex flex-col overflow-hidden"
+      className="h-[100dvh] w-full flex flex-col overflow-hidden"
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       <PoliceTape />
@@ -278,7 +278,7 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-              style={{ marginTop: "-2.5rem", zIndex: 2, position: "relative" }}
+              style={{ marginTop: "-2.8rem", zIndex: 2, position: "relative" }}
               animate={{ rotate: [-2, 2, -2], scale: [1, 1.04, 1] }}
               transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
             >
@@ -380,10 +380,10 @@ export default function Home() {
               </motion.button>
             </div>
 
-            {/* ── CATALOGUE BUTTON ── */}
+            {/* ── PERSONNALISATION BUTTON ── */}
             <div className="relative w-full max-w-[220px]">
               <motion.button
-                className="w-full py-2 bg-[#7C3AED] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                className="w-full py-2 bg-[#FF4081] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                 style={{
                   ...FONT_FREDOKA,
                   letterSpacing: "0.08em",
@@ -392,14 +392,14 @@ export default function Home() {
                 }}
                 whileHover={{ scale: 1.05, y: -2, boxShadow: "7px 7px 0px #000" } as any}
                 whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
-                onClick={() => navigate("/admin")}
+                onClick={() => navigate("/custom-cards")}
               >
                 <motion.div
                   className="absolute inset-0 w-1/3 bg-white/15 skew-x-[-20deg]"
                   animate={{ x: ["-100%", "400%"] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
                 />
-                CATALOGUE DES CARTES
+                PERSONNALISATION
               </motion.button>
             </div>
           </div>

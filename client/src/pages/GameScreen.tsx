@@ -22,7 +22,8 @@ import {
 import { filterByCategory } from "@/game/utils/cardCategories";
 import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
-import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY } from "@/game/components/MultiplayerModal";
+import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY } from "@/game/components/MultiplayerModal";
+import type { CardConfig } from "@/game/utils/cardConfig";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
 import { MiniGame } from "@/game/components/MiniGame";
@@ -30,6 +31,82 @@ import { rollMiniGame } from "@/game/utils/miniGameUtils";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
+
+// ── Cartes personnalisées : lookup et injection ─────────────
+// Convertit une ligne DB custom en CardConfig compatible avec le moteur
+function dbCustomToConfig(card: {
+  id: number;
+  category: string;
+  mefait: string | null;
+  ticketPrice: number;
+  frais: number;
+  impots: number;
+  taxe: number;
+}): CardConfig {
+  const cat = card.category as "contravention" | "contribuable" | "investisseur";
+  const isT3 = cat === "investisseur";
+  const isT2 = cat === "contribuable";
+  const cardType = isT3 ? 3 : isT2 ? 2 : 1;
+  return {
+    id: -card.id, // ID négatif pour éviter les conflits avec les IDs 1-324
+    category: cat,
+    cardType,
+    ticketPrice: card.ticketPrice,
+    frais: card.frais,
+    impots: card.impots,
+    taxe: card.taxe,
+    isCustom: true,
+    customMefait: card.mefait ?? "",
+  } as unknown as CardConfig;
+}
+
+// Registre runtime des cartes personnalisées (IDs négatifs)
+const customCardRegistry = new Map<number, CardConfig>();
+const customMefaitRegistry = new Map<number, string>();
+
+function loadCustomCards(): number[] {
+  try {
+    const enabled = localStorage.getItem(SOLO_CUSTOM_CARDS_ENABLED_KEY) === "1";
+    if (!enabled) return [];
+    const raw = localStorage.getItem(SOLO_CUSTOM_CARDS_DATA_KEY);
+    if (!raw) return [];
+    const cards = JSON.parse(raw) as Array<{
+      id: number; category: string; mefait: string | null;
+      ticketPrice: number; frais: number; impots: number; taxe: number;
+    }>;
+    if (!Array.isArray(cards)) return [];
+    const ids: number[] = [];
+    for (const card of cards) {
+      const cfg = dbCustomToConfig(card);
+      customCardRegistry.set(cfg.id, cfg);
+      if (card.mefait) customMefaitRegistry.set(cfg.id, card.mefait);
+      ids.push(cfg.id);
+    }
+    return ids;
+  } catch {
+    return [];
+  }
+}
+
+// Wrapper getCardConfig qui supporte les IDs négatifs (cartes perso)
+function getCardConfigSafe(id: number): CardConfig {
+  if (id < 0) {
+    const custom = customCardRegistry.get(id);
+    if (custom) return custom;
+  }
+  return getCardConfig(id);
+}
+
+// Wrapper getCardMefait qui supporte les IDs négatifs
+function getCustomMefait(id: number): string | undefined {
+  if (id < 0) return customMefaitRegistry.get(id);
+  return undefined;
+}
+
+// Version sécurisée de computePlayerTotal supportant les IDs négatifs
+function computePlayerTotalSafe(cardIds: number[]): number {
+  return cardIds.reduce((sum, id) => sum + drawerNetAmount(getCardConfigSafe(id)), 0);
+}
 
 // ── Lire le seuil de difficulté depuis localStorage ──────────
 function readEliminationThreshold(): number {
@@ -52,12 +129,22 @@ function readNoContribuable(): boolean {
 // Appelé à chaque freshDeck() pour lire les préfs actuelles du localStorage.
 function getSoloCardIds(): number[] {
   const noContribuable = readNoContribuable();
-  return ALL_CARD_IDS.filter((id) => {
+  // Charger les cartes personnalisées (IDs négatifs) dans le registre
+  const customIds = loadCustomCards();
+  const standardIds = ALL_CARD_IDS.filter((id) => {
     const cfg = getCardConfig(id);
     if (cfg.category === "investisseur") return false;   // T3 toujours exclus en solo
     if (noContribuable && cfg.category === "contribuable") return false;
     return true;
   });
+  // Filtrer les cartes perso selon le même critère no-contribuable
+  const filteredCustom = customIds.filter((id) => {
+    const cfg = customCardRegistry.get(id);
+    if (!cfg) return false;
+    if (noContribuable && cfg.category === "contribuable") return false;
+    return true;
+  });
+  return [...standardIds, ...filteredCustom];
 }
 
 // ─── Shuffle ───────────────────────────────────────────────
@@ -335,7 +422,7 @@ function EliminationOverlay({
                 className="rounded-2xl border-[5px] border-black overflow-hidden"
                 style={{ width: 220, height: 310, boxShadow: "8px 8px 0px #000, 0 0 40px rgba(192,132,252,0.3)" }}
               >
-                <GeneratedCard card={getCardConfig(lastCardNum)} size="md" style={{ width: "100%", height: "100%" }} />
+                <GeneratedCard card={getCardConfigSafe(lastCardNum)} size="md" mefaitOverride={getCustomMefait(lastCardNum)} style={{ width: "100%", height: "100%" }} />
               </div>
               <motion.button
                 whileTap={{ scale: 0.93 }}
@@ -431,7 +518,7 @@ function SoloMyTicketsPanel({
   const [focusedCard, setFocusedCard] = useState<number | null>(null);
   const [showHistory, setShowHistory] = useState(false);
 
-  const total    = computePlayerTotal(drawn);
+  const total    = computePlayerTotalSafe(drawn);
   const tabCards = filterByCategory(drawn, activeTab);
   const catInfo  = CATEGORY_INFO[activeTab];
   const zoomedIdx = focusedCard !== null ? tabCards.indexOf(focusedCard) : -1;
@@ -442,7 +529,7 @@ function SoloMyTicketsPanel({
   const historyEntries = (() => {
     let running = 0;
     return drawn.map((cardNum, i) => {
-      const cfg = getCardConfig(cardNum);
+      const cfg = getCardConfigSafe(cardNum);
       const net = drawerNetAmount(cfg);
       running += net;
       return {
@@ -754,7 +841,7 @@ function SoloMyTicketsPanel({
             {catInfo.label} — {tabCards.length} ticket{tabCards.length > 1 ? "s" : ""}
           </span>
           <span style={{ ...FONT_BANGERS, fontSize: "0.95rem" }} className="text-white/70">
-            {formatPrice(computePlayerTotal(tabCards))}
+            {formatPrice(computePlayerTotalSafe(tabCards))}
           </span>
         </div>
 
@@ -786,7 +873,7 @@ function SoloMyTicketsPanel({
                 className="grid grid-cols-3 gap-2.5 pt-1"
               >
                 {tabCards.map((cardNum, idx) => {
-                  const cfg = getCardConfig(cardNum);
+                  const cfg = getCardConfigSafe(cardNum);
                   const net = drawerNetAmount(cfg);
                   const ti  = TYPE_INFO[cfg.cardType];
                   return (
@@ -800,7 +887,7 @@ function SoloMyTicketsPanel({
                       className="relative rounded-xl border-[3px] border-black overflow-hidden cursor-pointer"
                       style={{ aspectRatio: "5/7", boxShadow: "3px 3px 0px #000", background: "#0c1a4e", borderColor: catInfo.color }}
                     >
-                      <GeneratedCard card={getCardConfig(cardNum)} size="xs" style={{ width: '100%', height: '100%' }} />
+                      <GeneratedCard card={getCardConfigSafe(cardNum)} size="xs" mefaitOverride={getCustomMefait(cardNum)} style={{ width: '100%', height: '100%' }} />
                       <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: catInfo.color + "ee" }}>
                         <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
                           {net >= 0 ? "+" : ""}{formatPrice(net)}
@@ -826,7 +913,7 @@ function SoloMyTicketsPanel({
       {/* Vue zoom carte */}
       <AnimatePresence>
         {focusedCard !== null && (() => {
-          const cfg = getCardConfig(focusedCard);
+          const cfg = getCardConfigSafe(focusedCard);
           const net = drawerNetAmount(cfg);
           const ti  = TYPE_INFO[cfg.cardType];
           return (
@@ -847,7 +934,7 @@ function SoloMyTicketsPanel({
                 style={{ width: "min(78vw, 260px)", aspectRatio: "5/7", boxShadow: "10px 10px 0px #000" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <GeneratedCard card={getCardConfig(focusedCard)} size="md" style={{ width: '100%', height: '100%' }} />
+                <GeneratedCard card={getCardConfigSafe(focusedCard)} size="md" mefaitOverride={getCustomMefait(focusedCard)} style={{ width: '100%', height: '100%' }} />
               </motion.div>
 
               <div
@@ -981,11 +1068,11 @@ export function GameScreen() {
   }, [isAuthenticated, saveStatus, deck, drawn, ELIMINATION_THRESHOLD, saveGameMutation]);
 
   // ─ Élimination ─
-  const total            = computePlayerTotal(drawn) + miniGameBonus;
+  const total            = computePlayerTotalSafe(drawn) + miniGameBonus;
   const isEliminated     = total >= ELIMINATION_THRESHOLD;
   const [showElimOverlay, setShowElimOverlay] = useState(() => {
     // Afficher l'overlay si déjà éliminé au chargement (reprise de partie)
-    return computePlayerTotal(initialState.current!.drawn) >= ELIMINATION_THRESHOLD;
+    return computePlayerTotalSafe(initialState.current!.drawn) >= ELIMINATION_THRESHOLD;
   });
 
   // L'overlay d'élimination ne s'affiche PAS automatiquement après une pioche.
@@ -1106,16 +1193,16 @@ export function GameScreen() {
       </AnimatePresence>
 
        {/* Header */}
-      <div className="w-full bg-[#111] border-b-4 border-yellow-400 flex items-center justify-between px-4 py-2.5 z-10 flex-shrink-0">
-        {/* Groupe gauche : Accueil + Sauvegarder */}
-        <div className="flex items-center gap-2">
+      <div className="w-full bg-[#111] border-b-4 border-yellow-400 flex items-center px-2 py-2 z-10 flex-shrink-0 gap-2">
+        {/* GAUCHE : Accueil + Sauvegarder + Mélanger */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowConfirmLeave(true)}
-            className="w-11 h-11 bg-yellow-400 border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0"
+            className="w-10 h-10 bg-yellow-400 border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ boxShadow: "3px 3px 0px #000" }}
           >
-            <Home className="w-5 h-5 text-black" />
+            <Home className="w-4 h-4 text-black" />
           </motion.button>
           {/* Bouton sauvegarde — seulement si connecté */}
           {isAuthenticated && (
@@ -1123,7 +1210,7 @@ export function GameScreen() {
               whileTap={{ scale: 0.9 }}
               onClick={() => handleSaveGame(drawnCount)}
               disabled={saveStatus === "saving"}
-              className="w-11 h-11 border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-60"
+              className="w-10 h-10 border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-60"
               style={{
                 background: saveStatus === "saved" ? "#16a34a" : saveStatus === "error" ? "#dc2626" : "#7C3AED",
                 boxShadow: "3px 3px 0px #000",
@@ -1131,24 +1218,72 @@ export function GameScreen() {
               title={saveStatus === "saving" ? "Sauvegarde..." : saveStatus === "saved" ? "Sauvegardé" : saveStatus === "error" ? "Erreur" : "Sauvegarder"}
             >
               {saveStatus === "saving" ? (
-                <Loader2 className="w-5 h-5 text-white animate-spin" />
+                <Loader2 className="w-4 h-4 text-white animate-spin" />
               ) : saveStatus === "saved" ? (
-                <Check className="w-5 h-5 text-white" />
+                <Check className="w-4 h-4 text-white" />
               ) : (
-                <CloudUpload className="w-5 h-5 text-white" />
+                <CloudUpload className="w-4 h-4 text-white" />
               )}
             </motion.button>
           )}
+          {/* Bouton mélanger — à côté de sauvegarde */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowConfirmReset(true)}
+            className="w-10 h-10 bg-[#1565C0] border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ boxShadow: "3px 3px 0px #000" }}
+          >
+            <Shuffle className="w-4 h-4 text-white" />
+          </motion.button>
         </div>
 
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowConfirmReset(true)}
-          className="w-11 h-11 bg-[#1565C0] border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ boxShadow: "3px 3px 0px #000" }}
-        >
-          <Shuffle className="w-5 h-5 text-white" />
-        </motion.button>
+        {/* CENTRE : Limite de ticket */}
+        <div className="flex-1 flex items-center justify-center">
+          <div
+            className="flex flex-col items-center px-3 py-1 rounded-xl border-[2px]"
+            style={{
+              borderColor: isEliminated ? "rgba(239,68,68,0.5)" : "rgba(234,179,8,0.45)",
+              background:  isEliminated ? "rgba(239,68,68,0.12)" : "rgba(234,179,8,0.10)",
+              boxShadow: "2px 2px 0px rgba(0,0,0,0.5)",
+            }}
+          >
+            <span style={{ ...FONT_FREDOKA, fontSize: "0.48rem" }} className="text-white/40 uppercase tracking-widest leading-none">
+              Limite
+            </span>
+            <span
+              style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.06em" }}
+              className={isEliminated ? "text-red-400" : "text-yellow-400"}
+            >
+              {formatPrice(ELIMINATION_THRESHOLD)}
+            </span>
+          </div>
+        </div>
+
+        {/* DROITE : Cartes piochées */}
+        <div className="flex-shrink-0">
+          {(() => {
+            const pct = deckTotal > 0 ? drawnCount / deckTotal : 0;
+            const almostFull = pct >= 0.85;
+            return (
+              <div
+                className="flex flex-col items-center px-3 py-1 rounded-xl border-[2px]"
+                style={{
+                  borderColor: almostFull ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.15)",
+                  background: almostFull ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.05)",
+                  boxShadow: "2px 2px 0px rgba(0,0,0,0.4)",
+                }}
+              >
+                <span style={{ ...FONT_FREDOKA, fontSize: "0.48rem" }} className="text-white/35 uppercase tracking-widest leading-none">
+                  Piochées
+                </span>
+                <span style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.08em" }} className="leading-none">
+                  <span className={almostFull ? "text-red-300/80" : "text-white/75"}>{drawnCount}</span>
+                  <span className={almostFull ? "text-red-400/35" : "text-white/30"}>/{deckTotal}</span>
+                </span>
+              </div>
+            );
+          })()}
+        </div>
       </div>
 
       <PoliceTape />
@@ -1172,58 +1307,7 @@ export function GameScreen() {
         </div>
       )}
 
-      {/* ── Sub-header : compteur cartes + limite ── */}
-      <div className="px-4 pt-2 pb-1 flex items-center justify-end gap-3 flex-shrink-0">
-        {/* Right: compteur cartes X/Total + Limite */}
-        {(() => {
-          const pct = deckTotal > 0 ? drawnCount / deckTotal : 0;
-          const almostFull = pct >= 0.85;
-          return (
-            <div className="flex flex-col items-end gap-0.5">
-              <div
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-[2px] flex-shrink-0"
-                style={{
-                  borderColor: almostFull ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.12)",
-                  background: almostFull ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.05)",
-                  boxShadow: "2px 2px 0px rgba(0,0,0,0.4)",
-                }}
-              >
-                {almostFull && (
-                  <motion.div
-                    animate={{ opacity: [0.4, 1, 0.4] }}
-                    transition={{ duration: 1.1, repeat: Infinity }}
-                  >
-                    <Layers className="w-3 h-3 text-red-400/70" />
-                  </motion.div>
-                )}
-                <span style={{ ...FONT_BANGERS, fontSize: "0.92rem", letterSpacing: "0.08em" }}>
-                  <span className={almostFull ? "text-red-300/80" : "text-white/65"}>{drawnCount}</span>
-                  <span className={almostFull ? "text-red-400/35" : "text-white/28"}>/{deckTotal}</span>
-                </span>
-              </div>
-              {/* Limite sous le compteur — bulle */}
-              <div
-                className="flex items-center gap-1 px-2 py-0.5 rounded-lg border-[2px]"
-                style={{
-                  borderColor: isEliminated ? "rgba(239,68,68,0.35)" : "rgba(234,179,8,0.3)",
-                  background:  isEliminated ? "rgba(239,68,68,0.10)" : "rgba(234,179,8,0.10)",
-                  boxShadow: "1.5px 1.5px 0px rgba(0,0,0,0.5)",
-                }}
-              >
-                <span style={{ ...FONT_FREDOKA, fontSize: "0.52rem" }} className="text-white/45 uppercase tracking-wider leading-none">
-                  Limite
-                </span>
-                <span
-                  style={{ ...FONT_BANGERS, fontSize: "0.72rem", letterSpacing: "0.05em" }}
-                  className={isEliminated ? "text-red-400/80" : "text-yellow-400/80"}
-                >
-                  {formatPrice(ELIMINATION_THRESHOLD)}
-                </span>
-              </div>
-            </div>
-          );
-        })()}
-      </div>
+
 
       {/* Bannière élimination */}
       <AnimatePresence>
@@ -1289,7 +1373,7 @@ export function GameScreen() {
               >
                 {showFront ? (
                   <div className="w-full h-full flex items-center justify-center p-1">
-                    <GeneratedCard card={getCardConfig(currentCard)} size="md" style={{ width: '100%', height: '100%' }} />
+                    <GeneratedCard card={getCardConfigSafe(currentCard)} size="md" mefaitOverride={getCustomMefait(currentCard)} style={{ width: '100%', height: '100%' }} />
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -1432,7 +1516,7 @@ export function GameScreen() {
             ) : (
               <div className="flex flex-col gap-2 overflow-y-auto">
                 {[...drawn].reverse().slice(0, 10).map((cardId) => {
-                  const cfg = getCardConfig(cardId);
+                  const cfg = getCardConfigSafe(cardId);
                   const amt = drawerNetAmount(cfg);
                   const catInfo = CATEGORY_INFO[cfg.category];
                   return (

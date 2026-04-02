@@ -14,13 +14,16 @@ import { ALL_CARD_IDS, getCardConfig } from "@/game/utils/cardConfig";
 import ticketImg from "@/game/utils/ticketImg";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
+import { Sparkles } from "lucide-react";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 
 // ── Clés localStorage ─────────────────────────────────────────
-export const SOLO_DIFFICULTY_KEY       = "ticket_cricket_difficulty";
-export const SOLO_NO_CONTRIBUABLE_KEY  = "ticket_cricket_no_contribuable";
+export const SOLO_DIFFICULTY_KEY            = "ticket_cricket_difficulty";
+export const SOLO_NO_CONTRIBUABLE_KEY       = "ticket_cricket_no_contribuable";
+export const SOLO_CUSTOM_CARDS_ENABLED_KEY  = "ticket_cricket_custom_cards_enabled";
+export const SOLO_CUSTOM_CARDS_DATA_KEY     = "ticket_cricket_custom_cards_data";
 
 // ── Niveaux de difficulté ──────────────────────────────────────
 export const DIFFICULTIES = [
@@ -395,17 +398,30 @@ export function MultiplayerModal({ onClose }: Props) {
 
   // Filtres solo
   const [soloDisableT2, setSoloDisableT2] = useState(false);
+  const [soloCustomEnabled, setSoloCustomEnabled] = useState(false);
 
   // Filtres multi (création)
   const [mpDisableT2, setMpDisableT2] = useState(false);
   const [mpDisableT3, setMpDisableT3] = useState(false);
+  const [mpCustomEnabled, setMpCustomEnabled] = useState(false);
 
   const resetError = () => setError("");
 
   const selectedDiff = DIFFICULTIES.find((d) => d.key === difficulty) ?? DIFFICULTIES[1];
 
+  // Mutation pour publier les cartes personnalisées en session multijoueur
+  const publishSessionCards = trpc.sessionCustomCards.publish.useMutation();
+
   // ─ Auth et sauvegarde ─
   const { isAuthenticated } = useGameAuth();
+
+  // Cartes personnalisées du joueur connecté
+  const { data: customCardsData } = trpc.customCards.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const customCards = customCardsData ?? [];
+  const hasCustomCards = customCards.length > 0;
   const { data: saveData } = trpc.savedGames.loadGame.useQuery(undefined, {
     enabled: isAuthenticated,
     retry: false,
@@ -427,7 +443,7 @@ export function MultiplayerModal({ onClose }: Props) {
     navigate("/game");
   };
 
-  // ── CREATE ──────────────────────────────────────────────────
+  //  // ── CREATE ─────────────────────────────────────────────
   const handleCreate = async () => {
     if (!name.trim()) { setError("Entre ton prénom !"); return; }
     setLoading(true);
@@ -445,6 +461,27 @@ export function MultiplayerModal({ onClose }: Props) {
         disabledCardTypes,
       );
       mpStorage.save(sessionCode, playerId, name.trim(), true);
+
+      // Publier les cartes personnalisées de l'hôte si activées
+      if (mpCustomEnabled && customCards.length > 0) {
+        try {
+          await publishSessionCards.mutateAsync({
+            sessionCode,
+            cards: customCards.map((c: any) => ({
+              id: c.id,
+              category: c.category,
+              mefait: c.mefait ?? null,
+              ticketPrice: c.ticketPrice ?? 0,
+              frais: c.frais ?? 0,
+              impots: c.impots ?? 0,
+              taxe: c.taxe ?? 0,
+            })),
+          });
+        } catch {
+          // Non-bloquant : la partie continue sans cartes personnalisées
+        }
+      }
+
       navigate("/lobby");
     } catch (e: any) {
       setError(e.message || "Erreur réseau");
@@ -475,6 +512,12 @@ export function MultiplayerModal({ onClose }: Props) {
     try {
       localStorage.setItem(SOLO_DIFFICULTY_KEY, String(selectedDiff.threshold));
       localStorage.setItem(SOLO_NO_CONTRIBUABLE_KEY, soloDisableT2 ? "1" : "0");
+      localStorage.setItem(SOLO_CUSTOM_CARDS_ENABLED_KEY, soloCustomEnabled ? "1" : "0");
+      if (soloCustomEnabled && customCards.length > 0) {
+        localStorage.setItem(SOLO_CUSTOM_CARDS_DATA_KEY, JSON.stringify(customCards));
+      } else {
+        localStorage.removeItem(SOLO_CUSTOM_CARDS_DATA_KEY);
+      }
     } catch {}
     navigate("/game");
   };
@@ -662,6 +705,46 @@ export function MultiplayerModal({ onClose }: Props) {
                   showT3={false}
                 />
 
+                {/* Cartes personnalisées (solo) */}
+                {isAuthenticated && hasCustomCards && (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSoloCustomEnabled(!soloCustomEnabled)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+                    style={{
+                      borderColor: soloCustomEnabled ? "#FF4081" : "rgba(255,255,255,0.15)",
+                      background: soloCustomEnabled ? "rgba(255,64,129,0.2)" : "rgba(255,255,255,0.05)",
+                      boxShadow: soloCustomEnabled ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: soloCustomEnabled ? "#FF4081" : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={soloCustomEnabled ? "text-white" : "text-white/50"}>
+                        CARTES PERSONNALISÉES
+                      </div>
+                      <div style={FONT_FREDOKA} className={`text-xs leading-none mt-0.5 ${soloCustomEnabled ? "text-white/70" : "text-white/25"}`}>
+                        {customCards.length} carte{customCards.length > 1 ? "s" : ""} créée{customCards.length > 1 ? "s" : ""} — désactivées par défaut
+                      </div>
+                    </div>
+                    <div
+                      className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+                      style={{
+                        background: soloCustomEnabled ? "#FF4081" : "rgba(255,255,255,0.08)",
+                        boxShadow: "2px 2px 0px #000",
+                      }}
+                    >
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={soloCustomEnabled ? "text-white" : "text-white/40"}>
+                        {soloCustomEnabled ? "INCLUSES" : "EXCLUES"}
+                      </span>
+                    </div>
+                  </motion.button>
+                )}
+
                 <DeckSummary disableT2={soloDisableT2} disableT3={false} isSolo={true} />
 
                 <motion.button
@@ -722,6 +805,46 @@ export function MultiplayerModal({ onClose }: Props) {
                   onChangeT3={setMpDisableT3}
                   showT3={true}
                 />
+
+                {/* Cartes personnalisées (multi host) */}
+                {isAuthenticated && hasCustomCards && (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setMpCustomEnabled(!mpCustomEnabled)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+                    style={{
+                      borderColor: mpCustomEnabled ? "#FF4081" : "rgba(255,255,255,0.15)",
+                      background: mpCustomEnabled ? "rgba(255,64,129,0.2)" : "rgba(255,255,255,0.05)",
+                      boxShadow: mpCustomEnabled ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: mpCustomEnabled ? "#FF4081" : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={mpCustomEnabled ? "text-white" : "text-white/50"}>
+                        CARTES PERSONNALISÉES
+                      </div>
+                      <div style={FONT_FREDOKA} className={`text-xs leading-none mt-0.5 ${mpCustomEnabled ? "text-white/70" : "text-white/25"}`}>
+                        {customCards.length} carte{customCards.length > 1 ? "s" : ""} (host) — partagées avec tous les joueurs
+                      </div>
+                    </div>
+                    <div
+                      className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+                      style={{
+                        background: mpCustomEnabled ? "#FF4081" : "rgba(255,255,255,0.08)",
+                        boxShadow: "2px 2px 0px #000",
+                      }}
+                    >
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={mpCustomEnabled ? "text-white" : "text-white/40"}>
+                        {mpCustomEnabled ? "INCLUSES" : "EXCLUES"}
+                      </span>
+                    </div>
+                  </motion.button>
+                )}
 
                 <DeckSummary disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} />
 

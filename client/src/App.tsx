@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import { GameScreen } from "./pages/GameScreen";
 import { RulesScreen } from "./pages/RulesScreen";
 import { CardCatalogScreen } from "./pages/CardCatalogScreen";
+import CustomCardCreator from "./pages/CustomCardCreator";
 import { LobbyScreen } from "./pages/LobbyScreen";
 import { MultiplayerGameScreen } from "./pages/MultiplayerGameScreen";
 import { CardAdminScreen } from "./pages/CardAdminScreen";
@@ -20,7 +21,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/game"} component={GameScreen} />
       <Route path={"/rules"} component={RulesScreen} />
-      <Route path={"/catalog"} component={CardCatalogScreen} />
+      <Route path="/catalog" component={CardCatalogScreen} />
+        <Route path="/custom-cards" component={CustomCardCreator} />
       <Route path="/lobby" component={LobbyScreen} />
       <Route path="/lobby/:code" component={LobbyScreen} />
       <Route path={"/multiplayer"} component={MultiplayerGameScreen} />

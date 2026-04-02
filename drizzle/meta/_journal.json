@@ -29,6 +29,27 @@
       "when": 1775151200037,
       "tag": "0003_fuzzy_boom_boom",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1775156583514,
+      "tag": "0004_youthful_anita_blake",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1775162034805,
+      "tag": "0005_exotic_gamma_corps",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1775163759376,
+      "tag": "0006_superb_absorbing_man",
+      "breakpoints": true
     }
   ]
 }

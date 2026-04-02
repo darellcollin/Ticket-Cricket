@@ -100,3 +100,56 @@
 - [x] Règles Objectif: supprimer le bloc MODE MULTIJOUEUR
 - [x] Règles Les cartes: bulle Investisseurs → couleurs rose/mauve, remplacer icône éclair par flèche montante (TrendingDown rotatée)
 - [x] Header solo: bouton Sauvegarder → petit carré mauve (w-11 h-11), placé à côté du bouton Accueil, sans texte
+
+## Modifications session 7
+
+- [x] Perquisitions multijoueur: TOUS les joueurs font le mini-jeu simultanément, résultats individuels, piocheur attend que tous aient terminé avant de finir son tour
+- [x] Mini-jeux: animations plus cool et dynamiques (effets visuels améliorés)
+- [x] Multijoueur: animation de match nul quand toutes les cartes sont piochées mais plusieurs joueurs encore en vie
+- [x] Cartes: texte du méfait intégralement visible (pas de troncature)
+- [x] Accueil PC: pleine page (pas de bandes noires sur les côtés)
+- [x] Accueil: titre "TICKET CRICKET" plus haut sans déborder sur le logo PNG et sans bouger le logo
+- [x] Header solo: bouton "Mélanger" placé à côté du bouton "Sauvegarder"
+- [x] Header solo: limite de dette au centre du header, nombre de cartes restantes à droite (comme en multi)
+- [x] Multijoueur investisseur: piocheur bloqué jusqu'à réception du ticket par l'autre joueur
+
+## Modifications session 8
+
+- [x] cardMefaits.ts: intégrer les textes T1 Contraventions (cartes 63-75) fournis par l'utilisateur
+- [x] cardMefaits.ts: intégrer les textes T1 Contraventions (cartes 130-324) fournis par l'utilisateur
+- [x] Catalogue des cartes: améliorer la fluidité et mettre à jour les cartes avec les nouveaux textes
+
+## Modifications session 9 — Renumérotation des cartes
+
+- [x] Analyser la structure actuelle : quelles cartes sont investisseur, contribuable, contravention
+- [x] Réécrire cardConfig.ts avec nouveau mapping (investisseurs 1-63, contribuables 64-116, contraventions 117-324)
+- [x] Réécrire cardPrices.ts avec nouveau mapping
+- [x] Réécrire cardMefaits.ts avec nouveau mapping
+- [x] Améliorer le catalogue des cartes (fluidité, recherche méfait, pleine largeur PC)
+
+## Modifications session 10 — Cartes personnalisées
+
+- [ ] DB: table custom_cards (id, userId, category, mefait, ticketPrice, frais, impots, taxe, createdAt)
+- [ ] tRPC: endpoint createCustomCard (protectedProcedure, max 100 cartes par joueur)
+- [ ] tRPC: endpoint listCustomCards (protectedProcedure)
+- [ ] tRPC: endpoint deleteCustomCard (protectedProcedure)
+- [ ] Page CustomCardCreator: formulaire par catégorie avec prévisualisation GeneratedCard en temps réel
+- [ ] Page CustomCardCreator: contravention (méfait 150 chars, frais 0/10/20/30/40/50$, ticket 10-4000$)
+- [ ] Page CustomCardCreator: contribuable (impôts 0/10/20/30/40/50$, ticket toujours 0$)
+- [ ] Page CustomCardCreator: investisseur (ticket 10-4000$, taxe 0/10/20/30/40/50$, méfait fixe)
+- [ ] Page CustomCardCreator: liste des cartes créées avec option de suppression (max 100)
+- [ ] Bouton "Personnaliser" visible dans le header du catalogue des cartes
+- [ ] Route /custom-cards dans App.tsx
+- [ ] Sélecteur de deck: option "Cartes personnalisées" dans DifficultyModal (solo)
+- [ ] Sélecteur de deck: option "Cartes personnalisées" dans LobbyScreen (host seulement)
+- [ ] Moteur de jeu: GameScreen gère les cartes personnalisées dans le deck
+- [ ] Moteur de jeu: MultiplayerGameScreen partage les cartes du host avec les autres joueurs
+- [ ] Tests vitest pour createCustomCard, listCustomCards, deleteCustomCard
+
+## Modifications session 11 — Navigation personnalisation
+
+- [x] Corriger erreur "No procedure found on path customCards.list" (routeur serveur)
+- [x] Renommer bouton "CATALOGUE DES CARTES" en "PERSONNALISATION" sur l'accueil, rediriger vers /custom-cards
+- [x] Supprimer le bouton "MES CARTES" du header du catalogue (accès via accueil uniquement)
+- [x] Intégrer sélection "cartes personnalisées" dans le flux de démarrage solo (MultiplayerModal)
+- [x] Intégrer sélection "cartes personnalisées" dans le flux de démarrage multi (MultiplayerModal host)

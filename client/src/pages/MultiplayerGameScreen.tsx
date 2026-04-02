@@ -24,7 +24,7 @@ import {
 import {
   getCardConfig, drawerNetAmount, nextPlayerAmount, computePlayerTotal,
   formatPrice, CATEGORY_INFO, CATEGORY_ORDER, TYPE_INFO,
-  type CardCategory,
+  type CardCategory, type CardConfig,
 } from "@/game/utils/cardConfig";
 import { filterByCategory } from "@/game/utils/cardCategories";
 import { PoliceTape } from "@/game/ui/PoliceUI";
@@ -72,6 +72,52 @@ function getNextActivePlayerId(s: Session, currentPlayerId: string): string | nu
 const POLL_INTERVAL       = 1800;
 const TOTAL_CARDS         = 324;
 const DEFAULT_ELIMINATION_THRESHOLD = 10_000; // remplacé par session.eliminationThreshold
+
+// ── Registre runtime des cartes personnalisées multijoueur ──
+const mpCustomCardRegistry  = new Map<number, CardConfig>();
+const mpCustomMefaitRegistry = new Map<number, string>();
+
+function loadMpCustomCards(cards: Array<{
+  id: number; category: string; mefait: string | null;
+  ticketPrice: number; frais: number; impots: number; taxe: number;
+}>): void {
+  mpCustomCardRegistry.clear();
+  mpCustomMefaitRegistry.clear();
+  for (const card of cards) {
+    const cat = card.category as "contravention" | "contribuable" | "investisseur";
+    const isT3 = cat === "investisseur";
+    const isT2 = cat === "contribuable";
+    const cardType = isT3 ? 3 : isT2 ? 2 : 1;
+    const cfg: CardConfig = {
+      id: -card.id,
+      category: cat,
+      cardType,
+      ticketPrice: card.ticketPrice,
+      frais: card.frais,
+      impots: card.impots,
+      taxe: card.taxe,
+    } as unknown as CardConfig;
+    mpCustomCardRegistry.set(-card.id, cfg);
+    if (card.mefait) mpCustomMefaitRegistry.set(-card.id, card.mefait);
+  }
+}
+
+function getCardConfigMp(id: number): CardConfig {
+  if (id < 0) {
+    const custom = mpCustomCardRegistry.get(id);
+    if (custom) return custom;
+  }
+  return getCardConfigMp(id);
+}
+
+function getMpCustomMefait(id: number): string | undefined {
+  if (id < 0) return mpCustomMefaitRegistry.get(id);
+  return undefined;
+}
+
+function computePlayerTotalMp(cardIds: number[]): number {
+  return cardIds.reduce((sum, id) => sum + drawerNetAmount(getCardConfigMp(id)), 0);
+}
 
 // ────────────────────────────────────────────────────────────
 // Icône main SVG
@@ -536,7 +582,7 @@ function EliminationPauseOverlay({
                 className="rounded-2xl border-[5px] border-black overflow-hidden"
                 style={{ width: 220, height: 310, boxShadow: "8px 8px 0px #000, 0 0 40px rgba(192,132,252,0.3)" }}
               >
-                <GeneratedCard card={getCardConfig(lastCardNum)} size="md" style={{ width: "100%", height: "100%" }} />
+                <GeneratedCard card={getCardConfigMp(lastCardNum)} size="md" mefaitOverride={getMpCustomMefait(lastCardNum)} style={{ width: "100%", height: "100%" }} />
               </div>
               <motion.button
                 whileTap={{ scale: 0.93 } as any}
@@ -679,7 +725,7 @@ function MyTicketsPanel({
   const [focusedIsReceived, setFocusedIsReceived] = useState(false);
   const [showHistory, setShowHistory]     = useState(false);
 
-  const myDrawerTotal    = computePlayerTotal(cards);
+  const myDrawerTotal    = computePlayerTotalMp(cards);
   const totalPrice       = myDrawerTotal + receivedDebt;
   const tabCards         = filterByCategory(cards, activeTab);
   const tabReceivedCards = activeTab === "investisseur" ? receivedCards : [];
@@ -711,7 +757,7 @@ function MyTicketsPanel({
     let running = 0;
     // Cartes piochées
     const drawnEntries = cards.map((cardNum, i) => {
-      const cfg = getCardConfig(cardNum);
+      const cfg = getCardConfigMp(cardNum);
       const net = drawerNetAmount(cfg);
       running += net;
       return {
@@ -732,7 +778,7 @@ function MyTicketsPanel({
     });
     // Cartes T3 reçues
     const receivedEntries = receivedCards.map((cardNum, i) => {
-      const cfg = getCardConfig(cardNum);
+      const cfg = getCardConfigMp(cardNum);
       const amt = nextPlayerAmount(cfg);
       running += amt;
       return {
@@ -1125,7 +1171,7 @@ function MyTicketsPanel({
             {catInfo.label} — {tabCards.length + tabReceivedCards.length} ticket{(tabCards.length + tabReceivedCards.length) > 1 ? "s" : ""}
           </span>
           <span style={{ ...FONT_BANGERS, fontSize: "0.95rem" }} className="text-white/70">
-            {formatPrice(computePlayerTotal(tabCards) + (activeTab === "investisseur" ? receivedDebt : 0))}
+            {formatPrice(computePlayerTotalMp(tabCards) + (activeTab === "investisseur" ? receivedDebt : 0))}
           </span>
         </div>
 
@@ -1168,7 +1214,7 @@ function MyTicketsPanel({
                     )}
                     <div className="grid grid-cols-3 gap-2.5">
                       {tabCards.map((cardNum, idx) => {
-                        const cfg = getCardConfig(cardNum);
+                        const cfg = getCardConfigMp(cardNum);
                         const net = drawerNetAmount(cfg);
                         const bgC = cfg.cardType === 2 ? "#16A34A" : cfg.cardType === 3 ? "#7C3AED" : catInfo.color;
                         const ti  = TYPE_INFO[cfg.cardType];
@@ -1186,9 +1232,8 @@ function MyTicketsPanel({
                               borderColor: cfg.cardType === 2 ? "#16A34A" : cfg.cardType === 3 ? "#7C3AED" : "#000",
                             }}
                           >
-                            <GeneratedCard card={getCardConfig(cardNum)} size="xs" style={{ width: '100%', height: '100%' }} />
-                            <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: bgC + "ee" }}>
-                              <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
+                         <GeneratedCard card={getCardConfigMp(cardNum)} size="xs" mefaitOverride={getMpCustomMefait(cardNum)} style={{ width: '100%', height: '100%' }} />
+                      <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: catInfo.color + "ee" }}>                              <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
                                 {net >= 0 ? "+" : ""}{formatPrice(net)}
                               </span>
                             </div>
@@ -1214,7 +1259,7 @@ function MyTicketsPanel({
                     </div>
                     <div className="grid grid-cols-3 gap-2.5">
                       {tabReceivedCards.map((cardNum, idx) => {
-                        const cfg     = getCardConfig(cardNum);
+                        const cfg     = getCardConfigMp(cardNum);
                         const nextAmt = nextPlayerAmount(cfg);
                         return (
                           <motion.div
@@ -1232,7 +1277,7 @@ function MyTicketsPanel({
                               background: "#0c1a4e",
                             }}
                           >
-                            <GeneratedCard card={getCardConfig(cardNum)} size="xs" style={{ width: '100%', height: '100%' }} />
+                            <GeneratedCard card={getCardConfigMp(cardNum)} size="xs" mefaitOverride={getMpCustomMefait(cardNum)} style={{ width: '100%', height: '100%' }} />
                             <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: "#EC4899ee" }}>
                               <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
                                 +{formatPrice(nextAmt)}
@@ -1261,7 +1306,7 @@ function MyTicketsPanel({
       {/* Vue zoom d'une carte */}
       <AnimatePresence>
         {focusedCard !== null && (() => {
-          const cfg      = getCardConfig(focusedCard);
+          const cfg      = getCardConfigMp(focusedCard);
           const net      = drawerNetAmount(cfg);
           const nextAmt  = nextPlayerAmount(cfg);
           const ti       = TYPE_INFO[cfg.cardType];
@@ -1285,7 +1330,7 @@ function MyTicketsPanel({
                 style={{ width: "min(78vw, 260px)", aspectRatio: "5/7", boxShadow: "10px 10px 0px #000", borderColor: focusedIsReceived ? "#EC4899" : "#000" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <GeneratedCard card={getCardConfig(focusedCard)} size="md" style={{ width: '100%', height: '100%' }} />
+                <GeneratedCard card={getCardConfigMp(focusedCard)} size="md" mefaitOverride={getMpCustomMefait(focusedCard)} style={{ width: '100%', height: '100%' }} />
               </motion.div>
 
               <div
@@ -1433,6 +1478,9 @@ export function MultiplayerGameScreen() {
   } | null>(null);
   const [isSendingT3, setIsSendingT3]                         = useState(false);
   const [showTaxNotif, setShowTaxNotif]                       = useState<{ amount: number } | null>(null);
+  // Vrai si le piocheur a envoyé le ticket T3 mais attend que le receveur confirme
+  const [pendingT3Ack, setPendingT3Ack]                       = useState(false);
+  const prevT3ReceivedRef                                     = useRef<Record<string, number>>({}); // pid -> count
   const [showReceivedTicketNotif, setShowReceivedTicketNotif] = useState<{
     amount: number; fromName: string;
   } | null>(null);
@@ -1460,12 +1508,23 @@ export function MultiplayerGameScreen() {
   const [showHistoryPanel, setShowHistoryPanel]     = useState(false);
 
   // ─ Perquisition (synchronisée via tRPC) ─
+  // Mode du mini-jeu en cours pour CE joueur (null = pas de mini-jeu)
   const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
-  // spectateur : état du mini-jeu en cours déclenché par un autre joueur
-  const [spectatorMiniGame, setSpectatorMiniGame] = useState<{ mode: "run" | "hide"; triggeredBy: string } | null>(null);
+  // ID de l'événement mini-jeu en cours
+  const [miniGameEventId, setMiniGameEventId] = useState<number | null>(null);
+  // Nombre total de joueurs actifs pour ce mini-jeu
+  const [miniGameTotalPlayers, setMiniGameTotalPlayers] = useState<number>(0);
+  // Le joueur qui a déclenché le mini-jeu attend que tous aient terminé
+  const [waitingForAllPlayers, setWaitingForAllPlayers] = useState(false);
+  // ID du joueur qui a déclenché le mini-jeu (pour savoir qui doit attendre)
+  const [miniGameTriggeredBy, setMiniGameTriggeredBy] = useState<string | null>(null);
+  // Résultats de la Perquisition (affichés après résolution)
+  const [miniGameResultsData, setMiniGameResultsData] = useState<Array<{ playerId: string; success: boolean; amount: number }> | null>(null);
   const miniGamePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const miniGameStatusPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastMiniGameId = useRef<number | null>(null);
   const triggerMiniGame = trpc.miniGame.trigger.useMutation();
+  const submitMiniGameResult = trpc.miniGame.submitResult.useMutation();
   const resolveMiniGame = trpc.miniGame.resolve.useMutation();
 
   const pollRef                = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -1487,6 +1546,17 @@ export function MultiplayerGameScreen() {
   useEffect(() => {
     if (!code || !playerId) navigate("/");
   }, []);
+
+  // ── Charger les cartes personnalisées de l'hôte pour cette session ──
+  const sessionCustomCardsQuery = trpc.sessionCustomCards.getForSession.useQuery(
+    { sessionCode: code ?? "" },
+    { enabled: !!(code), refetchOnWindowFocus: false, staleTime: 60_000 },
+  );
+  useEffect(() => {
+    if (sessionCustomCardsQuery.data) {
+      loadMpCustomCards(sessionCustomCardsQuery.data as any);
+    }
+  }, [sessionCustomCardsQuery.data]);
 
   // Réinitialiser le masquage à chaque nouvelle carte
   useEffect(() => {
@@ -1595,7 +1665,7 @@ export function MultiplayerGameScreen() {
       ) {
         const drawerPlayer = s.players.find((p) => p.id === s.lastCardDrawnBy);
         if (s.lastCard !== null) {
-          const cfg = getCardConfig(s.lastCard);
+          const cfg = getCardConfigMp(s.lastCard);
           const receivedAmt = nextPlayerAmount(cfg);
           setShowReceivedTicketNotif({
             amount: receivedAmt,
@@ -1605,9 +1675,23 @@ export function MultiplayerGameScreen() {
       }
       prevReceivedCardCount.current = newReceivedCount;
 
+      // ─ Détecter si le receveur T3 a confirmé la réception (pour libérer le piocheur) ─
+      // On détecte le changement de playerReceivedCards du destinataire
+      if (pendingT3Ack && s.lastCardDrawnBy === playerId) {
+        const t3TargetId = getNextActivePlayerId(s, playerId);
+        if (t3TargetId) {
+          const prevCount = prevT3ReceivedRef.current[t3TargetId] ?? 0;
+          const newCount = (s.playerReceivedCards?.[t3TargetId] ?? []).length;
+          if (newCount > prevCount) {
+            setPendingT3Ack(false);
+          }
+          prevT3ReceivedRef.current[t3TargetId] = newCount;
+        }
+      }
+
       // ─ Détecter si la carte qui vient d'être piochée est T3 (notif spectateur dès la pioche) ─
       if (firstLoadDone.current && cardChanged && s.lastCard !== null) {
-        const drawnCfg = getCardConfig(s.lastCard);
+        const drawnCfg = getCardConfigMp(s.lastCard);
         if (drawnCfg.cardType === 3 && s.lastCardDrawnBy && s.lastCardDrawnBy !== playerId) {
           const nextReceiverId = getNextActivePlayerId(s, s.lastCardDrawnBy);
           if (nextReceiverId && nextReceiverId !== playerId) {
@@ -1674,7 +1758,7 @@ export function MultiplayerGameScreen() {
   // ── Polling mini-jeu pour les spectateurs ───────────────────────────────────
   // Interroge getActive toutes les 1.5s pour détecter un mini-jeu déclenché par un autre joueur
   const fetchActiveMiniGame = useCallback(async () => {
-    if (!code || miniGameMode !== null) return; // Pas besoin si je joue déjà
+    if (!code || miniGameMode !== null || waitingForAllPlayers) return; // Déjà en train de jouer ou d'attendre
     try {
       const res = await fetch(`/api/trpc/miniGame.getActive?input=${encodeURIComponent(JSON.stringify({ sessionCode: code }))}`, {
         credentials: "include",
@@ -1684,18 +1768,21 @@ export function MultiplayerGameScreen() {
       const event = json?.result?.data ?? null;
       if (event && event.id !== lastMiniGameId.current) {
         lastMiniGameId.current = event.id;
-        // Si ce mini-jeu a été déclenché par un autre joueur, afficher le mode spectateur
-        if (event.triggeredBy !== playerId) {
-          setSpectatorMiniGame({ mode: event.mode, triggeredBy: event.triggeredBy });
+        // Tous les joueurs jouent le mini-jeu (y compris le piocheur)
+        setMiniGameMode(event.mode);
+        setMiniGameEventId(event.id);
+        setMiniGameTriggeredBy(event.triggeredBy ?? null);
+        // Calculer le nombre de joueurs actifs
+        if (session) {
+          const eliminated = session.eliminatedPlayers ?? [];
+          const activePlayers = session.turnOrder.filter((id: string) => !eliminated.includes(id));
+          setMiniGameTotalPlayers(Math.max(1, activePlayers.length));
         }
-      } else if (!event) {
-        // Plus de mini-jeu actif : fermer le mode spectateur
-        setSpectatorMiniGame(null);
       }
     } catch (e) {
       // Silencieux
     }
-  }, [code, miniGameMode, playerId]);
+  }, [code, miniGameMode, playerId, waitingForAllPlayers, session]);
   useEffect(() => {
     fetchActiveMiniGame();
     miniGamePollRef.current = setInterval(fetchActiveMiniGame, 1500);
@@ -1703,6 +1790,37 @@ export function MultiplayerGameScreen() {
       if (miniGamePollRef.current) clearInterval(miniGamePollRef.current);
     };
   }, [fetchActiveMiniGame]);
+
+  // ── Polling du statut de la Perquisition (piocheur attend tous les joueurs) ──
+  const fetchMiniGameStatus = useCallback(async () => {
+    if (!code || !waitingForAllPlayers || miniGameEventId === null || miniGameTotalPlayers === 0) return;
+    try {
+      const input = encodeURIComponent(JSON.stringify({ sessionCode: code, eventId: miniGameEventId, totalPlayers: miniGameTotalPlayers }));
+      const res = await fetch(`/api/trpc/miniGame.getStatus?input=${input}`, { credentials: "include" });
+      if (!res.ok) return;
+      const json = await res.json();
+      const status = json?.result?.data;
+      if (status?.allDone) {
+        // Tous ont terminé : résoudre et afficher les résultats
+        setWaitingForAllPlayers(false);
+        setMiniGameResultsData(status.results);
+        // Marquer l'événement comme résolu
+        resolveMiniGame.mutateAsync({ sessionCode: code, eventId: miniGameEventId }).catch(() => {});
+        setMiniGameEventId(null);
+        // Fermer les résultats après 4s
+        setTimeout(() => setMiniGameResultsData(null), 4000);
+      }
+    } catch (e) {
+      // Silencieux
+    }
+  }, [code, waitingForAllPlayers, miniGameEventId, miniGameTotalPlayers, resolveMiniGame]);
+  useEffect(() => {
+    if (!waitingForAllPlayers) return;
+    miniGameStatusPollRef.current = setInterval(fetchMiniGameStatus, 1500);
+    return () => {
+      if (miniGameStatusPollRef.current) clearInterval(miniGameStatusPollRef.current);
+    };
+  }, [waitingForAllPlayers, fetchMiniGameStatus]);
 
   // ── Auto-fermeture de la notif spectateur T3 ──────────────
   // Se ferme quand l'envoyeur termine son tour (currentTurnIndex change)
@@ -1723,7 +1841,7 @@ export function MultiplayerGameScreen() {
   ): Promise<Session> => {
     const cards = s.playerCards?.[targetId] ?? [];
     const debt  = s.playerDebts?.[targetId] ?? 0;
-    const total = computePlayerTotal(cards) + debt;
+    const total = computePlayerTotalMp(cards) + debt;
 
     // Lire le seuil depuis la session (dynamique selon la difficulté choisie)
     const sessionThreshold = s.eliminationThreshold ?? DEFAULT_ELIMINATION_THRESHOLD;
@@ -1754,7 +1872,16 @@ export function MultiplayerGameScreen() {
       // Déclencher le mini-jeu pour tous les joueurs via tRPC
       setMiniGameMode(mode);
       try {
-        await triggerMiniGame.mutateAsync({ sessionCode: code, playerId, mode });
+        // Calculer le nombre de joueurs actifs (non éliminés)
+        const eliminated = session.eliminatedPlayers ?? [];
+        const activePlayers = session.turnOrder.filter((id: string) => !eliminated.includes(id));
+        const totalPlayers = Math.max(1, activePlayers.length);
+        setMiniGameTotalPlayers(totalPlayers);
+        const result = await triggerMiniGame.mutateAsync({ sessionCode: code, playerId, mode, totalPlayers });
+        if (result.eventId) {
+          setMiniGameEventId(result.eventId);
+          setMiniGameTriggeredBy(playerId); // Le piocheur est celui qui déclenche
+        }
       } catch (e) {
         console.error("Erreur trigger mini-jeu:", e);
       }
@@ -1783,7 +1910,7 @@ export function MultiplayerGameScreen() {
 
       // Carte Type 3 : préparer l'envoi manuel (via bouton "Envoyer le ticket")
       if (s.lastCard !== null && s.turnOrder.length > 1 && s.state === "playing") {
-        const cfg     = getCardConfig(s.lastCard);
+        const cfg     = getCardConfigMp(s.lastCard);
         const nextAmt = nextPlayerAmount(cfg);
         if (nextAmt > 0) {
           const nextPlayerId = getNextActivePlayerId(s, playerId);
@@ -1814,6 +1941,8 @@ export function MultiplayerGameScreen() {
       let s2 = (await addDebt(code, playerId, nextPlayerId, nextAmt, session.lastCard!)).session;
       setSession(s2);
       setPendingT3(null);
+      // Bloquer le tour jusqu'à ce que le receveur confirme la réception
+      setPendingT3Ack(true);
 
       // NOTE : L'élimination du piocheur et du destinataire n'est PAS vérifiée ici.
       // Elle sera vérifiée dans handleEndTurn, après que le joueur a lu sa carte.
@@ -1843,7 +1972,7 @@ export function MultiplayerGameScreen() {
 
       // Vérifier aussi l'élimination du destinataire T3 s'il y en avait un
       if (currentSession.lastCard !== null) {
-        const lastCfg = getCardConfig(currentSession.lastCard);
+        const lastCfg = getCardConfigMp(currentSession.lastCard);
         if (lastCfg.cardType === 3 && currentSession.lastCardDrawnBy === playerId) {
           const t3TargetId = getNextActivePlayerId(currentSession, playerId);
           if (t3TargetId) {
@@ -1905,9 +2034,14 @@ export function MultiplayerGameScreen() {
       setShowConfirmReset(false);
       setPendingT3(null);
       setShowTaxNotif(null);
+      setPendingT3Ack(false);
       setShowReceivedTicketNotif(null);
       setShowT3SpectatorNotif(null);
       setShowMyEliminationOverlay(false);
+      setMiniGameTriggeredBy(null);
+      setWaitingForAllPlayers(false);
+      setMiniGameMode(null);
+      setMiniGameEventId(null);
       prevPendingAck.current = [];
     } catch (e: any) {
       setError(e.message ?? "Erreur mélange");
@@ -1993,7 +2127,7 @@ export function MultiplayerGameScreen() {
   // Calcul des totaux pour le classement
   const playerTotals = session.turnOrder.map((pid) => ({
     pid,
-    total: computePlayerTotal(session.playerCards?.[pid] ?? []) + (session.playerDebts?.[pid] ?? 0),
+    total: computePlayerTotalMp(session.playerCards?.[pid] ?? []) + (session.playerDebts?.[pid] ?? 0),
   }));
   const minTotal   = Math.min(...playerTotals.filter(t => !(session.eliminatedPlayers ?? []).includes(t.pid)).map(t => t.total));
   const eliminated = session.eliminatedPlayers ?? [];
@@ -2002,7 +2136,7 @@ export function MultiplayerGameScreen() {
   const activePlayers = playerTotals.filter(t => !eliminated.includes(t.pid));
 
   // ─ T3 : identifier si la carte courante est un investisseur et qui est le receveur ─
-  const lastCardIsT3 = session.lastCard !== null && currentPlayerHasDrawn && getCardConfig(session.lastCard).cardType === 3;
+  const lastCardIsT3 = session.lastCard !== null && currentPlayerHasDrawn && getCardConfigMp(session.lastCard).cardType === 3;
   const t3ReceiverId = lastCardIsT3 && session.lastCardDrawnBy
     ? getNextActivePlayerId(session, session.lastCardDrawnBy)
     : null;
@@ -2011,6 +2145,8 @@ export function MultiplayerGameScreen() {
   const winner = isFinished && activePlayers.length === 1
     ? session.players.find((p) => p.id === activePlayers[0]?.pid)
     : null;
+  // Match nul : partie terminée avec plusieurs joueurs encore en jeu (deck épuisé)
+  const isDraw = isFinished && activePlayers.length > 1;
 
   // Pause élimination : autres joueurs en attente
   const pendingAck = session.pendingEliminationAck ?? [];
@@ -2019,11 +2155,11 @@ export function MultiplayerGameScreen() {
     : null;
   // Dette totale du joueur en attente d'élimination (pour la notif des autres)
   const gamePausedForTotal = gamePausedFor
-    ? computePlayerTotal(session.playerCards?.[gamePausedFor.id] ?? []) + (session.playerDebts?.[gamePausedFor.id] ?? 0)
+    ? computePlayerTotalMp(session.playerCards?.[gamePausedFor.id] ?? []) + (session.playerDebts?.[gamePausedFor.id] ?? 0)
     : 0;
 
   // Total pour l'overlay d'élimination du joueur local
-  const myTotal = computePlayerTotal(myCards) + myReceivedDebt;
+  const myTotal = computePlayerTotalMp(myCards) + myReceivedDebt;
 
   return (
     <div
@@ -2084,6 +2220,134 @@ export function MultiplayerGameScreen() {
             onRestart={() => { setShowConfirmReset(true); }}
             onMenu={() => setShowConfirmLeave(true)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ── Overlay MATCH NUL plein écran (deck épuisé, plusieurs joueurs en jeu) ── */}
+      <AnimatePresence>
+        {isDraw && pendingAck.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[88] flex items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(6px)" }}
+          >
+            {/* Confettis décoratifs */}
+            {[...Array(18)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-3 h-3 rounded-sm"
+                style={{
+                  background: ["#FFD700","#FF4081","#00E676","#007AFF","#FF6B00"][i % 5],
+                  left: `${(i * 5.5 + 3) % 100}%`,
+                  top: `${(i * 7.3 + 5) % 60}%`,
+                }}
+                animate={{
+                  y: [0, 120 + (i % 4) * 40, 280 + (i % 3) * 60],
+                  x: [0, (i % 2 === 0 ? 1 : -1) * (20 + i * 3), (i % 2 === 0 ? -1 : 1) * 30],
+                  rotate: [0, 180 + i * 15, 360 + i * 30],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{ duration: 2.5 + (i % 4) * 0.4, repeat: Infinity, delay: (i % 6) * 0.3, ease: "easeIn" }}
+              />
+            ))}
+
+            <motion.div
+              initial={{ scale: 0.7, y: 40, rotate: -4 }}
+              animate={{ scale: 1, y: 0, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 22, delay: 0.1 }}
+              className="relative rounded-3xl border-[6px] border-black p-8 flex flex-col items-center gap-5 max-w-sm w-full mx-4"
+              style={{
+                background: "linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)",
+                boxShadow: "10px 10px 0px #000, 0 0 60px rgba(255,215,0,0.25)",
+              }}
+            >
+              {/* Badge égalité animé */}
+              <motion.div
+                animate={{ rotate: [0, -8, 8, -5, 5, 0], scale: [1, 1.08, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="w-20 h-20 rounded-2xl border-[5px] border-black flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #FFD700 0%, #FF8C00 100%)", boxShadow: "5px 5px 0px #000" }}
+              >
+                <span style={{ fontSize: "2.8rem", lineHeight: 1 }}>🤝</span>
+              </motion.div>
+
+              {/* Titre */}
+              <div className="flex flex-col items-center gap-1">
+                <motion.span
+                  style={{ fontFamily: "'Bangers', cursive", fontSize: "2.6rem", letterSpacing: "0.1em", lineHeight: 1 }}
+                  className="text-yellow-400 text-center"
+                  animate={{ scale: [1, 1.04, 1], textShadow: ["3px 3px 0px #000, 0 0 20px rgba(255,215,0,0.4)", "3px 3px 0px #000, 0 0 40px rgba(255,215,0,0.7)", "3px 3px 0px #000, 0 0 20px rgba(255,215,0,0.4)"] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  MATCH NUL !
+                </motion.span>
+                <span style={{ fontFamily: "'Fredoka One', cursive", fontSize: "0.95rem" }} className="text-white/60 text-center">
+                  Le deck est épuisé — personne ne gagne !
+                </span>
+              </div>
+
+              {/* Classement des survivants */}
+              <div className="w-full flex flex-col gap-2">
+                <span style={{ fontFamily: "'Bangers', cursive", fontSize: "1.1rem", letterSpacing: "0.08em" }} className="text-white/50 text-center">
+                  SURVIVANTS
+                </span>
+                {activePlayers
+                  .sort((a, b) => a.total - b.total)
+                  .map((t, i) => {
+                    const p = session.players.find(pl => pl.id === t.pid);
+                    const isMe = t.pid === playerId;
+                    return (
+                      <motion.div
+                        key={t.pid}
+                        initial={{ x: -30, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 + i * 0.12 }}
+                        className="flex items-center justify-between rounded-xl border-[3px] border-black px-4 py-2"
+                        style={{
+                          background: isMe ? "linear-gradient(135deg, #1a3a1a 0%, #0d2a0d 100%)" : "rgba(255,255,255,0.06)",
+                          borderColor: isMe ? "#00E676" : "rgba(255,255,255,0.15)",
+                          boxShadow: isMe ? "3px 3px 0px #000" : "none",
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span style={{ fontFamily: "'Bangers', cursive", fontSize: "1.1rem" }} className="text-yellow-400">#{i + 1}</span>
+                          <span style={{ fontFamily: "'Fredoka One', cursive", fontSize: "0.95rem" }} className={isMe ? "text-green-400" : "text-white/80"}>
+                            {p?.name ?? t.pid}{isMe ? " (toi)" : ""}
+                          </span>
+                        </div>
+                        <span style={{ fontFamily: "'Bangers', cursive", fontSize: "1.1rem" }} className="text-white/70">
+                          {formatPrice(t.total)}
+                        </span>
+                      </motion.div>
+                    );
+                  })}
+              </div>
+
+              {/* Boutons */}
+              <div className="flex gap-3 w-full">
+                {isHost && (
+                  <motion.button
+                    whileTap={{ scale: 0.93 } as any}
+                    onClick={() => setShowConfirmReset(true)}
+                    className="flex-1 py-3.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-black"
+                    style={{ fontFamily: "'Bangers', cursive", fontSize: "1.2rem", letterSpacing: "0.06em", boxShadow: "4px 4px 0px #000" }}
+                  >
+                    REJOUER
+                  </motion.button>
+                )}
+                <motion.button
+                  whileTap={{ scale: 0.93 } as any}
+                  onClick={() => setShowConfirmLeave(true)}
+                  className="flex-1 py-3.5 bg-white/10 border-[3px] border-white/20 rounded-2xl text-white/70"
+                  style={{ fontFamily: "'Bangers', cursive", fontSize: "1.2rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px rgba(0,0,0,0.5)" }}
+                >
+                  MENU
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -2728,7 +2992,7 @@ export function MultiplayerGameScreen() {
                           {session.drawn.map((cardNum, i) => {
                             const ownerId = cardOwnerMap.get(cardNum);
                             const owner = session.players.find(p => p.id === ownerId);
-                            const cfg = getCardConfig(cardNum);
+                            const cfg = getCardConfigMp(cardNum);
                             const net = drawerNetAmount(cfg);
                             const nextAmt = nextPlayerAmount(cfg);
                             const receiverName = cardReceiverMap.get(cardNum) ?? "";
@@ -2885,7 +3149,7 @@ export function MultiplayerGameScreen() {
                 style={{ boxShadow: "8px 8px 0px #000", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
               >
                 {showCardFront && !cardHiddenByViewer && !isT3Spectator
-                  ? <div className="w-full h-full"><GeneratedCard card={getCardConfig(session.lastCard)} size="md" style={{ width: '100%', height: '100%' }} /></div>
+                  ? <div className="w-full h-full"><GeneratedCard card={getCardConfigMp(session.lastCard)} size="md" mefaitOverride={getMpCustomMefait(session.lastCard)} style={{ width: '100%', height: '100%' }} /></div>
                   : <div className="w-full h-full"><GeneratedCardBack size="md" style={{ width: '100%', height: '100%' }} /></div>
                 }
 
@@ -2980,6 +3244,8 @@ export function MultiplayerGameScreen() {
                   amEliminated || !myTurn || isDrawing || isEndingTurn || isSendingT3
                   || (hasDrawnThisTurn && !pendingT3 && showTaxNotif !== null)
                   || pendingAck.length > 0
+                  || waitingForAllPlayers
+                  || (hasDrawnThisTurn && pendingT3Ack)
                 }
                 className="w-full py-3.5 border-[5px] border-black rounded-2xl relative overflow-hidden disabled:cursor-not-allowed transition-colors"
                 style={{
@@ -3043,6 +3309,10 @@ export function MultiplayerGameScreen() {
                       </span>
                       {!isSendingT3 && <ArrowRight className="w-4 h-4 flex-shrink-0" />}
                     </>
+                  ) : hasDrawnThisTurn && pendingT3Ack ? (
+                    <span style={{ fontSize: "0.78rem" }} className="text-center leading-snug opacity-60">
+                      En attente de réception du ticket...
+                    </span>
                   ) : hasDrawnThisTurn && showTaxNotif ? (
                     <span style={{ fontSize: "0.78rem" }} className="text-center leading-snug opacity-60">
                       Ferme la notification d'abord
@@ -3137,7 +3407,7 @@ export function MultiplayerGameScreen() {
                 className="rounded-3xl border-[5px] border-yellow-400 overflow-hidden mt-[14px]"
                 style={{ width: "min(78vw, 260px)", aspectRatio: "5/7", boxShadow: "10px 10px 0px #000" }}
               >
-                <GeneratedCard card={getCardConfig(bubbleCard.cardNum)} size="sm" style={{ width: '100%', height: '100%' }} />
+                <GeneratedCard card={getCardConfigMp(bubbleCard.cardNum)} size="sm" mefaitOverride={getMpCustomMefait(bubbleCard.cardNum)} style={{ width: '100%', height: '100%' }} />
               </div>
               <motion.button
                 whileTap={{ scale: 0.9 } as any}
@@ -3446,35 +3716,67 @@ export function MultiplayerGameScreen() {
       </AnimatePresence>
 
       {/* ─ Perquisition (multijoueur) ─ */}
+      {/* Tous les joueurs jouent le mini-jeu individuellement */}
       <AnimatePresence>
-        {/* Joueur actif : joue le mini-jeu */}
-        {miniGameMode !== null && (
+        {miniGameMode !== null && miniGameEventId !== null && (
           <MiniGame
             mode={miniGameMode}
             onComplete={(success, amount) => {
-              setMiniGameMode(null);
-              // Résoudre le mini-jeu pour tous les joueurs
-              resolveMiniGame.mutateAsync({ sessionCode: code }).catch(() => {});
+              // Soumettre le résultat individuel
+              submitMiniGameResult.mutateAsync({
+                sessionCode: code,
+                eventId: miniGameEventId,
+                playerId,
+                success,
+                amount,
+              }).catch(() => {});
               // Appliquer la pénalité/récompense via addDebt
-              if (session && playerId) {
+              if (session) {
                 const delta = success ? -amount : amount;
                 addDebt(code, playerId, playerId, delta, 0).then(res => {
                   setSession(res.session);
                 }).catch(() => {});
               }
-              // Le mini-jeu remplace le tour : pas de pioche après
-              // Le joueur doit terminer son tour manuellement
+              setMiniGameMode(null);
+              // Si c'est le piocheur (celui qui a déclenché le mini-jeu), attendre que tous aient terminé
+              const isTriggerer = miniGameTriggeredBy === playerId;
+              if (isTriggerer) {
+                setWaitingForAllPlayers(true);
+              }
             }}
           />
         )}
-        {/* Spectateurs : voient le mini-jeu en cours */}
-        {miniGameMode === null && spectatorMiniGame !== null && (
-          <MiniGame
-            mode={spectatorMiniGame.mode}
-            onComplete={() => {}}
-            isSpectator={true}
-            triggeredByName={session?.players.find(p => p.id === spectatorMiniGame.triggeredBy)?.name}
-          />
+      </AnimatePresence>
+
+      {/* Overlay d'attente pour le piocheur : attend que tous aient terminé */}
+      <AnimatePresence>
+        {waitingForAllPlayers && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] flex items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="rounded-3xl border-[5px] border-black p-8 flex flex-col items-center gap-4 max-w-sm mx-4"
+              style={{ background: "linear-gradient(160deg, #1a1a2e 0%, #16213e 100%)", boxShadow: "8px 8px 0px #000" }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full"
+              />
+              <span style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center">
+                PERQUISITION EN COURS
+              </span>
+              <span style={FONT_FREDOKA} className="text-white/60 text-sm text-center">
+                En attente que tous les joueurs terminent...
+              </span>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

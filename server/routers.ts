@@ -5,6 +5,8 @@ import { publicProcedure, router } from "./_core/trpc";
 import { gameAuthRouter } from "./gameAuthRouter";
 import { savedGamesRouter } from "./savedGamesRouter";
 import { miniGameRouter } from "./miniGameRouter";
+import { customCardsRouter } from "./customCardsRouter";
+import { sessionCustomCardsRouter } from "./sessionCustomCardsRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -27,6 +29,12 @@ export const appRouter = router({
 
   /** Synchronisation des mini-jeux multijoueur */
   miniGame: miniGameRouter,
+
+  /** Cartes personnalisées par les joueurs */
+  customCards: customCardsRouter,
+
+  /** Partage de cartes personnalisées en session multijoueur */
+  sessionCustomCards: sessionCustomCardsRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -157,8 +157,9 @@ export function CardConfigEditor() {
     3: { icon: "➡️", title: "T3 — Transfert", desc: "Ticket → joueur suivant | Taxe → réduit le piocheur" },
   };
 
-  const catColor = cardNum <= 108 ? "#DC2626" : cardNum <= 216 ? "#D97706" : "#7C3AED";
-  const catLabel = cardNum <= 108 ? "Contravention" : cardNum <= 216 ? "Contribuable" : "Investisseur";
+  // Nouvelle numérotation: 1-63 investisseurs, 64-116 contribuables, 117-324 contraventions
+  const catColor = cardNum <= 63 ? "#7C3AED" : cardNum <= 116 ? "#D97706" : "#DC2626";
+  const catLabel = cardNum <= 63 ? "Investisseur" : cardNum <= 116 ? "Contribuable" : "Contravention";
 
   // ── Rendu ──────────────────────────────────────────────────────────────────
 

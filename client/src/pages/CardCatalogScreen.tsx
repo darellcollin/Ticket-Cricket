@@ -6,8 +6,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
-import {
-  Home, Search, X, ChevronLeft, ChevronRight,
+import { Home, Search, X, ChevronLeft, ChevronRight,
   AlertCircle, CheckCircle2, Plus,
   Target, User, ArrowRight, Banknote,
 } from "lucide-react";
@@ -430,13 +429,22 @@ export function CardCatalogScreen() {
 
   const filtered = useMemo(() => {
     return ALL_IDS.filter((id) => {
-      const d = getCardData(id);
+      const d   = getCardData(id);
+      const cfg = getCardConfig(id);
       if (filter !== "all" && d.mechanic !== filter) return false;
       if (showOnlyTodo && d.confirmed)      return false;
       if (showOnlySub  && !d.isSubtraction) return false;
       if (search) {
-        const q = search.toLowerCase();
-        if (!String(id).includes(q) && !(d.note ?? "").toLowerCase().includes(q)) return false;
+        const q      = search.toLowerCase();
+        const mefait = getCardMefait(id) ?? "";
+        const note   = d.note ?? "";
+        const cat    = cfg.category ?? "";
+        if (
+          !String(id).includes(q) &&
+          !note.toLowerCase().includes(q) &&
+          !mefait.toLowerCase().includes(q) &&
+          !cat.toLowerCase().includes(q)
+        ) return false;
       }
       return true;
     });
@@ -445,6 +453,7 @@ export function CardCatalogScreen() {
   const totalConfirmed   = ALL_IDS.filter((id) => getCardData(id).confirmed).length;
   const totalSubtraction = ALL_IDS.filter((id) => getCardData(id).isSubtraction).length;
   const totalWithFrais   = ALL_IDS.filter((id) => (getCardData(id).frais ?? 0) > 0).length;
+  const totalWithMefait  = ALL_IDS.filter((id) => { const m = getCardMefait(id); return m && m !== "---"; }).length;
 
   const focusedIdx = focusedCard !== null ? filtered.indexOf(focusedCard) : -1;
   const goNext = () => { if (focusedIdx < filtered.length - 1) setFocused(filtered[focusedIdx + 1]); };
@@ -452,7 +461,7 @@ export function CardCatalogScreen() {
 
   return (
     <div
-      className="h-[100dvh] max-w-md md:max-w-2xl lg:max-w-4xl mx-auto flex flex-col overflow-hidden"
+      className="h-[100dvh] w-full flex flex-col overflow-hidden"
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       {/* Header */}
@@ -473,6 +482,8 @@ export function CardCatalogScreen() {
             {totalConfirmed} / 324 prix confirmes
           </div>
         </div>
+        {/* Placeholder pour équilibrer le header */}
+        <div className="w-10 flex-shrink-0" />
       </div>
 
       <PoliceTape />
@@ -480,9 +491,9 @@ export function CardCatalogScreen() {
       {/* Statistiques rapides */}
       <div className="px-4 pt-3 pb-2 grid grid-cols-3 gap-2">
         {[
-          { label: "Confirmes",     value: totalConfirmed,   color: "#22c55e" },
-          { label: "Soustractions", value: totalSubtraction, color: "#22c55e" },
-          { label: "Avec frais",    value: totalWithFrais,   color: "#0891B2" },
+          { label: "Confirmes",   value: totalConfirmed,   color: "#22c55e" },
+          { label: "Avec méfait",  value: totalWithMefait,  color: "#D97706" },
+          { label: "Avec frais",   value: totalWithFrais,   color: "#0891B2" },
         ].map((s) => (
           <div
             key={s.label}
@@ -501,7 +512,7 @@ export function CardCatalogScreen() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
           <input
             type="text"
-            placeholder="Rechercher par numero..."
+            placeholder="Rechercher par numéro, méfait, catégorie..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-9 py-2.5 rounded-xl border-[2px] border-white/20 bg-white/8 text-white text-sm outline-none focus:border-yellow-400/60"
@@ -600,7 +611,7 @@ export function CardCatalogScreen() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2">
             {filtered.map((id) => (
               <CardThumb
                 key={id}
