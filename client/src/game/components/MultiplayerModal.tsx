@@ -353,25 +353,41 @@ function CardFiltersSection({
   );
 }
 
-// ── Résumé du deck filtré ──────────────────────────────────────
+// ── Résumé du deck filtré ──────────────────────────────────────────────────────────
 function DeckSummary({
   disableT2,
   disableT3,
   isSolo = false,
+  customCards = [],
+  customEnabled = false,
 }: {
   disableT2: boolean;
   disableT3?: boolean;
   isSolo?: boolean;
+  customCards?: Array<{ category: string }>;
+  customEnabled?: boolean;
 }) {
   // En solo, T3 n'existe jamais — on les exclut toujours
   const effectiveDisableT3 = isSolo ? true : (disableT3 ?? false);
 
-  const total = ALL_CARD_IDS.filter((id) => {
+  // Cartes standards filtrées
+  const standardCount = ALL_CARD_IDS.filter((id) => {
     const cfg = getCardConfig(id);
     if (disableT2 && cfg.cardType === 2) return false;
     if (effectiveDisableT3 && cfg.cardType === 3) return false;
     return true;
   }).length;
+
+  // Cartes personnalisées filtrées (même logique de catégorie)
+  const customCount = customEnabled
+    ? customCards.filter((c) => {
+        if (disableT2 && c.category === "contribuable") return false;
+        if (effectiveDisableT3 && c.category === "investisseur") return false;
+        return true;
+      }).length
+    : 0;
+
+  const total = standardCount + customCount;
 
   return (
     <div
@@ -379,7 +395,7 @@ function DeckSummary({
       style={{ background: "rgba(255,255,255,0.06)" }}
     >
       <span style={FONT_FREDOKA} className="text-white/50 text-xs">
-        Deck actuel
+        Deck actuel{customEnabled && customCount > 0 ? ` (dont ${customCount} perso)` : ""}
       </span>
       <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }} className="text-yellow-400">
         {total} cartes
@@ -390,9 +406,20 @@ function DeckSummary({
 
 export function MultiplayerModal({ onClose }: Props) {
   const [, navigate] = useLocation();
-  const [view, setView] = useState<View>("menu");
+
+  // Pré-remplir le code si l'URL contient ?join=CODE (scan QR)
+  const joinCodeFromUrl = (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("join") ?? "";
+    } catch {
+      return "";
+    }
+  })();
+
+  const [view, setView] = useState<View>(joinCodeFromUrl ? "join" : "menu");
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(joinCodeFromUrl);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [difficulty, setDifficulty] = useState<DifficultyKey>("delinquant");
@@ -811,7 +838,7 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 </motion.button>
 
-                <DeckSummary disableT2={soloDisableT2} disableT3={false} isSolo={true} />
+                <DeckSummary disableT2={soloDisableT2} disableT3={false} isSolo={true} customCards={customCards} customEnabled={soloCustomEnabled && hasCustomCards} />
 
                 {/* ─ Configurations sauvegardées (solo) ─ */}
                 {isAuthenticated && (
@@ -979,7 +1006,7 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 </motion.button>
 
-                <DeckSummary disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} />
+                <DeckSummary disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} customCards={customCards} customEnabled={mpCustomEnabled && hasCustomCards} />
 
                 {/* ─ Configurations sauvegardées (multi) ─ */}
                 {isAuthenticated && (

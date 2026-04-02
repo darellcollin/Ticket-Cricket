@@ -91,7 +91,7 @@ const CARD_MEFAITS: Record<number, string> = {
   81: "Tu n\'as pas fais de cadeau de Noel cette année pour économiser de l\'argent et acheter un truc inutile",
   82: "Le policier savait pas lire",
   83: "Tu fais pitié",
-  84: "Tu prends du café 2,2 comme quelqu\'un de normal et civilié",
+  84: "Tu prends du café 2,2 comme quelqu\'un de normal et civilisé",
   85: "Tu recycle comme un citoyen ecolo, intelligent et qui aime la soumission agressive",
   86: "Tu fais ta vaiselle comme une personne responsable, attentionné des autres et serviable pour le système qui te nourris et te loge",
   87: "Tu as chier comme jamais mais au moins ca sentait rien",

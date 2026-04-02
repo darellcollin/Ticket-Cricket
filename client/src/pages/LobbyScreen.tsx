@@ -9,10 +9,11 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
-import { Home, Copy, Check, Users, Crown, X, AlertTriangle } from "lucide-react";
+import { Home, Copy, Check, Users, Crown, X, AlertTriangle, QrCode } from "lucide-react";
 import { getSession, toggleReady, startGame, leaveSession, mpStorage, type Session } from "@/game/utils/sessionApi";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 import ticketImg from "@/game/utils/ticketImg";
+import { QRCodeSVG } from "qrcode.react";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -30,6 +31,7 @@ export function LobbyScreen() {
   const [togglingReady, setTogglingReady] = useState(false);
   const [showConfirmLeave, setShowConfirmLeave] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const navigatedRef = useRef(false);
@@ -203,19 +205,32 @@ export function LobbyScreen() {
           >
             {code}
           </div>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={copyCode}
-            className="mt-1.5 flex items-center gap-1.5 mx-auto bg-black/10 rounded-lg px-3 py-1 border border-black/20"
-          >
-            {copied
-              ? <Check className="w-4 h-4 text-black" />
-              : <Copy className="w-4 h-4 text-black" />
-            }
-            <span style={FONT_FREDOKA} className="text-black text-sm">
-              {copied ? "Copié !" : "Copier"}
-            </span>
-          </motion.button>
+
+          {/* Boutons Copier + QR Code */}
+          <div className="mt-1.5 flex items-center justify-center gap-2">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={copyCode}
+              className="flex items-center gap-1.5 bg-black/10 rounded-lg px-3 py-1 border border-black/20"
+            >
+              {copied
+                ? <Check className="w-4 h-4 text-black" />
+                : <Copy className="w-4 h-4 text-black" />
+              }
+              <span style={FONT_FREDOKA} className="text-black text-sm">
+                {copied ? "Copié !" : "Copier"}
+              </span>
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowQR(true)}
+              className="flex items-center gap-1.5 bg-black/10 rounded-lg px-3 py-1 border border-black/20"
+            >
+              <QrCode className="w-4 h-4 text-black" />
+              <span style={FONT_FREDOKA} className="text-black text-sm">QR Code</span>
+            </motion.button>
+          </div>
+
           <div style={FONT_FREDOKA} className="text-black/50 text-xs mt-1">
             Partage ce code à tes amis
           </div>
@@ -491,6 +506,64 @@ export function LobbyScreen() {
                   OUI
                 </motion.button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Modal QR Code ── */}
+      <AnimatePresence>
+        {showQR && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/85 z-[100] flex items-center justify-center p-6"
+            onClick={() => setShowQR(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.82, rotate: -2 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0.82, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              className="bg-yellow-400 border-[5px] border-black rounded-3xl p-6 flex flex-col items-center gap-4 w-full max-w-xs"
+              style={{ boxShadow: "8px 8px 0px #000" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em" }} className="text-black">
+                SCANNER POUR REJOINDRE
+              </div>
+
+              {/* QR Code */}
+              <div className="bg-white rounded-2xl p-3 border-[3px] border-black" style={{ boxShadow: "4px 4px 0px #000" }}>
+                <QRCodeSVG
+                  value={`${window.location.origin}/?join=${code}`}
+                  size={180}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="M"
+                />
+              </div>
+
+              {/* Code textuel */}
+              <div className="text-center">
+                <div style={FONT_FREDOKA} className="text-black/60 text-xs uppercase tracking-widest mb-0.5">
+                  Code de la partie
+                </div>
+                <div style={{ ...FONT_BANGERS, fontSize: "2.2rem", letterSpacing: "0.2em", lineHeight: 1 }} className="text-black">
+                  {code}
+                </div>
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setShowQR(false)}
+                className="w-full py-3 bg-black border-[3px] border-black rounded-2xl text-yellow-400 flex items-center justify-center gap-2"
+                style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }}
+              >
+                <X className="w-5 h-5" />
+                FERMER
+              </motion.button>
             </motion.div>
           </motion.div>
         )}

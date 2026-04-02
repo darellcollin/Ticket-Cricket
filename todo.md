@@ -208,3 +208,20 @@
 - [ ] Multi : résultats de perquisition dans l'historique personnel ("mes tickets") et l'historique de groupe (header)
 - [ ] Supprimer les emojis dans les notifs de victoire/défaite de perquisition
 - [ ] Corriger "clique la bonne flèche" → "clique sur la bonne flèche" dans le texte cache-toi
+
+## Modifications session 19 — Tâches en cours
+
+- [x] Carte #84 : corriger "civilié" → "civilisé" dans cardMefaits.ts
+- [x] Supprimer tous les emojis dans toutes les interfaces (sauf background accueil Home.tsx)
+- [x] QR code dans LobbyScreen pour rejoindre la partie rapidement
+- [x] Scanner le QR code ouvre l'accueil avec le code pré-rempli (?join=CODE)
+- [x] Ouvrir automatiquement le modal "Rejoindre" si ?join=CODE est dans l'URL
+- [x] Mini-jeu multi : déclencher au clic "JE COMMENCE" (début de tour) et non lors de la pioche
+- [x] Mini-jeu multi : après perquisition, joueur actif ne peut pas piocher — afficher directement "TERMINER MON TOUR"
+- [x] Historiques perquisition : résultats dans "Mes Tickets" (multi + solo) et historique groupe (multi)
+- [x] Accueil : logo et titre plus grands, bien centrés, sans chevauchement (PC + mobile)
+- [x] Bulle "Prêt à recevoir vos tickets ?" ne chevauche pas les boutons
+- [ ] Bug T3 investisseur : l'autre joueur reste bloqué en attente après confirmation de réception — corriger définitivement
+- [ ] Filtre de tri par montant (gagné/perdu) dans les historiques de perquisition (multi + solo)
+- [ ] DeckBreakdown : afficheur détaillé par catégorie (standard + perso, inclus/exclus) dans MultiplayerModal et GameScreen
+- [ ] Optimisation complète des interfaces : layout, animations, boutons, responsive PC/mobile, symétrie

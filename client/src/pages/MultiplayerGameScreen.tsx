@@ -1516,9 +1516,7 @@ export function MultiplayerGameScreen() {
   } | null>(null);
   const [isSendingT3, setIsSendingT3]                         = useState(false);
   const [showTaxNotif, setShowTaxNotif]                       = useState<{ amount: number } | null>(null);
-  // Vrai si le piocheur a envoyé le ticket T3 mais attend que le receveur confirme
-  const [pendingT3Ack, setPendingT3Ack]                       = useState(false);
-  const prevT3ReceivedRef                                     = useRef<Record<string, number>>({}); // pid -> count
+  const prevT3ReceivedRef                                     = useRef<Record<string, number>>({}); // pid -> count (conservé pour usage futur)
   const [showReceivedTicketNotif, setShowReceivedTicketNotif] = useState<{
     amount: number; fromName: string;
   } | null>(null);
@@ -1696,6 +1694,9 @@ export function MultiplayerGameScreen() {
       const nowInPending = pending.includes(playerId);
       if (!wasInPending && nowInPending) {
         setShowMyEliminationOverlay(true);
+        // Fermer la notif "ticket reçu" si elle est encore affichée,
+        // pour que l'overlay d'élimination (z-100) soit bien visible
+        setShowReceivedTicketNotif(null);
       }
       prevPendingAck.current = pending;
 
@@ -1718,20 +1719,6 @@ export function MultiplayerGameScreen() {
         }
       }
       prevReceivedCardCount.current = newReceivedCount;
-
-      // ─ Détecter si le receveur T3 a confirmé la réception (pour libérer le piocheur) ─
-      // On détecte le changement de playerReceivedCards du destinataire
-      if (pendingT3Ack && s.lastCardDrawnBy === playerId) {
-        const t3TargetId = getNextActivePlayerId(s, playerId);
-        if (t3TargetId) {
-          const prevCount = prevT3ReceivedRef.current[t3TargetId] ?? 0;
-          const newCount = (s.playerReceivedCards?.[t3TargetId] ?? []).length;
-          if (newCount > prevCount) {
-            setPendingT3Ack(false);
-          }
-          prevT3ReceivedRef.current[t3TargetId] = newCount;
-        }
-      }
 
       // ─ Détecter si la carte qui vient d'être piochée est T3 (notif spectateur dès la pioche) ─
       if (firstLoadDone.current && cardChanged && s.lastCard !== null) {
@@ -1984,8 +1971,8 @@ export function MultiplayerGameScreen() {
       let s2 = (await addDebt(code, playerId, nextPlayerId, nextAmt, session.lastCard!)).session;
       setSession(s2);
       setPendingT3(null);
-      // Bloquer le tour jusqu'à ce que le receveur confirme la réception
-      setPendingT3Ack(true);
+      // Le serveur a déjà enregistré la réception dans playerReceivedCards.
+      // On libère le sender immédiatement — pas besoin d'attendre une ack supplémentaire.
 
       // NOTE : L'élimination du piocheur et du destinataire n'est PAS vérifiée ici.
       // Elle sera vérifiée dans handleEndTurn, après que le joueur a lu sa carte.
@@ -2079,7 +2066,6 @@ export function MultiplayerGameScreen() {
       setShowConfirmReset(false);
       setPendingT3(null);
       setShowTaxNotif(null);
-      setPendingT3Ack(false);
       setShowReceivedTicketNotif(null);
       setShowT3SpectatorNotif(null);
       setShowMyEliminationOverlay(false);
@@ -3349,7 +3335,6 @@ export function MultiplayerGameScreen() {
                   || (hasDrawnThisTurn && !pendingT3 && showTaxNotif !== null)
                   || pendingAck.length > 0
                   || waitingForAllPlayers
-                  || (hasDrawnThisTurn && pendingT3Ack)
                 }
                 className="w-full py-3.5 border-[5px] border-black rounded-2xl relative overflow-hidden disabled:cursor-not-allowed transition-colors"
                 style={{
@@ -3413,10 +3398,6 @@ export function MultiplayerGameScreen() {
                       </span>
                       {!isSendingT3 && <ArrowRight className="w-4 h-4 flex-shrink-0" />}
                     </>
-                  ) : hasDrawnThisTurn && pendingT3Ack ? (
-                    <span style={{ fontSize: "0.78rem" }} className="text-center leading-snug opacity-60">
-                      En attente de réception du ticket...
-                    </span>
                   ) : hasDrawnThisTurn && showTaxNotif ? (
                     <span style={{ fontSize: "0.78rem" }} className="text-center leading-snug opacity-60">
                       Ferme la notification d'abord
@@ -3747,7 +3728,22 @@ export function MultiplayerGameScreen() {
                   />
                   <motion.button
                     whileTap={{ scale: 0.96 } as any}
-                    onClick={() => setShowReceivedTicketNotif(null)}
+                    onClick={async () => {
+                      setShowReceivedTicketNotif(null);
+                      // Si ce joueur est dans pendingEliminationAck (il vient d'être éliminé par la carte T3),
+                      // confirmer l'élimination pour débloquer l'envoyeur immédiatement
+                      const pendingAckNow = session?.pendingEliminationAck ?? [];
+                      if (pendingAckNow.includes(playerId)) {
+                        try {
+                          const { session: s } = await acknowledgeElimination(code, playerId);
+                          setSession(s);
+                          setShowMyEliminationOverlay(false);
+                          prevPendingAck.current = s.pendingEliminationAck ?? [];
+                        } catch (e) {
+                          console.error("Erreur acknowledgeElimination depuis CONFIRMER LA RÉCEPTION:", e);
+                        }
+                      }
+                    }}
                     className="w-full py-4 bg-pink-500 border-[4px] border-black rounded-2xl text-white flex items-center justify-center gap-2 relative overflow-hidden"
                     style={{ ...FONT_BANGERS, fontSize: "1.05rem", letterSpacing: "0.07em", boxShadow: "6px 6px 0px #000" }}
                   >

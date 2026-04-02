@@ -131,7 +131,12 @@ function SpeechBubble() {
 export default function Home() {
   const [, navigate] = useLocation();
   const [rulesAnimating, setRulesAnimating] = useState(false);
-  const [showMpModal, setShowMpModal] = useState(false);
+  // Ouvrir automatiquement le modal si ?join=CODE est dans l'URL (scan QR)
+  const [showMpModal, setShowMpModal] = useState(() => {
+    try {
+      return !!new URLSearchParams(window.location.search).get("join");
+    } catch { return false; }
+  });
   const [showAccountModal, setShowAccountModal] = useState(false);
   const { profile, isAuthenticated, logout } = useGameAuth();
 
@@ -257,44 +262,47 @@ export default function Home() {
         <BackgroundParticles />
 
         {/* ── MAIN CONTENT ── */}
-        <div className="relative z-10 flex flex-col items-center justify-between h-full px-6 pt-2 pb-3 overflow-hidden">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 py-4 gap-6">
 
-          {/* ── LOGO + TITRE groupés en haut ── */}
-          <div className="flex flex-col items-center w-full">
+          {/* ── ZONE LOGO + TITRE ── */}
+          <div className="flex flex-col items-center gap-2 w-full">
+            {/* Logo ticket animé */}
             <motion.div
-              style={{ width: "8.5rem", lineHeight: 1, display: "block", userSelect: "none" }}
+              className="w-[100px] sm:w-[140px] md:w-[180px] lg:w-[200px]"
+              style={{ userSelect: "none", flexShrink: 0 }}
               animate={{
-                y: [0, -16, 0],
-                rotate: [-8, 8, -8],
+                y: [0, -10, 0],
+                rotate: [-7, 7, -7],
                 filter: [
                   "drop-shadow(0 6px 0px rgba(0,0,0,0.5))",
-                  "drop-shadow(0 14px 0px rgba(0,0,0,0.35))",
+                  "drop-shadow(0 12px 0px rgba(0,0,0,0.35))",
                   "drop-shadow(0 6px 0px rgba(0,0,0,0.5))",
                 ],
               }}
               transition={{ duration: 3.0, repeat: Infinity, ease: "easeInOut" }}
             >
-              <img src={ticketImg} alt="Ticket" style={{ width: "100%", display: "block", marginTop: '-23px' }} />
+              <img src={ticketImg} alt="Ticket" style={{ width: "100%", display: "block" }} />
             </motion.div>
 
+            {/* Titre TICKET CRICKET */}
             <motion.div
-              style={{ marginTop: "-2.8rem", zIndex: 2, position: "relative" }}
-              animate={{ rotate: [-2, 2, -2], scale: [1, 1.04, 1] }}
+              style={{ zIndex: 2, position: "relative" }}
+              animate={{ rotate: [-1.5, 1.5, -1.5] }}
               transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
             >
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <div className="flex flex-col items-center" style={{ gap: 0 }}>
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "2.8rem",
-                    letterSpacing: "0.1em",
+                    fontSize: "clamp(2rem, 8vw, 5.5rem)",
+                    letterSpacing: "0.06em",
                     lineHeight: 1,
                     display: "block",
                     textAlign: "center",
                     color: "#FFD700",
                     fontWeight: 900,
-                    textShadow: "3px 3px 0px #000, -1px -1px 0px rgba(255,255,255,0.1), 0px 0px 20px rgba(255,215,0,0.4)",
-                    transform: "skewX(-3deg)",
+                    textShadow: "3px 3px 0px #000, 0px 0px 20px rgba(255,215,0,0.4)",
+                    transform: "skewX(-2deg)",
                   }}
                 >
                   TICKET
@@ -302,8 +310,8 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "2.0rem",
-                    letterSpacing: "0.15em",
+                    fontSize: "clamp(1.5rem, 6vw, 4.2rem)",
+                    letterSpacing: "0.1em",
                     lineHeight: 1,
                     display: "block",
                     textAlign: "center",
@@ -318,8 +326,9 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* ── BOUTONS — toujours visibles en bas ── */}
-          <div className="flex flex-col items-center gap-3 w-full">
+          {/* ── ZONE BOUTONS ── */}
+          <div className="flex flex-col items-center gap-2.5 w-full">
+            {/* Bulle de texte au-dessus des boutons */}
             <div style={{ zIndex: 2, position: "relative" }}>
               <SpeechBubble />
             </div>
