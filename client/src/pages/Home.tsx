@@ -392,14 +392,14 @@ export default function Home() {
                 }}
                 whileHover={{ scale: 1.05, y: -2, boxShadow: "7px 7px 0px #000" } as any}
                 whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
-                onClick={() => navigate("/custom-cards")}
+                onClick={() => navigate("/admin")}
               >
                 <motion.div
                   className="absolute inset-0 w-1/3 bg-white/15 skew-x-[-20deg]"
                   animate={{ x: ["-100%", "400%"] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
                 />
-                PERSONNALISATION
+                CATALOGUE DES CARTES
               </motion.button>
             </div>
           </div>

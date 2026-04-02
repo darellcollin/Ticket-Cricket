@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
 import { Home, Search, X, ChevronLeft, ChevronRight,
   AlertCircle, CheckCircle2, Plus,
-  Target, User, ArrowRight, Banknote,
+  Target, User, ArrowRight, Banknote, Sparkles,
 } from "lucide-react";
 import {
   getCardConfig, CATEGORY_INFO, TYPE_INFO,
@@ -482,8 +482,15 @@ export function CardCatalogScreen() {
             {totalConfirmed} / 324 prix confirmes
           </div>
         </div>
-        {/* Placeholder pour équilibrer le header */}
-        <div className="w-10 flex-shrink-0" />
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => navigate("/custom-cards")}
+          className="flex items-center gap-1.5 px-3 py-2 bg-[#FF4081] border-[3px] border-black rounded-xl text-white flex-shrink-0"
+          style={{ ...FONT_BANGERS, fontSize: "0.85rem", boxShadow: "3px 3px 0px #000", letterSpacing: "0.04em" }}
+        >
+          <Sparkles className="w-4 h-4" />
+          PERSONNALISATION
+        </motion.button>
       </div>
 
       <PoliceTape />

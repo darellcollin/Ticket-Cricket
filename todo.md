@@ -153,3 +153,10 @@
 - [x] Supprimer le bouton "MES CARTES" du header du catalogue (accès via accueil uniquement)
 - [x] Intégrer sélection "cartes personnalisées" dans le flux de démarrage solo (MultiplayerModal)
 - [x] Intégrer sélection "cartes personnalisées" dans le flux de démarrage multi (MultiplayerModal host)
+
+## Modifications session 12 — Navigation catalogue + personnalisation
+
+- [x] Remettre bouton "CATALOGUE DES CARTES" sur l'accueil (mène vers /admin)
+- [x] Renommer bouton "PERSONNALISATION" sur l'accueil en "CATALOGUE DES CARTES" et rediriger vers /admin
+- [x] Ajouter bouton "PERSONNALISATION" visible dans le header du catalogue (/admin) qui ouvre /custom-cards
+- [x] Corriger le bouton retour dans CustomCardCreator pour revenir au catalogue (/admin) et non à l'accueil
