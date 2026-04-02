@@ -16,3 +16,4 @@
 - [x] Modal de profil avec option de déconnexion
 - [x] Tests vitest pour les endpoints d'authentification
 - [x] Fix bug: limite de difficulté qui changeait entre les pioches (threshold figé avec useRef + reset deck si difficulté change)
+- [x] Ajustement visuel : bouton de compte décalé de 9px vers le bas (marginTop)
