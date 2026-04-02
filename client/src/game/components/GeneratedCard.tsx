@@ -181,9 +181,9 @@ export function GeneratedCard({
     detailLines.push({ label: "TOTAL", value: `+ ${formatPrice(netAmount)}`, bold: true });
   } else if (card.cardType === 2) {
     if (card.impots && card.impots > 0) {
-      detailLines.push({ label: "Remboursement", value: `- ${formatPrice(card.impots)}`, bold: true });
+      detailLines.push({ label: "Remboursement d'impôt", value: `- ${formatPrice(card.impots)}`, bold: true });
     } else {
-      detailLines.push({ label: "Remboursement", value: "0 $", bold: true });
+      detailLines.push({ label: "Remboursement d'impôt", value: "0 $", bold: true });
     }
   } else if (card.cardType === 3) {
     detailLines.push({ label: "Transfert", value: `+ ${formatPrice(transferAmount)}`, bold: true });

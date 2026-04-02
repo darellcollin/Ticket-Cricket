@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { gameAuthRouter } from "./gameAuthRouter";
+import { savedGamesRouter } from "./savedGamesRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -19,6 +20,9 @@ export const appRouter = router({
 
   /** Authentification personnalisée pour le jeu (pseudo + courriel + mot de passe) */
   gameAuth: gameAuthRouter,
+
+  /** Sauvegarde et chargement de parties (mode solo) */
+  savedGames: savedGamesRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -46,6 +46,36 @@ function getGameCookie(req: { headers: { cookie?: string } }): string | undefine
   return parsed[GAME_COOKIE_NAME];
 }
 
+/**
+ * Procédure protégée qui vérifie que le joueur est connecté via game_session.
+ * Injecte `ctx.gameProfile` avec les données du profil.
+ */
+export const gameAuthProtectedProcedure = publicProcedure.use(async ({ ctx, next }) => {
+  const cookieValue = getGameCookie(ctx.req);
+  const session = await verifyGameSession(cookieValue);
+
+  if (!session) {
+    throw new Error("Vous devez être connecté pour effectuer cette action");
+  }
+
+  const profile = await getGameProfileById(session.profileId);
+  if (!profile) {
+    throw new Error("Profil de jeu introuvable");
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      gameProfile: {
+        id: profile.id,
+        pseudo: profile.pseudo,
+        email: profile.email,
+        createdAt: profile.createdAt,
+      },
+    },
+  });
+});
+
 export const gameAuthRouter = router({
   /** Inscription — créer un nouveau compte de jeu */
   register: publicProcedure

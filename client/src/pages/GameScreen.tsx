@@ -9,8 +9,10 @@ import { useLocation } from "wouter";
 import {
   Home, Shuffle, X, ChevronLeft, ChevronRight,
   Trophy, Layers, Skull, CheckCircle, History, ListOrdered,
-  TrendingUp, TrendingDown,
+  TrendingUp, TrendingDown, CloudUpload, Check, Loader2,
 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { useGameAuth } from "@/hooks/useGameAuth";
 import {
   getCardConfig, ALL_CARD_IDS,
   computePlayerTotal, drawerNetAmount, formatPrice,
@@ -23,6 +25,8 @@ import { PoliceTape } from "@/game/ui/PoliceUI";
 import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY } from "@/game/components/MultiplayerModal";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
+import { MiniGame } from "@/game/components/MiniGame";
+import { rollMiniGame } from "@/game/utils/miniGameUtils";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -847,6 +851,7 @@ function SoloMyTicketsPanel({
 // ─── GameScreen principal ───────────────────────────────────
 export function GameScreen() {
   const [, navigate] = useLocation();
+  const { isAuthenticated } = useGameAuth();
 
   // Lire le seuil et les filtres depuis localStorage UNE SEULE FOIS au montage
   const thresholdRef = useRef<number | null>(null);
@@ -883,9 +888,43 @@ export function GameScreen() {
   const [showConfirmLeave, setShowConfirmLeave] = useState(false);
   const [isShuffling, setIsShuffling]     = useState(false);
   const [showMyTickets, setShowMyTickets] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [showSaveLeaveOptions, setShowSaveLeaveOptions] = useState(false);
+
+  // ─ Mini-jeu surprise ─
+  const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
+  const [miniGameBonus, setMiniGameBonus] = useState(0); // Bonus/pénalité cumulé des mini-jeux
+
+  // ─ Mutations tRPC sauvegarde ─
+  const utils = trpc.useUtils();
+  const saveGameMutation = trpc.savedGames.saveGame.useMutation({
+    onSuccess: () => {
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2500);
+    },
+    onError: () => {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 2500);
+    },
+  });
+  const deleteSaveMutation = trpc.savedGames.deleteSave.useMutation();
+
+  // ─ Sérialiser et sauvegarder la partie ─
+  const handleSaveGame = useCallback((drawnCountVal: number) => {
+    if (!isAuthenticated || saveStatus === "saving") return;
+    setSaveStatus("saving");
+    const gameState = JSON.stringify({ deck, drawn });
+    const difficulty = String(ELIMINATION_THRESHOLD);
+    saveGameMutation.mutate({
+      gameState,
+      difficulty,
+      currentTurn: drawnCountVal,
+      cardsDrawn: drawnCountVal,
+    });
+  }, [isAuthenticated, saveStatus, deck, drawn, ELIMINATION_THRESHOLD, saveGameMutation]);
 
   // ─ Élimination ─
-  const total            = computePlayerTotal(drawn);
+  const total            = computePlayerTotal(drawn) + miniGameBonus;
   const isEliminated     = total >= ELIMINATION_THRESHOLD;
   const [showElimOverlay, setShowElimOverlay] = useState(() => {
     // Afficher l'overlay si déjà éliminé au chargement (reprise de partie)
@@ -915,9 +954,16 @@ export function GameScreen() {
     }
   }, [isGameOver, isEliminated]);
 
-  // ─ Piocher ─
+  // ─ Piocher (avec déclenchement possible du mini-jeu) ─
   const handleDraw = useCallback(() => {
     if (deck.length === 0 || isFlipping || isShuffling || isEliminated) return;
+
+    // Vérifier si le mini-jeu se déclenche (8% de chance)
+    const { triggered, mode } = rollMiniGame();
+    if (triggered) {
+      setMiniGameMode(mode);
+      return; // Le mini-jeu s'affiche, la pioche se fera après
+    }
 
     setIsFlipping(true);
     setShowFront(false);
@@ -1012,6 +1058,31 @@ export function GameScreen() {
         >
           <Home className="w-5 h-5 text-black" />
         </motion.button>
+
+        {/* Bouton sauvegarde — seulement si connecté */}
+        {isAuthenticated && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => handleSaveGame(drawnCount)}
+            disabled={saveStatus === "saving"}
+            className="flex items-center gap-1.5 px-3 h-11 border-[3px] border-black rounded-xl flex-shrink-0 disabled:opacity-60"
+            style={{
+              background: saveStatus === "saved" ? "#16a34a" : saveStatus === "error" ? "#dc2626" : "#7C3AED",
+              boxShadow: "3px 3px 0px #000",
+            }}
+          >
+            {saveStatus === "saving" ? (
+              <Loader2 className="w-4 h-4 text-white animate-spin" />
+            ) : saveStatus === "saved" ? (
+              <Check className="w-4 h-4 text-white" />
+            ) : (
+              <CloudUpload className="w-4 h-4 text-white" />
+            )}
+            <span style={{ ...FONT_BANGERS, fontSize: "0.75rem", letterSpacing: "0.05em" }} className="text-white">
+              {saveStatus === "saving" ? "SAUVEGARDE..." : saveStatus === "saved" ? "SAUVEGARDÉ" : saveStatus === "error" ? "ERREUR" : "SAUVEGARDER"}
+            </span>
+          </motion.button>
+        )}
 
         <motion.button
           whileTap={{ scale: 0.9 }}
@@ -1381,7 +1452,7 @@ export function GameScreen() {
               animate={{ scale: 1, rotate: 0 }}
               exit={{ scale: 0.82, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 22 }}
-              className="bg-[#111] border-[5px] border-yellow-400 rounded-3xl p-7 flex flex-col items-center gap-5 w-full max-w-sm"
+              className="bg-[#111] border-[5px] border-yellow-400 rounded-3xl p-7 flex flex-col items-center gap-4 w-full max-w-sm"
               style={{ boxShadow: "8px 8px 0px #000" }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -1394,31 +1465,99 @@ export function GameScreen() {
               <div style={{ ...FONT_BANGERS, fontSize: "1.6rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center leading-tight">
                 QUITTER LA PARTIE ?
               </div>
-              <p style={FONT_FREDOKA} className="text-red-400/80 text-sm text-center">
-                Attention ! Ta partie en cours sera définitivement terminée et ta progression perdue.
-              </p>
-              <div className="flex gap-3 w-full">
-                <motion.button
-                  whileTap={{ scale: 0.93 } as any}
-                  onClick={() => setShowConfirmLeave(false)}
-                  className="flex-1 py-3.5 bg-white/10 border-[3px] border-white/20 rounded-2xl text-white/70"
-                  style={{ ...FONT_BANGERS, fontSize: "1.2rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px rgba(0,0,0,0.5)" }}
-                >
-                  ANNULER
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.93 } as any}
-                  onClick={() => {
-                    // Effacer la partie sauvegardée → repartir à zéro au prochain lancement
-                    try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(DRAWN_KEY); } catch {}
-                    navigate("/");
-                  }}
-                  className="flex-1 py-3.5 bg-red-600 border-[3px] border-black rounded-2xl text-white"
-                  style={{ ...FONT_BANGERS, fontSize: "1.2rem", letterSpacing: "0.06em", boxShadow: "4px 4px 0px #000" }}
-                >
-                  CONFIRMER
-                </motion.button>
-              </div>
+
+              {/* Option sauvegarde si connecté */}
+              {isAuthenticated ? (
+                <div className="flex flex-col gap-2.5 w-full">
+                  <p style={FONT_FREDOKA} className="text-white/60 text-sm text-center">
+                    Tu es connecté — veux-tu sauvegarder ta progression avant de partir ?
+                  </p>
+                  {/* SAUVEGARDER ET QUITTER */}
+                  <motion.button
+                    whileTap={{ scale: 0.93 } as any}
+                    disabled={saveStatus === "saving"}
+                    onClick={async () => {
+                      setSaveStatus("saving");
+                      const gameState = JSON.stringify({ deck, drawn });
+                      saveGameMutation.mutate(
+                        { gameState, difficulty: String(ELIMINATION_THRESHOLD), currentTurn: drawnCount, cardsDrawn: drawnCount },
+                        {
+                          onSuccess: () => {
+                            try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(DRAWN_KEY); } catch {}
+                            navigate("/");
+                          },
+                          onError: () => {
+                            setSaveStatus("error");
+                            setTimeout(() => setSaveStatus("idle"), 2000);
+                          },
+                        }
+                      );
+                    }}
+                    className="w-full py-3.5 border-[4px] border-black rounded-2xl flex items-center justify-center gap-2 disabled:opacity-60"
+                    style={{ background: "#7C3AED", ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em", boxShadow: "4px 4px 0px #000" }}
+                  >
+                    {saveStatus === "saving" ? (
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    ) : (
+                      <CloudUpload className="w-5 h-5 text-white" />
+                    )}
+                    <span className="text-white">
+                      {saveStatus === "saving" ? "SAUVEGARDE..." : "SAUVEGARDER ET QUITTER"}
+                    </span>
+                  </motion.button>
+
+                  {/* QUITTER SANS SAUVEGARDER */}
+                  <motion.button
+                    whileTap={{ scale: 0.93 } as any}
+                    onClick={() => {
+                      try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(DRAWN_KEY); } catch {}
+                      navigate("/");
+                    }}
+                    className="w-full py-3 bg-red-600 border-[3px] border-black rounded-2xl text-white"
+                    style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px #000" }}
+                  >
+                    QUITTER SANS SAUVEGARDER
+                  </motion.button>
+
+                  {/* ANNULER */}
+                  <motion.button
+                    whileTap={{ scale: 0.93 } as any}
+                    onClick={() => setShowConfirmLeave(false)}
+                    className="w-full py-2.5 bg-white/10 border-[2px] border-white/20 rounded-2xl text-white/60"
+                    style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.06em" }}
+                  >
+                    ANNULER
+                  </motion.button>
+                </div>
+              ) : (
+                // Non connecté — modal simple
+                <>
+                  <p style={FONT_FREDOKA} className="text-red-400/80 text-sm text-center">
+                    Attention ! Ta partie en cours sera définitivement terminée et ta progression perdue.
+                  </p>
+                  <div className="flex gap-3 w-full">
+                    <motion.button
+                      whileTap={{ scale: 0.93 } as any}
+                      onClick={() => setShowConfirmLeave(false)}
+                      className="flex-1 py-3.5 bg-white/10 border-[3px] border-white/20 rounded-2xl text-white/70"
+                      style={{ ...FONT_BANGERS, fontSize: "1.2rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px rgba(0,0,0,0.5)" }}
+                    >
+                      ANNULER
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.93 } as any}
+                      onClick={() => {
+                        try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(DRAWN_KEY); } catch {}
+                        navigate("/");
+                      }}
+                      className="flex-1 py-3.5 bg-red-600 border-[3px] border-black rounded-2xl text-white"
+                      style={{ ...FONT_BANGERS, fontSize: "1.2rem", letterSpacing: "0.06em", boxShadow: "4px 4px 0px #000" }}
+                    >
+                      CONFIRMER
+                    </motion.button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -1463,6 +1602,48 @@ export function GameScreen() {
               </p>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─ Mini-jeu surprise ─ */}
+      <AnimatePresence>
+        {miniGameMode !== null && (
+          <MiniGame
+            mode={miniGameMode}
+            onComplete={(success, amount) => {
+              setMiniGameMode(null);
+              // Appliquer directement le résultat du mini-jeu au total
+              // success = réduction (-amount), échec = pénalité (+amount)
+              setMiniGameBonus(prev => prev + (success ? -amount : amount));
+              // Continuer avec la pioche normale
+              setIsFlipping(true);
+              setShowFront(false);
+              setTimeout(() => {
+                setState(prev => {
+                  if (prev.deck.length === 0) return prev;
+                  const [next, ...rest] = prev.deck;
+                  if (prev.drawn.includes(next)) {
+                    const drawnSet = new Set(prev.drawn);
+                    const safeNext = rest.find(c => !drawnSet.has(c));
+                    if (safeNext === undefined) return prev;
+                    const safeRest = rest.filter(c => c !== safeNext);
+                    const newDrawn = [...prev.drawn, safeNext];
+                    saveState(safeRest, newDrawn);
+                    setCurrentCard(safeNext);
+                    setShowFront(true);
+                    setIsFlipping(false);
+                    return { deck: safeRest, drawn: newDrawn };
+                  }
+                  const newDrawn = [...prev.drawn, next];
+                  saveState(rest, newDrawn);
+                  setCurrentCard(next);
+                  setShowFront(true);
+                  setIsFlipping(false);
+                  return { deck: rest, drawn: newDrawn };
+                });
+              }, 300);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

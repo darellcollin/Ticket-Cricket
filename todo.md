@@ -42,3 +42,19 @@
 - [x] Améliorer la prévisualisation: carte agrandie avec tous les détails bien visibles
 - [x] Améliorer la prévisualisation: transitions et animations fluides
 - [x] Améliorer la prévisualisation: informations financières mieux organisées et plus lisibles
+
+## Nouvelles fonctionnalités (session 3)
+
+- [x] Correction texte cartes T2: "remboursement" → "remboursement d'impôt" dans GeneratedCard
+- [x] Sauvegarde: table saved_games en DB (userId, gameState JSON, difficulté, date)
+- [x] Sauvegarde: endpoint tRPC saveGame (protectedProcedure)
+- [x] Sauvegarde: endpoint tRPC loadGame (protectedProcedure)
+- [x] Sauvegarde: endpoint tRPC deleteSave (protectedProcedure)
+- [x] Sauvegarde: bouton sauvegarde dans le header du mode solo (icône disquette/cloud)
+- [x] Sauvegarde: modal de confirmation à la sortie (Sauvegarder / Ne pas sauvegarder / Annuler)
+- [x] Sauvegarde: reprise de partie via bouton "Jouer" si une sauvegarde existe (connecté)
+- [x] Mini-jeu: composant MiniGame avec mode "enfuis-toi" (tap rapide) et "cache-toi" (swipe)
+- [x] Mini-jeu: déclenchement très rare (probabilité ~8%) au début du tour en solo et multijoueur
+- [x] Mini-jeu: barre de progression, timer 10 sec, animations de clic/swipe- [x] Mini-jeu: résultat — réussite: -1000\$ dette, échec: +1000\$ dette- [x] Mini-jeu: intégration dans GameScreen (solo)
+- [x] Mini-jeu: intégration dans MultiplayerGameScreen (visible par tous les joueurs simultanément)
+- [ ] Tests vitest pour les endpoints de sauvegarde (en attente)

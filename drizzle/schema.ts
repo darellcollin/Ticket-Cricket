@@ -40,3 +40,27 @@ export const gameProfiles = mysqlTable("game_profiles", {
 
 export type GameProfile = typeof gameProfiles.$inferSelect;
 export type InsertGameProfile = typeof gameProfiles.$inferInsert;
+
+/**
+ * Sauvegardes de parties — une sauvegarde par joueur (mode solo uniquement).
+ * Remplace la sauvegarde existante à chaque fois.
+ */
+export const savedGames = mysqlTable("saved_games", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID du profil de jeu du joueur */
+  profileId: int("profileId").notNull(),
+  /** État complet de la partie sérialisé en JSON */
+  gameState: text("gameState").notNull(),
+  /** Niveau de difficulté sélectionné */
+  difficulty: varchar("difficulty", { length: 20 }).notNull(),
+  /** Numéro du tour actuel */
+  currentTurn: int("currentTurn").notNull().default(0),
+  /** Nombre de cartes piochuées */
+  cardsDrawn: int("cardsDrawn").notNull().default(0),
+  /** Date de la dernière sauvegarde */
+  savedAt: timestamp("savedAt").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SavedGame = typeof savedGames.$inferSelect;
+export type InsertSavedGame = typeof savedGames.$inferInsert;

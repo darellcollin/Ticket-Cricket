@@ -31,6 +31,8 @@ import { PoliceTape } from "@/game/ui/PoliceUI";
 import ticketImg from "@/game/utils/ticketImg";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
+import { MiniGame } from "@/game/components/MiniGame";
+import { rollMiniGame } from "@/game/utils/miniGameUtils";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -1392,6 +1394,10 @@ export function MultiplayerGameScreen() {
   const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel]     = useState(false);
 
+  // ─ Mini-jeu surprise ─
+  const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
+  const miniGamePendingDraw = useRef(false);
+
   const pollRef                = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevTurnIdx            = useRef<number>(-1);
   const prevLastCard           = useRef<number | null>(null);
@@ -1639,6 +1645,17 @@ export function MultiplayerGameScreen() {
     if (!session || isDrawing || !isMyTurn(session)) return;
     const isEliminated = (session.eliminatedPlayers ?? []).includes(playerId);
     if (isEliminated) return;
+
+    // Vérifier si le mini-jeu se déclenche (8% de chance) — seulement pour le joueur actif
+    if (!miniGamePendingDraw.current) {
+      const { triggered, mode } = rollMiniGame();
+      if (triggered) {
+        miniGamePendingDraw.current = true;
+        setMiniGameMode(mode);
+        return; // Le mini-jeu s'affiche, la pioche se fera après
+      }
+    }
+    miniGamePendingDraw.current = false;
 
     setIsDrawing(true);
     showNotifRef.current = false;
@@ -3326,6 +3343,30 @@ export function MultiplayerGameScreen() {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─ Mini-jeu surprise (multijoueur) ─ */}
+      <AnimatePresence>
+        {miniGameMode !== null && (
+          <MiniGame
+            mode={miniGameMode}
+            onComplete={(success, amount) => {
+              setMiniGameMode(null);
+              miniGamePendingDraw.current = false;
+              // En multijoueur : appliquer la pénalité/récompense via addDebt
+              // puis continuer avec la pioche normale
+              if (session && playerId) {
+                const delta = success ? -amount : amount;
+                // Appliquer pénalité (+) ou réduction (-) via addDebt
+                addDebt(code, playerId, playerId, delta, 0).then(res => {
+                  setSession(res.session);
+                }).catch(() => {});
+              }
+              // Continuer avec la pioche après le mini-jeu
+              handleDraw();
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

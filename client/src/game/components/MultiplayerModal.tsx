@@ -6,12 +6,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X, Plus, Users, Gamepad2, ChevronRight, Coins, Crosshair, Skull,
-  Check, AlertTriangle, FileText, User, TrendingUp,
+  Check, AlertTriangle, FileText, User, TrendingUp, CloudUpload, Play,
 } from "lucide-react";
 import { createSession, joinSession, mpStorage } from "@/game/utils/sessionApi";
 import { useLocation } from "wouter";
 import { ALL_CARD_IDS, getCardConfig } from "@/game/utils/cardConfig";
 import ticketImg from "@/game/utils/ticketImg";
+import { trpc } from "@/lib/trpc";
+import { useGameAuth } from "@/hooks/useGameAuth";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -402,6 +404,29 @@ export function MultiplayerModal({ onClose }: Props) {
 
   const selectedDiff = DIFFICULTIES.find((d) => d.key === difficulty) ?? DIFFICULTIES[1];
 
+  // ─ Auth et sauvegarde ─
+  const { isAuthenticated } = useGameAuth();
+  const { data: saveData } = trpc.savedGames.loadGame.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const hasSave = saveData?.hasSave === true;
+
+  // Reprendre la partie sauvegardée
+  const handleResume = () => {
+    if (!saveData || !saveData.hasSave) return;
+    try {
+      const { deck, drawn } = JSON.parse(saveData.gameState);
+      const threshold = Number(saveData.difficulty);
+      localStorage.setItem(SOLO_DIFFICULTY_KEY, String(threshold));
+      localStorage.setItem(SOLO_NO_CONTRIBUABLE_KEY, "0");
+      // Clés utilisées par GameScreen (v1)
+      localStorage.setItem("ticket_cricket_deck_v1", JSON.stringify(deck));
+      localStorage.setItem("ticket_cricket_drawn_v1", JSON.stringify(drawn));
+    } catch {}
+    navigate("/game");
+  };
+
   // ── CREATE ──────────────────────────────────────────────────
   const handleCreate = async () => {
     if (!name.trim()) { setError("Entre ton prénom !"); return; }
@@ -502,6 +527,42 @@ export function MultiplayerModal({ onClose }: Props) {
                 exit={{ opacity: 0, x: 20 }}
                 className="flex flex-col gap-3"
               >
+                {/* REPRENDRE MA PARTIE — seulement si connecté et sauvegarde existante */}
+                {isAuthenticated && hasSave && saveData && saveData.hasSave && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col gap-1"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.03, y: -2 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={handleResume}
+                      className="w-full py-4 border-[4px] border-black rounded-2xl flex items-center gap-3 px-5 relative overflow-hidden"
+                      style={{ background: "linear-gradient(135deg, #7C3AED, #4F46E5)", boxShadow: "5px 5px 0px #000" }}
+                    >
+                      <motion.div
+                        className="absolute inset-0 w-1/3 bg-white/10 skew-x-[-20deg]"
+                        animate={{ x: ["-100%", "400%"] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+                      />
+                      <CloudUpload className="w-7 h-7 text-white flex-shrink-0" />
+                      <div className="text-left flex-1">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.35rem", letterSpacing: "0.06em" }} className="text-white leading-none">
+                          REPRENDRE MA PARTIE
+                        </div>
+                        <div style={FONT_FREDOKA} className="text-white/70 text-xs mt-0.5">
+                          {saveData.cardsDrawn} cartes piochées — {Number(saveData.difficulty).toLocaleString("fr-CA")}$ limite
+                        </div>
+                      </div>
+                      <Play className="w-5 h-5 text-white/80 flex-shrink-0" />
+                    </motion.button>
+                    <div style={FONT_FREDOKA} className="text-white/30 text-xs text-center">
+                      Sauvegardée le {new Date(saveData.savedAt).toLocaleDateString("fr-CA")}
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* JOUER SEUL */}
                 <motion.button
                   whileHover={{ scale: 1.03, y: -2 }}
@@ -516,7 +577,7 @@ export function MultiplayerModal({ onClose }: Props) {
                       JOUER SEUL
                     </div>
                     <div style={FONT_FREDOKA} className="text-black/60 text-xs mt-0.5">
-                      Partie solo classique
+                      Nouvelle partie solo
                     </div>
                   </div>
                   <ChevronRight className="w-5 h-5 text-black/60 flex-shrink-0" />
