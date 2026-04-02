@@ -32,3 +32,9 @@
 - [x] Refonte design cartes: style cohérent avec le thème arcade/police du jeu (Bangers, Fredoka, bordures épaisses)
 - [ ] Nettoyer les composants legacy CardFace/CardBack/MiniCardFace et imports getCardAssetUrl/getCardImageUrl
 - [x] Inscrire méfait "Ticket au prochain criminel" pour les cartes 1-62 et 77 dans cardMefaits.ts
+- [x] Refonte artistique cartes: texte du méfait beaucoup plus gros (élément central)
+- [x] Refonte artistique cartes: prix/frais/détails financiers visuellement attractifs et plus gros
+- [x] Refonte artistique cartes: nom de catégorie bien visible et plus gros
+- [x] Refonte artistique cartes: supprimer tous les emojis des cartes
+- [x] Refonte artistique cartes: supprimer le mot "méfait" de toutes les cartes
+- [x] Refonte artistique cartes: augmenter la police d'écriture de tous les éléments

@@ -11,7 +11,7 @@ import {
 import { getCardMefait } from "@/game/utils/cardMefaits";
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  DESIGN TOKENS — Couleurs par catégorie (demande utilisateur)
+//  DESIGN TOKENS — Couleurs par catégorie
 //    Jaune = Contravention | Vert = Contribuable | Rose = Investisseur
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -23,12 +23,14 @@ const CATEGORY_STYLES: Record<
     bodyBg: string;
     bodyText: string;
     accentColor: string;
+    accentDark: string;
     priceBg: string;
     priceText: string;
     stripColor1: string;
     stripColor2: string;
-    badgeIcon: string;
     glowColor: string;
+    detailBg: string;
+    detailBorder: string;
   }
 > = {
   contravention: {
@@ -37,12 +39,14 @@ const CATEGORY_STYLES: Record<
     bodyBg: "#FFFBEB",
     bodyText: "#78350F",
     accentColor: "#D97706",
-    priceBg: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
+    accentDark: "#92400E",
+    priceBg: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%)",
     priceText: "#000000",
     stripColor1: "#FBBF24",
     stripColor2: "#92400E",
-    badgeIcon: "🚨",
-    glowColor: "rgba(245,158,11,0.3)",
+    glowColor: "rgba(245,158,11,0.35)",
+    detailBg: "rgba(245,158,11,0.08)",
+    detailBorder: "rgba(245,158,11,0.25)",
   },
   contribuable: {
     headerBg: "linear-gradient(135deg, #22C55E 0%, #16A34A 50%, #15803D 100%)",
@@ -50,12 +54,14 @@ const CATEGORY_STYLES: Record<
     bodyBg: "#F0FDF4",
     bodyText: "#14532D",
     accentColor: "#16A34A",
-    priceBg: "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
+    accentDark: "#14532D",
+    priceBg: "linear-gradient(135deg, #4ADE80 0%, #22C55E 50%, #16A34A 100%)",
     priceText: "#FFFFFF",
     stripColor1: "#86EFAC",
     stripColor2: "#14532D",
-    badgeIcon: "📋",
-    glowColor: "rgba(34,197,94,0.3)",
+    glowColor: "rgba(34,197,94,0.35)",
+    detailBg: "rgba(34,197,94,0.08)",
+    detailBorder: "rgba(34,197,94,0.25)",
   },
   investisseur: {
     headerBg: "linear-gradient(135deg, #EC4899 0%, #DB2777 50%, #BE185D 100%)",
@@ -63,12 +69,14 @@ const CATEGORY_STYLES: Record<
     bodyBg: "#FDF2F8",
     bodyText: "#831843",
     accentColor: "#DB2777",
-    priceBg: "linear-gradient(135deg, #EC4899 0%, #DB2777 100%)",
+    accentDark: "#831843",
+    priceBg: "linear-gradient(135deg, #F472B6 0%, #EC4899 50%, #DB2777 100%)",
     priceText: "#FFFFFF",
     stripColor1: "#F9A8D4",
     stripColor2: "#831843",
-    badgeIcon: "💼",
-    glowColor: "rgba(236,72,153,0.3)",
+    glowColor: "rgba(236,72,153,0.35)",
+    detailBg: "rgba(236,72,153,0.08)",
+    detailBorder: "rgba(236,72,153,0.25)",
   },
 };
 
@@ -78,7 +86,6 @@ const CATEGORY_STYLES: Record<
 
 interface GeneratedCardProps {
   card: CardConfig;
-  /** Taille de la carte — "xs" pour mini, "sm" pour catalogue, "md" pour jeu, "lg" pour détail */
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   style?: React.CSSProperties;
@@ -95,79 +102,67 @@ export function GeneratedCard({
   const catStyle = CATEGORY_STYLES[card.category];
   const mefait = getCardMefait(card.id);
 
-  // ── Dimensions et tailles de police selon la taille ──
+  // ── Dimensions responsive ──
   const dims = {
     xs: {
       w: 80, h: 112,
-      borderW: 2,
-      stripH: 4,
-      headerPadY: 2, headerPadX: 3,
-      typeFontSize: "0.35rem",
-      catFontSize: "0.32rem",
-      numFontSize: "0.28rem",
-      mefaitLabelSize: "0.24rem",
-      mefaitTextSize: "0.28rem",
-      mefaitMaxLines: 2,
-      detailFontSize: "0.26rem",
-      priceFontSize: "0.55rem",
-      pricePadY: 3,
+      borderW: 2, stripH: 3, borderRadius: 6,
+      // Header
+      headerPadY: 2, headerPadX: 4,
+      catFontSize: "0.4rem",
+      numFontSize: "0.3rem",
+      // Body — texte du méfait
       bodyPadX: 4, bodyPadY: 2,
-      detailPadX: 4, detailPadY: 1,
-      borderRadius: 6,
+      textFontSize: "0.38rem",
+      textMaxLines: 3,
+      // Détails financiers
+      detailFontSize: "0.28rem",
+      detailPadX: 3, detailPadY: 1,
+      // Prix
+      priceFontSize: "0.7rem",
+      pricePadY: 3,
     },
     sm: {
       w: 160, h: 224,
-      borderW: 3,
-      stripH: 5,
-      headerPadY: 4, headerPadX: 8,
-      typeFontSize: "0.65rem",
-      catFontSize: "0.6rem",
-      numFontSize: "0.5rem",
-      mefaitLabelSize: "0.45rem",
-      mefaitTextSize: "0.55rem",
-      mefaitMaxLines: 3,
-      detailFontSize: "0.55rem",
-      priceFontSize: "1.1rem",
-      pricePadY: 5,
+      borderW: 3, stripH: 5, borderRadius: 10,
+      headerPadY: 5, headerPadX: 8,
+      catFontSize: "0.85rem",
+      numFontSize: "0.6rem",
       bodyPadX: 8, bodyPadY: 4,
-      detailPadX: 8, detailPadY: 2,
-      borderRadius: 10,
+      textFontSize: "0.8rem",
+      textMaxLines: 3,
+      detailFontSize: "0.65rem",
+      detailPadX: 8, detailPadY: 3,
+      priceFontSize: "1.4rem",
+      pricePadY: 6,
     },
     md: {
       w: 220, h: 310,
-      borderW: 3.5,
-      stripH: 6,
+      borderW: 3.5, stripH: 6, borderRadius: 12,
       headerPadY: 6, headerPadX: 10,
-      typeFontSize: "0.8rem",
-      catFontSize: "0.75rem",
-      numFontSize: "0.6rem",
-      mefaitLabelSize: "0.55rem",
-      mefaitTextSize: "0.7rem",
-      mefaitMaxLines: 3,
-      detailFontSize: "0.7rem",
-      priceFontSize: "1.5rem",
-      pricePadY: 8,
+      catFontSize: "1.05rem",
+      numFontSize: "0.7rem",
       bodyPadX: 10, bodyPadY: 5,
-      detailPadX: 10, detailPadY: 3,
-      borderRadius: 12,
+      textFontSize: "1rem",
+      textMaxLines: 3,
+      detailFontSize: "0.8rem",
+      detailPadX: 10, detailPadY: 4,
+      priceFontSize: "1.9rem",
+      pricePadY: 8,
     },
     lg: {
       w: 300, h: 420,
-      borderW: 4,
-      stripH: 7,
+      borderW: 4, stripH: 7, borderRadius: 14,
       headerPadY: 8, headerPadX: 14,
-      typeFontSize: "1rem",
-      catFontSize: "0.95rem",
-      numFontSize: "0.75rem",
-      mefaitLabelSize: "0.7rem",
-      mefaitTextSize: "0.85rem",
-      mefaitMaxLines: 4,
-      detailFontSize: "0.85rem",
-      priceFontSize: "1.9rem",
-      pricePadY: 10,
+      catFontSize: "1.3rem",
+      numFontSize: "0.85rem",
       bodyPadX: 14, bodyPadY: 8,
-      detailPadX: 14, detailPadY: 4,
-      borderRadius: 14,
+      textFontSize: "1.2rem",
+      textMaxLines: 4,
+      detailFontSize: "1rem",
+      detailPadX: 14, detailPadY: 5,
+      priceFontSize: "2.4rem",
+      pricePadY: 10,
     },
   }[size];
 
@@ -191,20 +186,20 @@ export function GeneratedCard({
       detailLines.push({ label: "Remboursement", value: "0 $", bold: true });
     }
   } else if (card.cardType === 3) {
-    detailLines.push({ label: "Transféré", value: `+ ${formatPrice(transferAmount)}`, bold: true });
+    detailLines.push({ label: "Transfert", value: `+ ${formatPrice(transferAmount)}`, bold: true });
     if (card.taxe && card.taxe > 0) {
       detailLines.push({ label: "Taxe (vous)", value: `- ${formatPrice(card.taxe)}` });
     }
   }
 
-  // ── Prix principal affiché en gros ──
+  // ── Prix principal ──
   let mainPriceText: string;
   if (card.cardType === 1) {
     mainPriceText = `+ ${formatPrice(netAmount)}`;
   } else if (card.cardType === 2) {
     mainPriceText = card.impots && card.impots > 0 ? `- ${formatPrice(card.impots)}` : "0 $";
   } else {
-    mainPriceText = `➡ ${formatPrice(transferAmount)}`;
+    mainPriceText = `${formatPrice(transferAmount)}`;
   }
 
   return (
@@ -215,7 +210,7 @@ export function GeneratedCard({
         height: dims.h,
         borderRadius: dims.borderRadius,
         border: `${dims.borderW}px solid #1a1a1a`,
-        boxShadow: `4px 4px 0px #000, 0 0 16px ${catStyle.glowColor}`,
+        boxShadow: `5px 5px 0px #000, 0 0 20px ${catStyle.glowColor}`,
         fontFamily: "'Bangers', cursive",
         display: "flex",
         flexDirection: "column",
@@ -223,20 +218,18 @@ export function GeneratedCard({
         ...style,
       }}
     >
-      {/* ── BANDE POLICE HAUT ── */}
+      {/* ── BANDE HAUT ── */}
       <div
         style={{
           position: "absolute",
-          top: -1,
-          left: -1,
-          right: -1,
+          top: -1, left: -1, right: -1,
           height: dims.stripH,
           background: `repeating-linear-gradient(90deg, ${catStyle.stripColor1} 0px, ${catStyle.stripColor1} 8px, ${catStyle.stripColor2} 8px, ${catStyle.stripColor2} 16px)`,
           zIndex: 5,
         }}
       />
 
-      {/* ── EN-TÊTE ── */}
+      {/* ── EN-TETE : CATEGORIE + NUMERO ── */}
       <div
         style={{
           background: catStyle.headerBg,
@@ -245,75 +238,44 @@ export function GeneratedCard({
           alignItems: "center",
           justifyContent: "space-between",
           flexShrink: 0,
-          gap: 4,
         }}
       >
-        {/* Badge type (T1/T2/T3) */}
-        <div
-          style={{
-            background: "rgba(0,0,0,0.35)",
-            borderRadius: 4,
-            padding: "1px 5px",
-            fontSize: dims.typeFontSize,
-            color: "#fff",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            lineHeight: 1.3,
-            flexShrink: 0,
-            fontFamily: "'Bangers', cursive",
-          }}
-        >
-          {typeInfo.shortLabel}
-        </div>
-
-        {/* Catégorie + emoji */}
+        {/* Nom de la catégorie — GROS et visible */}
         <div
           style={{
             fontSize: dims.catFontSize,
             color: catStyle.headerText,
             fontWeight: 700,
-            letterSpacing: "0.06em",
+            letterSpacing: "0.08em",
             textTransform: "uppercase",
-            textShadow: "1px 1px 2px rgba(0,0,0,0.4)",
-            lineHeight: 1.2,
-            textAlign: "center",
+            textShadow: "1px 1px 3px rgba(0,0,0,0.5)",
+            lineHeight: 1.1,
             fontFamily: "'Bangers', cursive",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
           }}
         >
-          {catStyle.badgeIcon} {catInfo.label}
+          {catInfo.label}
         </div>
 
-        {/* Numéro */}
+        {/* Numéro de carte */}
         <div
           style={{
-            background: "rgba(255,255,255,0.25)",
+            background: "rgba(0,0,0,0.3)",
             borderRadius: 4,
-            padding: "1px 5px",
+            padding: "2px 6px",
             fontSize: dims.numFontSize,
-            color: catStyle.headerText,
+            color: "#fff",
             fontWeight: 700,
-            lineHeight: 1.3,
+            lineHeight: 1.2,
             flexShrink: 0,
             fontFamily: "'Bangers', cursive",
+            letterSpacing: "0.05em",
           }}
         >
           #{card.id}
         </div>
       </div>
 
-      {/* ── SÉPARATEUR ── */}
-      <div
-        style={{
-          height: 3,
-          background: `repeating-linear-gradient(90deg, ${catStyle.stripColor1} 0px, ${catStyle.stripColor1} 5px, ${catStyle.stripColor2} 5px, ${catStyle.stripColor2} 10px)`,
-          flexShrink: 0,
-        }}
-      />
-
-      {/* ── CORPS : MÉFAIT ── */}
+      {/* ── CORPS : TEXTE DU MEFAIT — ELEMENT CENTRAL ── */}
       <div
         style={{
           flex: 1,
@@ -328,71 +290,37 @@ export function GeneratedCard({
           minHeight: 0,
         }}
       >
-        {/* Watermark */}
-        {size !== "xs" && (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              fontSize: `${dims.w * 0.3}px`,
-              opacity: 0.06,
-              pointerEvents: "none",
-              userSelect: "none",
-            }}
-          >
-            {catStyle.badgeIcon}
-          </div>
-        )}
-
-        {/* Label section */}
-        {size !== "xs" && (
-          <div
-            style={{
-              fontSize: dims.mefaitLabelSize,
-              color: catStyle.accentColor,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              marginBottom: 3,
-              opacity: 0.8,
-              fontFamily: "'Bangers', cursive",
-            }}
-          >
-            {card.cardType === 2 ? "REMBOURSEMENT" : card.cardType === 3 ? "INVESTISSEMENT" : "MÉFAIT"}
-          </div>
-        )}
-
-        {/* Texte du méfait */}
         <p
           style={{
-            fontSize: dims.mefaitTextSize,
+            fontSize: dims.textFontSize,
             color: catStyle.bodyText,
             fontFamily: "'Fredoka One', 'Arial', sans-serif",
-            fontWeight: 400,
-            lineHeight: 1.3,
+            fontWeight: 600,
+            lineHeight: 1.25,
             margin: 0,
             overflow: "hidden",
             textOverflow: "ellipsis",
             display: "-webkit-box",
-            WebkitLineClamp: dims.mefaitMaxLines,
+            WebkitLineClamp: dims.textMaxLines,
             WebkitBoxOrient: "vertical" as const,
             position: "relative",
             zIndex: 1,
+            letterSpacing: "0.01em",
           }}
         >
           {mefait}
         </p>
       </div>
 
-      {/* ── DÉTAILS FINANCIERS ── */}
+      {/* ── DETAILS FINANCIERS ── */}
       {size !== "xs" && detailLines.length > 0 && (
         <div
           style={{
             padding: `${dims.detailPadY}px ${dims.detailPadX}px`,
             flexShrink: 0,
-            borderTop: `2px dashed ${catStyle.accentColor}30`,
+            background: catStyle.detailBg,
+            borderTop: `2px solid ${catStyle.detailBorder}`,
+            borderBottom: `2px solid ${catStyle.detailBorder}`,
           }}
         >
           {detailLines.map((line, i) => (
@@ -403,21 +331,21 @@ export function GeneratedCard({
                 justifyContent: "space-between",
                 alignItems: "center",
                 fontSize: dims.detailFontSize,
-                color: line.bold ? catStyle.accentColor : catStyle.bodyText,
-                fontWeight: line.bold ? 700 : 500,
-                lineHeight: 1.5,
+                color: line.bold ? catStyle.accentDark : catStyle.bodyText,
+                fontWeight: line.bold ? 800 : 600,
+                lineHeight: 1.6,
                 fontFamily: "'Bangers', cursive",
-                letterSpacing: "0.03em",
+                letterSpacing: "0.04em",
               }}
             >
               <span>{line.label}</span>
-              <span style={{ fontWeight: 700 }}>{line.value}</span>
+              <span style={{ fontWeight: 800 }}>{line.value}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* ── PRIX PRINCIPAL EN GROS ── */}
+      {/* ── PRIX PRINCIPAL — GROS ET ATTRACTIF ── */}
       <div
         style={{
           background: catStyle.priceBg,
@@ -429,24 +357,13 @@ export function GeneratedCard({
           position: "relative",
         }}
       >
-        {/* Bande séparatrice */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 3,
-            background: `repeating-linear-gradient(90deg, ${catStyle.stripColor1} 0px, ${catStyle.stripColor1} 5px, ${catStyle.stripColor2} 5px, ${catStyle.stripColor2} 10px)`,
-          }}
-        />
         <span
           style={{
             fontSize: dims.priceFontSize,
             color: catStyle.priceText,
-            fontWeight: 700,
-            letterSpacing: "0.04em",
-            textShadow: "2px 2px 0px rgba(0,0,0,0.3)",
+            fontWeight: 800,
+            letterSpacing: "0.06em",
+            textShadow: "2px 2px 0px rgba(0,0,0,0.35), 0 0 10px rgba(0,0,0,0.15)",
             lineHeight: 1.1,
             fontFamily: "'Bangers', cursive",
           }}
@@ -455,13 +372,11 @@ export function GeneratedCard({
         </span>
       </div>
 
-      {/* ── BANDE POLICE BAS ── */}
+      {/* ── BANDE BAS ── */}
       <div
         style={{
           position: "absolute",
-          bottom: -1,
-          left: -1,
-          right: -1,
+          bottom: -1, left: -1, right: -1,
           height: dims.stripH,
           background: `repeating-linear-gradient(90deg, ${catStyle.stripColor1} 0px, ${catStyle.stripColor1} 8px, ${catStyle.stripColor2} 8px, ${catStyle.stripColor2} 16px)`,
           zIndex: 5,
@@ -483,10 +398,10 @@ interface CardBackProps {
 
 export function CardBack({ size = "md", className = "", style }: CardBackProps) {
   const dims = {
-    xs: { w: 80, h: 112, borderW: 2, borderRadius: 6, stripH: 4, logoSize: 0.12, titleSize: 0.06, yearSize: 0.03 },
-    sm: { w: 160, h: 224, borderW: 3, borderRadius: 10, stripH: 5, logoSize: 0.14, titleSize: 0.08, yearSize: 0.035 },
-    md: { w: 220, h: 310, borderW: 3.5, borderRadius: 12, stripH: 6, logoSize: 0.15, titleSize: 0.09, yearSize: 0.04 },
-    lg: { w: 300, h: 420, borderW: 4, borderRadius: 14, stripH: 7, logoSize: 0.16, titleSize: 0.1, yearSize: 0.04 },
+    xs: { w: 80, h: 112, borderW: 2, borderRadius: 6, stripH: 3, logoSize: 0.12, titleSize: 0.07, yearSize: 0.03 },
+    sm: { w: 160, h: 224, borderW: 3, borderRadius: 10, stripH: 5, logoSize: 0.14, titleSize: 0.09, yearSize: 0.035 },
+    md: { w: 220, h: 310, borderW: 3.5, borderRadius: 12, stripH: 6, logoSize: 0.15, titleSize: 0.1, yearSize: 0.04 },
+    lg: { w: 300, h: 420, borderW: 4, borderRadius: 14, stripH: 7, logoSize: 0.16, titleSize: 0.11, yearSize: 0.04 },
   }[size];
 
   return (
@@ -497,7 +412,7 @@ export function CardBack({ size = "md", className = "", style }: CardBackProps) 
         height: dims.h,
         borderRadius: dims.borderRadius,
         border: `${dims.borderW}px solid #1a1a1a`,
-        boxShadow: "4px 4px 0px #000, 0 0 12px rgba(0,0,0,0.3)",
+        boxShadow: "5px 5px 0px #000, 0 0 12px rgba(0,0,0,0.3)",
         fontFamily: "'Bangers', cursive",
         display: "flex",
         flexDirection: "column",
@@ -507,13 +422,10 @@ export function CardBack({ size = "md", className = "", style }: CardBackProps) 
         ...style,
       }}
     >
-      {/* Bandes police haut et bas */}
+      {/* Bandes haut et bas */}
       <div
         style={{
-          position: "absolute",
-          top: -1,
-          left: -1,
-          right: -1,
+          position: "absolute", top: -1, left: -1, right: -1,
           height: dims.stripH + 2,
           background: "repeating-linear-gradient(90deg, #FBBF24 0px, #FBBF24 10px, #1a1a1a 10px, #1a1a1a 20px)",
           zIndex: 5,
@@ -521,10 +433,7 @@ export function CardBack({ size = "md", className = "", style }: CardBackProps) 
       />
       <div
         style={{
-          position: "absolute",
-          bottom: -1,
-          left: -1,
-          right: -1,
+          position: "absolute", bottom: -1, left: -1, right: -1,
           height: dims.stripH + 2,
           background: "repeating-linear-gradient(90deg, #FBBF24 0px, #FBBF24 10px, #1a1a1a 10px, #1a1a1a 20px)",
           zIndex: 5,
@@ -534,25 +443,20 @@ export function CardBack({ size = "md", className = "", style }: CardBackProps) 
       {/* Motif de fond */}
       <div
         style={{
-          position: "absolute",
-          inset: 10,
+          position: "absolute", inset: 10,
           border: "2px dashed rgba(251,191,36,0.2)",
-          borderRadius: 8,
-          pointerEvents: "none",
+          borderRadius: 8, pointerEvents: "none",
         }}
       />
       <div
         style={{
-          position: "absolute",
-          inset: 18,
+          position: "absolute", inset: 18,
           border: "1px solid rgba(251,191,36,0.1)",
-          borderRadius: 6,
-          pointerEvents: "none",
+          borderRadius: 6, pointerEvents: "none",
         }}
       />
 
-      {/* Logo central */}
-      <div style={{ fontSize: dims.w * dims.logoSize, marginBottom: 4, opacity: 0.9 }}>🎫</div>
+      {/* Titre */}
       <div
         style={{
           fontSize: dims.w * dims.titleSize,
@@ -578,7 +482,7 @@ export function CardBack({ size = "md", className = "", style }: CardBackProps) 
           textTransform: "uppercase",
         }}
       >
-        © 2026
+        2026
       </div>
     </div>
   );

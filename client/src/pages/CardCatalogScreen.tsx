@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
 import { Home, Search, X, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Plus } from "lucide-react";
-import { getCardConfig } from "@/game/utils/cardConfig";
+import { getCardConfig, CATEGORY_INFO } from "@/game/utils/cardConfig";
 import { GeneratedCard } from "@/game/components/GeneratedCard";
 import {
   CARD_PRICES, getCardData, getCardNetAmount, computeTotal,
@@ -22,12 +22,25 @@ const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive"
 
 // ── Palette par mécanisme ──────────────────────────────────────────────────────
 const MECH_STYLE: Record<CardMechanic, { bg: string; border: string; label: string; emoji: string }> = {
-  contravention: { bg: "#D97706", border: "#92400E", label: "Contravention", emoji: "🚨" },
-  contribuable:  { bg: "#16A34A", border: "#14532D", label: "Contribuable",  emoji: "📋" },
-  investisseur:  { bg: "#DB2777", border: "#BE185D", label: "Investisseur",  emoji: "💼" },
-  frais_only:    { bg: "#0891B2", border: "#0E7490", label: "Frais",         emoji: "🧾" },
-  bonus:         { bg: "#16A34A", border: "#14532D", label: "Bonus",         emoji: "✅" },
+  contravention: { bg: "#D97706", border: "#92400E", label: "Contravention", emoji: "" },
+  contribuable:  { bg: "#16A34A", border: "#14532D", label: "Contribuable",  emoji: "" },
+  investisseur:  { bg: "#DB2777", border: "#BE185D", label: "Investisseur",  emoji: "" },
+  frais_only:    { bg: "#0891B2", border: "#0E7490", label: "Frais",         emoji: "" },
+  bonus:         { bg: "#16A34A", border: "#14532D", label: "Bonus",         emoji: "" },
 };
+
+// Résoudre la vraie couleur/label depuis cardConfig (source de vérité)
+function getCatStyle(cardNum: number) {
+  const cfg = getCardConfig(cardNum);
+  const cat = cfg.category;
+  const catInfo = CATEGORY_INFO[cat];
+  const styles: Record<string, { bg: string; border: string; label: string }> = {
+    contravention: { bg: "#D97706", border: "#92400E", label: catInfo.label },
+    contribuable:  { bg: "#16A34A", border: "#14532D", label: catInfo.label },
+    investisseur:  { bg: "#DB2777", border: "#BE185D", label: catInfo.label },
+  };
+  return styles[cat] ?? { bg: "#D97706", border: "#92400E", label: catInfo.label };
+}
 
 function formatPrice(n: number): string {
   const abs = Math.abs(n);
@@ -48,7 +61,7 @@ function CardThumb({
   const data = getCardData(cardNum);
   const cfg  = getCardConfig(cardNum);
   const net  = getCardNetAmount(cardNum);
-  const ms   = MECH_STYLE[data.mechanic];
+  const cs   = getCatStyle(cardNum);
 
   return (
     <motion.div
@@ -58,16 +71,16 @@ function CardThumb({
       className="relative rounded-xl border-[3px] border-black overflow-hidden cursor-pointer"
       style={{
         aspectRatio: "5/7",
-        boxShadow: highlight ? `0 0 0 3px ${ms.bg}, 4px 4px 0px #000` : "3px 3px 0px #000",
+        boxShadow: highlight ? `0 0 0 3px ${cs.bg}, 4px 4px 0px #000` : "3px 3px 0px #000",
         background: "#0c1a4e",
-        borderColor: highlight ? ms.bg : "#000",
+        borderColor: highlight ? cs.bg : "#000",
       }}
     >
       <GeneratedCard card={cfg} size="xs" style={{ width: '100%', height: '100%' }} />
       {/* Overlay bas — prix net */}
       <div
         className="absolute bottom-0 left-0 right-0 py-[2px] flex flex-col items-center"
-        style={{ background: ms.bg + "ee" }}
+        style={{ background: cs.bg + "ee" }}
       >
         <span style={{ ...FONT_BANGERS, fontSize: "0.58rem", letterSpacing: "0.02em" }} className="text-white leading-none">
           {net >= 0 ? "+" : ""}{formatPrice(net)}
@@ -97,6 +110,7 @@ function CardDetail({
   const cfg  = getCardConfig(cardNum);
   const net  = getCardNetAmount(cardNum);
   const ms   = MECH_STYLE[data.mechanic];
+  const cs   = getCatStyle(cardNum); // vraie catégorie depuis cardConfig
   const idx  = allFiltered.indexOf(cardNum);
 
   useEffect(() => {
@@ -156,7 +170,7 @@ function CardDetail({
         {/* En-tête coloré */}
         <div
           className="flex items-center justify-between px-4 py-3"
-          style={{ background: ms.bg }}
+          style={{ background: cs.bg }}
         >
           <div className="flex items-center gap-2.5">
             {/* Miniature cliquable avec badge + */}
@@ -188,7 +202,7 @@ function CardDetail({
 
             <div>
               <div style={{ ...FONT_BANGERS, fontSize: "1.05rem", letterSpacing: "0.06em" }} className="text-white leading-none">
-                {ms.emoji} {ms.label}
+                {cs.label}
               </div>
               <div style={FONT_FREDOKA} className="text-white/70 text-sm leading-none mt-0.5">
                 Carte #{String(cardNum).padStart(3, "0")}
@@ -311,11 +325,10 @@ function CardDetail({
             >
               <div
                 className="px-4 py-1.5 rounded-full border-[2px] border-black flex items-center gap-2"
-                style={{ background: ms.bg, boxShadow: "3px 3px 0px #000" }}
+                style={{ background: cs.bg, boxShadow: "3px 3px 0px #000" }}
               >
-                <span className="text-sm">{ms.emoji}</span>
                 <span style={{ ...FONT_BANGERS, fontSize: "0.95rem", letterSpacing: "0.08em" }} className="text-white">
-                  #{String(cardNum).padStart(3, "0")} — {ms.label}
+                  #{String(cardNum).padStart(3, "0")} — {cs.label}
                 </span>
               </div>
             </motion.div>
@@ -431,16 +444,15 @@ export function CardCatalogScreen() {
       {/* Statistiques rapides */}
       <div className="px-4 pt-3 pb-2 grid grid-cols-3 gap-2">
         {[
-          { label: "Confirmés",     value: totalConfirmed,   color: "#22c55e", icon: "✅" },
-          { label: "Soustractions", value: totalSubtraction, color: "#22c55e", icon: "➖" },
-          { label: "Avec frais",    value: totalWithFrais,   color: "#0891B2", icon: "🧾" },
+          { label: "Confirmés",     value: totalConfirmed,   color: "#22c55e" },
+          { label: "Soustractions", value: totalSubtraction, color: "#22c55e" },
+          { label: "Avec frais",    value: totalWithFrais,   color: "#0891B2" },
         ].map((s) => (
           <div
             key={s.label}
             className="rounded-xl border-[2px] border-black px-2 py-2 flex flex-col items-center gap-0.5"
             style={{ background: s.color + "18", borderColor: s.color + "60", boxShadow: "2px 2px 0px #000" }}
           >
-            <span className="text-base leading-none">{s.icon}</span>
             <span style={{ ...FONT_BANGERS, fontSize: "1.2rem" }} className="text-white leading-none">{s.value}</span>
             <span style={FONT_FREDOKA} className="text-white/40 text-[0.6rem] leading-none text-center">{s.label}</span>
           </div>
@@ -499,7 +511,6 @@ export function CardCatalogScreen() {
                 boxShadow:   "2px 2px 0px #000",
               }}
             >
-              <span>{ms.emoji}</span>
               <span style={FONT_BANGERS}>{ms.label} ({count})</span>
             </motion.button>
           );
@@ -516,7 +527,7 @@ export function CardCatalogScreen() {
             boxShadow:   "2px 2px 0px #000",
           }}
         >
-          <span style={FONT_BANGERS}>⚠️ TODO</span>
+          <span style={FONT_BANGERS}>TODO</span>
         </motion.button>
 
         <motion.button
@@ -530,7 +541,7 @@ export function CardCatalogScreen() {
             boxShadow:   "2px 2px 0px #000",
           }}
         >
-          <span style={FONT_BANGERS}>✅ Soustractions</span>
+          <span style={FONT_BANGERS}>Soustractions</span>
         </motion.button>
       </div>
 
