@@ -11,8 +11,6 @@ import {
   Trophy, Layers, Skull, CheckCircle, History, ListOrdered,
   TrendingUp, TrendingDown,
 } from "lucide-react";
-import { getCardImageUrl } from "@/game/utils/imageDB";
-import { getCardAssetUrl } from "@/game/utils/cardAssets";
 import {
   getCardConfig, ALL_CARD_IDS,
   computePlayerTotal, drawerNetAmount, formatPrice,
@@ -128,90 +126,7 @@ function saveState(deck: number[], drawn: number[]) {
   } catch {}
 }
 
-// ─── CardFace ──────────────────────────────────────────────
-function CardFace({ cardNumber }: { cardNumber: number }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    setImgUrl(null);
-    setLoaded(false);
-    const staticUrl = getCardAssetUrl(cardNumber);
-    if (staticUrl) {
-      if (!cancelled) { setImgUrl(staticUrl); setLoaded(true); }
-      return;
-    }
-    getCardImageUrl(cardNumber).then((url) => {
-      if (!cancelled) { setImgUrl(url); setLoaded(true); }
-    });
-    return () => { cancelled = true; };
-  }, [cardNumber]);
-
-  if (!loaded) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-[#1a2a70]/50">
-        <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity }}>
-          <img src={ticketImg} alt="" style={{ width: "4rem" }} />
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (!imgUrl) {
-    return (
-      <div
-        className="w-full h-full flex flex-col items-center justify-center gap-3"
-        style={{ background: "linear-gradient(135deg, #1a2a70 0%, #0c1a4e 100%)" }}
-      >
-        <img src={ticketImg} alt="" style={{ width: "5rem" }} />
-        <div className="bg-yellow-400 border-[3px] border-black rounded-xl px-5 py-2" style={{ boxShadow: "3px 3px 0px #000" }}>
-          <span style={{ ...FONT_BANGERS, letterSpacing: "0.12em", fontSize: "1.5rem" }} className="text-black">
-            #{String(cardNumber).padStart(3, "0")}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  return <img src={imgUrl} alt={`Ticket #${cardNumber}`} className="w-full h-full object-contain" />;
-}
-
-// ─── CardBack ──────────────────────────────────────────────
-function CardBack() {
-  return (
-    <div
-      className="w-full h-full flex flex-col items-center justify-center gap-3"
-      style={{ background: "repeating-linear-gradient(45deg, #1a2a70 0px, #1a2a70 14px, #0c1a4e 14px, #0c1a4e 28px)" }}
-    >
-      <motion.div
-        animate={{ y: [0, -20, 0], rotate: [-8, 8, -8] }}
-        transition={{ duration: 3.0, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <img src={ticketImg} alt="" style={{ width: "5rem" }} />
-      </motion.div>
-      <motion.span
-        animate={{ rotate: [-2, 2, -2], scale: [1, 1.04, 1] }}
-        transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          fontFamily: "'Fredoka One', cursive",
-          fontSize: "2rem",
-          letterSpacing: "0.05em",
-          lineHeight: 1,
-          display: "block",
-          textAlign: "center",
-          background: "linear-gradient(135deg, #FF3B30 0%, #FFD700 50%, #007AFF 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-          filter: "drop-shadow(3px 3px 0px rgba(0,0,0,0.8))",
-        }}
-      >
-        TICKET CRICKET
-      </motion.span>
-    </div>
-  );
-}
 
 // ─── HandIcon ──────────────────────────────────────────────
 function HandIcon({ size = 20 }: { size?: number }) {
@@ -225,29 +140,7 @@ function HandIcon({ size = 20 }: { size?: number }) {
   );
 }
 
-// ─── MiniCardFace ──────────────────────────────────────────
-function MiniCardFace({ cardNumber }: { cardNumber: number }) {
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const s = getCardAssetUrl(cardNumber);
-    if (s) { setImgUrl(s); return; }
-    getCardImageUrl(cardNumber).then((u) => { if (!cancelled) setImgUrl(u); });
-    return () => { cancelled = true; };
-  }, [cardNumber]);
-
-  if (!imgUrl) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-[#0c1a4e]">
-        <span style={{ ...FONT_BANGERS, fontSize: "0.55rem" }} className="text-white/30">
-          #{String(cardNumber).padStart(3, "0")}
-        </span>
-      </div>
-    );
-  }
-  return <img src={imgUrl} alt="" className="w-full h-full object-contain" />;
-}
 
 // ─── EliminationOverlay ────────────────────────────────────
 function EliminationOverlay({

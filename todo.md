@@ -23,14 +23,14 @@
 - [x] Intégrer GeneratedCard dans MultiplayerGameScreen
 - [x] Intégrer GeneratedCard dans CardCatalogScreen / CardAdminScreen
 - [x] Intégrer GeneratedCard dans TestCarteScreen
-- [ ] Générer la liste complète des 324 cartes organisée par catégorie pour l'utilisateur
-- [ ] Terminer migration GameScreen: supprimer tous les rendus legacy CardFace/CardBack et getCardAssetUrl/getCardImageUrl
-- [ ] Terminer migration MultiplayerGameScreen: supprimer tous les rendus legacy CardFace/CardBack et getCardAssetUrl/getCardImageUrl
-- [ ] Vérification technique: grep confirmant aucun rendu actif n'utilise getCardAssetUrl/getCardImageUrl dans les écrans de jeu
+- [x] Générer la liste complète des 324 cartes organisée par catégorie pour l'utilisateur
+- [x] Terminer migration GameScreen: supprimer tous les rendus legacy CardFace/CardBack et getCardAssetUrl/getCardImageUrl
+- [x] Terminer migration MultiplayerGameScreen: supprimer tous les rendus legacy CardFace/CardBack et getCardAssetUrl/getCardImageUrl
+- [x] Vérification technique: grep confirmant aucun rendu actif n'utilise getCardAssetUrl/getCardImageUrl dans les écrans de jeu
 - [x] Refonte design cartes: couleur jaune pour contraventions, vert pour contribuables, rose pour investisseurs
 - [x] Refonte design cartes: texte et prix beaucoup plus gros et lisibles
 - [x] Refonte design cartes: style cohérent avec le thème arcade/police du jeu (Bangers, Fredoka, bordures épaisses)
-- [ ] Nettoyer les composants legacy CardFace/CardBack/MiniCardFace et imports getCardAssetUrl/getCardImageUrl
+- [x] Nettoyer les composants legacy CardFace/CardBack/MiniCardFace et imports getCardAssetUrl/getCardImageUrl
 - [x] Inscrire méfait "Ticket au prochain criminel" pour les cartes 1-62 et 77 dans cardMefaits.ts
 - [x] Refonte artistique cartes: texte du méfait beaucoup plus gros (élément central)
 - [x] Refonte artistique cartes: prix/frais/détails financiers visuellement attractifs et plus gros
