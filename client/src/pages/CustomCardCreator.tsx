@@ -240,11 +240,11 @@ export default function CustomCardCreator() {
             SE CONNECTER / S'INSCRIRE
           </motion.button>
           <button
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate("/")}
             style={FONT_FREDOKA}
             className="text-white/50 text-sm hover:text-white/80 transition-colors"
           >
-            ← Retour au catalogue
+            ← Retour à l'accueil
           </button>
         </motion.div>
         {showAccountModal && <AccountModal onClose={() => setShowAccountModal(false)} />}
@@ -261,7 +261,7 @@ export default function CustomCardCreator() {
       <div className="sticky top-0 z-30 bg-[#0c1a4e]/95 backdrop-blur border-b-4 border-yellow-400 px-4 py-3 flex items-center gap-3">
         <motion.button
           whileTap={{ scale: 0.9 }}
-          onClick={() => view === "create" ? (setView("list"), resetForm()) : navigate("/admin")}
+          onClick={() => view === "create" ? (setView("list"), resetForm()) : navigate("/")}
           className="w-9 h-9 bg-white/10 border-2 border-white/20 rounded-full flex items-center justify-center"
         >
           <ArrowLeft className="w-4 h-4 text-white" />

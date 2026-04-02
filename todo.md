@@ -166,3 +166,8 @@
 - [x] Afficher l'option "Cartes personnalisées" dans la fenêtre solo même si le joueur n'a pas de cartes (désactivé + message "Aucune carte créée — Personnaliser")
 - [x] Afficher l'option "Cartes personnalisées" dans la fenêtre multi (host) même si le joueur n'a pas de cartes
 - [x] L'option doit être visible pour les joueurs non connectés aussi (avec message "Connexion requise")
+
+## Modifications session 14 — Bouton PERSONNALISATION sur l'accueil
+
+- [x] Renommer le bouton "CATALOGUE DES CARTES" sur l'accueil en "PERSONNALISATION" → pointe vers /custom-cards
+- [x] Accès catalogue conservé via bouton PERSONNALISATION dans le header du catalogue (/admin)
