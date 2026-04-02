@@ -528,13 +528,13 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                   style={{ ...FONT_BANGERS, fontSize: "2.2rem", letterSpacing: "0.08em" }}
                   className="text-yellow-400 text-center leading-tight"
                 >
-                  {isRun ? "🚨 ENFUIS-TOI !" : "🫣 CACHE-TOI !"}
+                  {isRun ? "ENFUIS-TOI !" : "CACHE-TOI !"}
                 </motion.div>
                 <div className="w-full px-4 py-3 rounded-2xl border-[3px] border-black" style={{ background: "rgba(255,255,255,0.06)" }}>
                   <p style={FONT_FREDOKA} className="text-white/80 text-sm text-center leading-snug">
                     {isRun
                       ? `Clique / tape le plus vite possible pendant ${GAME_DURATION} secondes !`
-                      : `Clique la bonne flèche (ou swipe / touches ←↑↓→) le plus vite possible !`}
+                      : `Clique sur la bonne flèche (ou swipe / touches ←↑↓→) le plus vite possible !`}
                   </p>
                 </div>
                 <div className="flex gap-3 w-full">
@@ -782,7 +782,7 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                   className="text-center"
                 >
                   <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.05em" }} className={urgency ? "text-red-400" : "text-yellow-400/70"}>
-                    {urgency ? "⚠️ DÉPÊCHE-TOI !" : progress < 25 ? "🚀 PLUS VITE !" : progress < 50 ? "💪 CONTINUE !" : progress < 75 ? "🔥 PRESQUE !" : progress < 90 ? "⚡ ENCORE UN PEU !" : "🎯 TU Y ES PRESQUE !"}
+                    {urgency ? "DÉPÊCHE-TOI !" : progress < 25 ? "PLUS VITE !" : progress < 50 ? "CONTINUE !" : progress < 75 ? "PRESQUE !" : progress < 90 ? "ENCORE UN PEU !" : "TU Y ES PRESQUE !"}
                   </span>
                 </motion.div>
               </motion.div>
@@ -836,7 +836,7 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                   }}
                   className={success ? "text-green-400" : "text-red-400"}
                 >
-                  {success ? "🏆 RÉUSSI !" : "🚨 ATTRAPÉ !"}
+                  {success ? "RÉUSSI !" : "ATTRAPÉ !"}
                 </motion.div>
 
                 {/* Montant */}
@@ -861,7 +861,7 @@ export function MiniGame({ mode, onComplete, isSpectator = false, triggeredByNam
                     {success ? `-${REWARD_AMOUNT.toLocaleString("fr-CA")}$` : `+${PENALTY_AMOUNT.toLocaleString("fr-CA")}$`}
                   </motion.div>
                   <p style={FONT_FREDOKA} className="text-white/60 text-sm mt-1">
-                    {success ? "🎉 Réduction de ta dette !" : "😱 Ticket ajouté à ta dette..."}
+                    {success ? "Réduction de ta dette !" : "Ticket ajouté à ta dette..."}
                   </p>
                 </motion.div>
 

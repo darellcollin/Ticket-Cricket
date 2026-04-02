@@ -14,7 +14,7 @@
  */
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, ChevronRight, Home, Copy, Check, RotateCcw, Code } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Copy, Check, RotateCcw, Code, CheckCircle, X } from "lucide-react";
 import { getCardConfig } from "@/game/utils/cardConfig";
 import { GeneratedCard } from "@/game/components/GeneratedCard";
 
@@ -152,9 +152,9 @@ export function CardConfigEditor() {
     3: { bg: "#7C3AED", border: "#4C1D95", text: "#fff" },
   };
   const typeLabels: Record<CardTypeNum, { icon: string; title: string; desc: string }> = {
-    1: { icon: "📈", title: "T1 — Ticket",    desc: "Ticket + frais optionnel → dette du piocheur" },
-    2: { icon: "📉", title: "T2 — Impôts",    desc: "Réduit la dette du piocheur" },
-    3: { icon: "➡️", title: "T3 — Transfert", desc: "Ticket → joueur suivant | Taxe → réduit le piocheur" },
+    1: { icon: "T1", title: "T1 — Ticket",    desc: "Ticket + frais optionnel → dette du piocheur" },
+    2: { icon: "T2", title: "T2 — Impôts",    desc: "Réduit la dette du piocheur" },
+    3: { icon: "T3", title: "T3 — Transfert", desc: "Ticket → joueur suivant | Taxe → réduit le piocheur" },
   };
 
   // Nouvelle numérotation: 1-63 investisseurs, 64-116 contribuables, 117-324 contraventions
@@ -205,7 +205,7 @@ export function CardConfigEditor() {
         {/* Instruction */}
         <div className="px-4 py-3 bg-blue-900/30 border-b border-blue-400/20 flex-shrink-0">
           <p className="text-blue-300 text-xs text-center leading-relaxed" style={{ fontFamily: "'Fredoka One', cursive" }}>
-            📋 Copie ce code et envoie-le au développeur.<br />
+            Copie ce code et envoie-le au développeur.<br />
             Il remplacera le contenu de <code className="text-yellow-400">CARD_DATA</code> dans <code className="text-yellow-400">cardConfig.ts</code>
           </p>
         </div>
@@ -286,7 +286,7 @@ export function CardConfigEditor() {
             </div>
           </div>
           {configured && (
-            <span className="text-green-400 text-xl">✅</span>
+            <CheckCircle className="w-5 h-5 text-green-400" />
           )}
         </div>
 
@@ -546,7 +546,7 @@ function PriceInput({
             onClick={() => onChange("")}
             className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-white/40 text-sm"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

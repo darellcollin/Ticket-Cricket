@@ -409,20 +409,20 @@ export function GeneratedCard({
           borderTop: `${dims.borderW}px solid #000`,
         }}
       >
-        {/* Étoile décorative gauche */}
+        {/* Décor gauche */}
         {size !== "xs" && (
           <span
             style={{
               position: "absolute",
               left: dims.bodyPadX * 0.5,
               fontSize: dims.priceFontSize,
-              opacity: 0.25,
+              opacity: 0.20,
               fontFamily: "'Bangers', cursive",
               lineHeight: 1,
               color: "#000",
             }}
           >
-            ★
+            *
           </span>
         )}
         <span
@@ -440,20 +440,20 @@ export function GeneratedCard({
         >
           {mainPriceText}
         </span>
-        {/* Étoile décorative droite */}
+        {/* Décor droite */}
         {size !== "xs" && (
           <span
             style={{
               position: "absolute",
               right: dims.bodyPadX * 0.5,
               fontSize: dims.priceFontSize,
-              opacity: 0.25,
+              opacity: 0.20,
               fontFamily: "'Bangers', cursive",
               lineHeight: 1,
               color: "#000",
             }}
           >
-            ★
+            *
           </span>
         )}
       </div>

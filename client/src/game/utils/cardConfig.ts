@@ -1,7 +1,7 @@
 /**
  * ══════════════════════════════════════════════════════════════════════
  *  CONFIGURATION DES CARTES — TICKET CRICKET 2026
- *  ⚠️  SOURCE UNIQUE DE VÉRITÉ — DONNÉES PERMANENTES DANS LE CODE
+ *  SOURCE UNIQUE DE VÉRITÉ — DONNÉES PERMANENTES DANS LE CODE
  *  Ne pas modifier manuellement : utiliser le format de saisie ci-dessous.
  * ══════════════════════════════════════════════════════════════════════
  *
@@ -454,15 +454,16 @@ export const CATEGORY_INFO: Record<CardCategory, {
   badge: string; badgeColor: string; text: string;
 }> = {
   contravention: {
-    label: "Contravention", emoji: "🚨",
+    label: "Contravention", emoji: "",
+    // emoji supprimé (non utilisé dans l'UI)
     color: "#FBBF24", border: "#D97706", badge: "#FEF08A", badgeColor: "#FEF08A", text: "#000",
   },
   contribuable: {
-    label: "Contribuable", emoji: "📋",
+    label: "Contribuable", emoji: "",
     color: "#22C55E", border: "#16A34A", badge: "#BBF7D0", badgeColor: "#BBF7D0", text: "#fff",
   },
   investisseur: {
-    label: "Investisseur", emoji: "💼",
+    label: "Investisseur", emoji: "",
     color: "#EC4899", border: "#BE185D", badge: "#FBCFE8", badgeColor: "#FBCFE8", text: "#fff",
   },
 };
@@ -473,17 +474,17 @@ export const TYPE_INFO: Record<CardTypeNum, {
   1: {
     label: "Type 1 – Ticket",    shortLabel: "T1",
     desc:  "Ticket + Frais → cumule la dette du joueur",
-    emoji: "📈", color: "#DC2626", border: "#991B1B",
+    emoji: "", color: "#DC2626", border: "#991B1B",
   },
   2: {
     label: "Type 2 – Impôt",     shortLabel: "T2",
     desc:  "Réduit la dette du joueur (impôts)",
-    emoji: "📉", color: "#16A34A", border: "#14532D",
+    emoji: "", color: "#16A34A", border: "#14532D",
   },
   3: {
     label: "Type 3 – Transfert", shortLabel: "T3",
     desc:  "Ticket → joueur suivant | Taxe → réduit le piocheur",
-    emoji: "➡️", color: "#7C3AED", border: "#4C1D95",
+    emoji: "", color: "#7C3AED", border: "#4C1D95",
   },
 };
 

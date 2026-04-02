@@ -9,7 +9,7 @@ import { useLocation } from "wouter";
 import {
   Home, Shuffle, X, ChevronLeft, ChevronRight,
   Trophy, Layers, Skull, CheckCircle, History, ListOrdered,
-  TrendingUp, TrendingDown, CloudUpload, Check, Loader2,
+  TrendingUp, TrendingDown, CloudUpload, Check, Loader2, Search,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
@@ -511,12 +511,14 @@ function SoloMyTicketsPanel({
   threshold,
   noContribuable,
   onClose,
+  miniGameHistory = [],
 }: {
-  drawn:          number[];
-  isEliminated:   boolean;
-  threshold:      number;
-  noContribuable: boolean;
-  onClose:        () => void;
+  drawn:            number[];
+  isEliminated:     boolean;
+  threshold:        number;
+  noContribuable:   boolean;
+  onClose:          () => void;
+  miniGameHistory?: Array<{ success: boolean; amount: number; turnLabel: string }>;
 }) {
   // N'afficher que les catégories présentes dans le jeu
   const SOLO_CATS: CardCategory[] = noContribuable
@@ -767,6 +769,35 @@ function SoloMyTicketsPanel({
                   return null;
                 })}
 
+                {/* Entrées de perquisition */}
+                {miniGameHistory.map((mg, i) => (
+                  <motion.div
+                    key={`solo-mg-${i}`}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: Math.min((historyEntries.length + i) * 0.025, 0.4) }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-[2px]"
+                    style={{ borderColor: mg.success ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)", background: mg.success ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)" }}
+                  >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: mg.success ? "rgba(34,197,94,0.18)" : "rgba(239,68,68,0.18)" }}>
+                      <Search className={`w-3.5 h-3.5 ${mg.success ? "text-green-400" : "text-red-400"}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={FONT_FREDOKA} className={`text-xs leading-snug ${mg.success ? "text-green-300" : "text-red-300"}`}>
+                        Perquisition — {mg.success ? (
+                          <strong className="text-green-400">Réduction {formatPrice(mg.amount)}</strong>
+                        ) : (
+                          <strong className="text-red-400">Amende {formatPrice(mg.amount)}</strong>
+                        )}
+                      </div>
+                      <div style={{ ...FONT_FREDOKA, fontSize: "0.65rem" }} className="text-white/30">{mg.turnLabel}</div>
+                    </div>
+                    <span style={{ ...FONT_BANGERS, fontSize: "0.88rem" }} className={mg.success ? "text-green-400/80 flex-shrink-0" : "text-red-400/80 flex-shrink-0"}>
+                      {mg.success ? `-${formatPrice(mg.amount)}` : `+${formatPrice(mg.amount)}`}
+                    </span>
+                  </motion.div>
+                ))}
+
                 {/* Récap final */}
                 <div
                   className="mt-1 rounded-2xl border-[3px] px-4 py-3 flex items-center justify-between"
@@ -782,9 +813,12 @@ function SoloMyTicketsPanel({
                       {formatPrice(total)}
                     </span>
                   </div>
-                  <div className="flex flex-col items-end">
+                  <div className="flex flex-col items-end gap-0.5">
                     <span style={FONT_FREDOKA} className="text-white/30 text-[0.6rem]">tickets piochés</span>
                     <span style={{ ...FONT_BANGERS, fontSize: "0.9rem" }} className="text-white/40">{drawn.length}</span>
+                    {miniGameHistory.length > 0 && (
+                      <span style={FONT_FREDOKA} className="text-blue-400/60 text-[0.6rem]">{miniGameHistory.length} perquisition{miniGameHistory.length > 1 ? "s" : ""}</span>
+                    )}
                   </div>
                 </div>
               </>
@@ -1046,6 +1080,7 @@ export function GameScreen() {
   // ─ Perquisition ─
   const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
   const [miniGameBonus, setMiniGameBonus] = useState(0); // Bonus/pénalité cumulé des mini-jeux
+  const [soloMiniGameHistory, setSoloMiniGameHistory] = useState<Array<{ success: boolean; amount: number; turnLabel: string }>>([]);
 
   // ─ Mutations tRPC sauvegarde ─
   const utils = trpc.useUtils();
@@ -1584,6 +1619,7 @@ export function GameScreen() {
             threshold={ELIMINATION_THRESHOLD}
             noContribuable={noContribuable}
             onClose={() => setShowMyTickets(false)}
+            miniGameHistory={soloMiniGameHistory}
           />
         )}
       </AnimatePresence>
@@ -1815,6 +1851,8 @@ export function GameScreen() {
               // Appliquer directement le résultat du mini-jeu au total
               // success = réduction (-amount), échec = pénalité (+amount)
               setMiniGameBonus(prev => prev + (success ? -amount : amount));
+              // Alimenter l'historique personnel solo
+              setSoloMiniGameHistory(prev => [...prev, { success, amount, turnLabel: `Ticket ${drawnCount + 1}` }]);
               // Continuer avec la pioche normale
               setIsFlipping(true);
               setShowFront(false);

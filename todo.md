@@ -198,3 +198,13 @@
 - [ ] UI: modal de nommage de la configuration avant sauvegarde
 - [ ] UI: option de suppression d'une config sauvegardée
 - [ ] Tests vitest pour saveGameConfig, listGameConfigs, deleteGameConfig
+
+## Modifications session 18 — Mini-jeux perquisition refonte
+
+- [ ] Multi : déclenchement simultané de la perquisition pour TOUS les joueurs quand un joueur commence son tour et obtient un mini-jeu
+- [ ] Multi : le joueur actif ne pioche pas de ticket après une perquisition — il clique directement "terminer mon tour"
+- [ ] Multi : attendre que tous les joueurs confirment la fin du mini-jeu avant de débloquer "terminer mon tour" pour le joueur actif
+- [ ] Solo : résultats de perquisition (montants) dans l'historique personnel (bouton "mes tickets")
+- [ ] Multi : résultats de perquisition dans l'historique personnel ("mes tickets") et l'historique de groupe (header)
+- [ ] Supprimer les emojis dans les notifs de victoire/défaite de perquisition
+- [ ] Corriger "clique la bonne flèche" → "clique sur la bonne flèche" dans le texte cache-toi

@@ -88,7 +88,7 @@ function SingleView({ num, setNum }: { num: number; setNum: (n: number) => void 
       {/* Rappel format */}
       <div className="w-full max-w-[280px] rounded-xl border-[2px] border-white/10 bg-white/5 p-3">
         <p className="text-white/50 text-xs text-center leading-relaxed" style={{ fontFamily: "'Fredoka One', cursive" }}>
-          📝 Pour m'envoyer les infos de cette carte :
+          Pour m'envoyer les infos de cette carte :
         </p>
         <p className="text-green-400 text-xs text-center mt-1 font-mono">
           {num} | T1 | 150 | frais:50<br />
@@ -229,7 +229,7 @@ export function TestCarteScreen() {
       {/* Bannière explicative */}
       <div className="px-4 py-2 bg-green-900/40 border-b border-green-400/20 flex-shrink-0">
         <p className="text-green-300 text-xs text-center" style={{ fontFamily: "'Fredoka One', cursive" }}>
-          ✅ Mapping déjà en place — Vérifie juste que l'image #1 = ton fichier "Cartes (1)"
+          Mapping déjà en place — Vérifie juste que l'image #1 = ton fichier "Cartes (1)"
         </p>
       </div>
 

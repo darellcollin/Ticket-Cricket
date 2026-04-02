@@ -14,7 +14,7 @@ import {
   Home, Crown, Shuffle, X, ChevronLeft, ChevronRight, ChevronDown,
   Clock, Target, Trophy, Layers, User, ArrowRight, ArrowLeft,
   Banknote, TrendingDown, TrendingUp, Mail, Skull, CheckCircle,
-  Eye, EyeOff, History, ListOrdered, UserX, LogOut,
+  Eye, EyeOff, History, ListOrdered, UserX, LogOut, Search,
 } from "lucide-react";
 import {
   getSession, drawCard, resetGame, leaveSession, addDebt, eliminatePlayer,
@@ -712,7 +712,7 @@ function GamePausedOverlay({ eliminatedName, eliminatedTotal, gameFinished = fal
 // MyTicketsPanel — panneau "Mes tickets"
 // ────────────────────────────────────────────────────────────
 function MyTicketsPanel({
-  cards, playerName, receivedDebt = 0, receivedCards = [], isEliminated = false, threshold = 10_000, disabledCardTypes = [], onClose, session, myPlayerId,
+  cards, playerName, receivedDebt = 0, receivedCards = [], isEliminated = false, threshold = 10_000, disabledCardTypes = [], onClose, session, myPlayerId, miniGameHistory = [],
 }: {
   cards:               number[];
   playerName:          string;
@@ -724,6 +724,7 @@ function MyTicketsPanel({
   onClose:             () => void;
   session?:            Session | null;
   myPlayerId?:         string;
+  miniGameHistory?:    Array<{ success: boolean; amount: number; turnLabel: string }>;
 }) {
   const [activeTab, setActiveTab]         = useState<CardCategory>("contravention");
   const [focusedCard, setFocusedCard]     = useState<number | null>(null);
@@ -1086,6 +1087,35 @@ function MyTicketsPanel({
                   return null;
                 })}
 
+                {/* Entrées de perquisition */}
+                {miniGameHistory.map((mg, i) => (
+                  <motion.div
+                    key={`mg-${i}`}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: Math.min((historyEntries.length + i) * 0.025, 0.45) }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-[2px]"
+                    style={{ borderColor: mg.success ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)", background: mg.success ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)" }}
+                  >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: mg.success ? "rgba(34,197,94,0.18)" : "rgba(239,68,68,0.18)" }}>
+                      <Search className={`w-3.5 h-3.5 ${mg.success ? "text-green-400" : "text-red-400"}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={FONT_FREDOKA} className={`text-xs leading-snug ${mg.success ? "text-green-300" : "text-red-300"}`}>
+                        Perquisition — {mg.success ? (
+                          <><strong className="text-green-400">Réduction {formatPrice(mg.amount)}</strong></>
+                        ) : (
+                          <><strong className="text-red-400">Amende {formatPrice(mg.amount)}</strong></>
+                        )}
+                      </div>
+                      <div style={{ ...FONT_FREDOKA, fontSize: "0.65rem" }} className="text-white/30">{mg.turnLabel}</div>
+                    </div>
+                    <span style={{ ...FONT_BANGERS, fontSize: "0.9rem" }} className={mg.success ? "text-green-400/80 flex-shrink-0" : "text-red-400/80 flex-shrink-0"}>
+                      {mg.success ? `-${formatPrice(mg.amount)}` : `+${formatPrice(mg.amount)}`}
+                    </span>
+                  </motion.div>
+                ))}
+
                 {/* Récapitulatif final */}
                 <div
                   className="mt-1 rounded-2xl border-[3px] px-4 py-3 flex items-center justify-between"
@@ -1105,6 +1135,9 @@ function MyTicketsPanel({
                     <span style={FONT_FREDOKA} className="text-white/30 text-[0.6rem]">{cards.length} pioché{cards.length > 1 ? "s" : ""}</span>
                     {receivedCards.length > 0 && (
                       <span style={FONT_FREDOKA} className="text-pink-400/60 text-[0.6rem]">{receivedCards.length} reçu{receivedCards.length > 1 ? "s" : ""}</span>
+                    )}
+                    {miniGameHistory.length > 0 && (
+                      <span style={FONT_FREDOKA} className="text-blue-400/60 text-[0.6rem]">{miniGameHistory.length} perquisition{miniGameHistory.length > 1 ? "s" : ""}</span>
                     )}
                   </div>
                 </div>
@@ -1525,6 +1558,12 @@ export function MultiplayerGameScreen() {
   const [miniGameTriggeredBy, setMiniGameTriggeredBy] = useState<string | null>(null);
   // Résultats de la Perquisition (affichés après résolution)
   const [miniGameResultsData, setMiniGameResultsData] = useState<Array<{ playerId: string; success: boolean; amount: number }> | null>(null);
+  // Vrai si une perquisition a eu lieu ce tour → le joueur actif ne pioche pas
+  const [miniGameSkippedDraw, setMiniGameSkippedDraw] = useState(false);
+  // Historique des perquisitions pour l'affichage dans "Mes tickets" et le journal
+  const [miniGameHistory, setMiniGameHistory] = useState<Array<{ success: boolean; amount: number; turnLabel: string }>>([]);
+  // Historique de groupe des perquisitions (pour le journal de partie)
+  const [groupMiniGameHistory, setGroupMiniGameHistory] = useState<Array<{ triggeredByName: string; results: Array<{ playerName: string; success: boolean; amount: number }> }>>([]);
   const miniGamePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const miniGameStatusPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastMiniGameId = useRef<number | null>(null);
@@ -1809,6 +1848,24 @@ export function MultiplayerGameScreen() {
         // Tous ont terminé : résoudre et afficher les résultats
         setWaitingForAllPlayers(false);
         setMiniGameResultsData(status.results);
+        // Alimenter l'historique personnel (pour ce joueur)
+        if (status.results && session) {
+          const myResult = status.results.find((r: { playerId: string; success: boolean; amount: number }) => r.playerId === playerId);
+          if (myResult) {
+            const turnLabel = `Tour ${session.drawn.length}`;
+            setMiniGameHistory(prev => [...prev, { success: myResult.success, amount: myResult.amount, turnLabel }]);
+          }
+          // Alimenter l'historique de groupe
+          const triggererPlayer = session.players.find((p: { id: string; name: string }) => p.id === miniGameTriggeredBy);
+          const groupResults = status.results.map((r: { playerId: string; success: boolean; amount: number }) => {
+            const p = session.players.find((pl: { id: string; name: string }) => pl.id === r.playerId);
+            return { playerName: p?.name ?? r.playerId, success: r.success, amount: r.amount };
+          });
+          setGroupMiniGameHistory(prev => [...prev, {
+            triggeredByName: triggererPlayer?.name ?? "?",
+            results: groupResults,
+          }]);
+        }
         // Marquer l'événement comme résolu
         resolveMiniGame.mutateAsync({ sessionCode: code, eventId: miniGameEventId }).catch(() => {});
         setMiniGameEventId(null);
@@ -1818,7 +1875,7 @@ export function MultiplayerGameScreen() {
     } catch (e) {
       // Silencieux
     }
-  }, [code, waitingForAllPlayers, miniGameEventId, miniGameTotalPlayers, resolveMiniGame]);
+  }, [code, waitingForAllPlayers, miniGameEventId, miniGameTotalPlayers, resolveMiniGame, session, playerId, miniGameTriggeredBy]);
   useEffect(() => {
     if (!waitingForAllPlayers) return;
     miniGameStatusPollRef.current = setInterval(fetchMiniGameStatus, 1500);
@@ -1871,27 +1928,8 @@ export function MultiplayerGameScreen() {
     if (!session || isDrawing || !isMyTurn(session)) return;
     const isEliminated = (session.eliminatedPlayers ?? []).includes(playerId);
     if (isEliminated) return;
-    // Vérifier si le mini-jeu se déclenche (2% de chance) — seulement pour le joueur actif
-    const { triggered, mode } = rollMiniGame();
-    if (triggered) {
-      // Déclencher le mini-jeu pour tous les joueurs via tRPC
-      setMiniGameMode(mode);
-      try {
-        // Calculer le nombre de joueurs actifs (non éliminés)
-        const eliminated = session.eliminatedPlayers ?? [];
-        const activePlayers = session.turnOrder.filter((id: string) => !eliminated.includes(id));
-        const totalPlayers = Math.max(1, activePlayers.length);
-        setMiniGameTotalPlayers(totalPlayers);
-        const result = await triggerMiniGame.mutateAsync({ sessionCode: code, playerId, mode, totalPlayers });
-        if (result.eventId) {
-          setMiniGameEventId(result.eventId);
-          setMiniGameTriggeredBy(playerId); // Le piocheur est celui qui déclenche
-        }
-      } catch (e) {
-        console.error("Erreur trigger mini-jeu:", e);
-      }
-      return; // Le mini-jeu remplace le tour, pas de pioche après
-    }
+    // Si une perquisition a eu lieu ce tour, le joueur ne peut pas piocher
+    if (miniGameSkippedDraw) return;
 
     setIsDrawing(true);
     showNotifRef.current = false;
@@ -2007,6 +2045,8 @@ export function MultiplayerGameScreen() {
       // Mettre à jour prevTurnIdx AVANT triggerTurnNotif pour que le prochain poll ne redéclenche pas
       prevTurnIdx.current = s.currentTurnIndex;
       setSession(s);
+      // Réinitialiser le flag de perquisition après la fin du tour
+      setMiniGameSkippedDraw(false);
       // Afficher la notif "Tour de [suivant]" — forceAutoClose=true car ce n'est plus mon tour
       if (s.state === "playing") {
         triggerTurnNotif(s, true);
@@ -2047,6 +2087,9 @@ export function MultiplayerGameScreen() {
       setWaitingForAllPlayers(false);
       setMiniGameMode(null);
       setMiniGameEventId(null);
+      setMiniGameSkippedDraw(false);
+      setMiniGameHistory([]);
+      setGroupMiniGameHistory([]);
       prevPendingAck.current = [];
     } catch (e: any) {
       setError(e.message ?? "Erreur mélange");
@@ -2193,7 +2236,32 @@ export function MultiplayerGameScreen() {
             isMe={myTurn}
             myName={playerName}
             currentName={currentPlayer?.name ?? ""}
-            onDismiss={() => { if (notifTimeout.current) clearTimeout(notifTimeout.current); showNotifRef.current = false; setShowNotif(false); }}
+            onDismiss={async () => {
+              if (notifTimeout.current) clearTimeout(notifTimeout.current);
+              showNotifRef.current = false;
+              setShowNotif(false);
+              // Déclencher le mini-jeu au moment où le joueur clique "JE COMMENCE"
+              if (myTurn && session && !(session.eliminatedPlayers ?? []).includes(playerId)) {
+                const { triggered, mode } = rollMiniGame();
+                if (triggered) {
+                  setMiniGameMode(mode);
+                  setMiniGameSkippedDraw(true); // Ce joueur ne piochera pas ce tour
+                  try {
+                    const eliminated = session.eliminatedPlayers ?? [];
+                    const activePlayers = session.turnOrder.filter((id: string) => !eliminated.includes(id));
+                    const totalPlayers = Math.max(1, activePlayers.length);
+                    setMiniGameTotalPlayers(totalPlayers);
+                    const result = await triggerMiniGame.mutateAsync({ sessionCode: code, playerId, mode, totalPlayers });
+                    if (result.eventId) {
+                      setMiniGameEventId(result.eventId);
+                      setMiniGameTriggeredBy(playerId);
+                    }
+                  } catch (e) {
+                    console.error("Erreur trigger mini-jeu:", e);
+                  }
+                }
+              }
+            }}
           />
         )}
       </AnimatePresence>
@@ -2275,7 +2343,7 @@ export function MultiplayerGameScreen() {
                 className="w-20 h-20 rounded-2xl border-[5px] border-black flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, #FFD700 0%, #FF8C00 100%)", boxShadow: "5px 5px 0px #000" }}
               >
-                <span style={{ fontSize: "2.8rem", lineHeight: 1 }}>🤝</span>
+                <Trophy className="w-10 h-10 text-black" />
               </motion.div>
 
               {/* Titre */}
@@ -2880,7 +2948,7 @@ export function MultiplayerGameScreen() {
                             }
                           >
                             {player.name}
-                            {isMe && !isActive && <span style={{ opacity: 0.4 }}> ★</span>}
+                            {isMe && !isActive && <span style={{ opacity: 0.4, fontFamily: "'Fredoka One', cursive", fontSize: "0.6rem" }}> (toi)</span>}
                           </motion.span>
                         </div>
                         {isElim ? (
@@ -3049,6 +3117,37 @@ export function MultiplayerGameScreen() {
                               </div>
                             );
                           })}
+
+                          {/* Perquisitions */}
+                          {groupMiniGameHistory.length > 0 && (
+                            <>
+                              <div className="px-3 py-1 border-t border-blue-500/15 flex items-center gap-1.5 mt-1">
+                                <Search className="w-3 h-3 text-blue-400/50" />
+                                <span style={{ ...FONT_BANGERS, fontSize: "0.62rem", letterSpacing: "0.08em" }} className="text-blue-400/50 uppercase">
+                                  Perquisitions
+                                </span>
+                              </div>
+                              {groupMiniGameHistory.map((mg, mgIdx) => (
+                                <div key={`mg-group-${mgIdx}`} className="px-3 py-1.5 border-b border-white/5 last:border-0">
+                                  <div className="flex items-center gap-1 mb-0.5">
+                                    <Search className="w-2.5 h-2.5 text-blue-400/60 flex-shrink-0" />
+                                    <span style={{ ...FONT_BANGERS, fontSize: "0.65rem", letterSpacing: "0.04em" }} className="text-blue-300/70 leading-none">
+                                      Perquisition par {mg.triggeredByName}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col gap-0.5 pl-4">
+                                    {mg.results.map((r, ri) => (
+                                      <div key={ri} className="flex items-center gap-1">
+                                        <span style={{ ...FONT_FREDOKA, fontSize: "0.58rem" }} className={r.success ? "text-green-300/70" : "text-red-300/70"}>
+                                          {r.playerName}: {r.success ? `-${formatPrice(r.amount)}` : `+${formatPrice(r.amount)}`}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </>
+                          )}
 
                           {/* Joueurs éliminés */}
                           {(session.eliminatedPlayers ?? []).length > 0 && (
@@ -3238,11 +3337,11 @@ export function MultiplayerGameScreen() {
                   transition={{ duration: 1.8, repeat: Infinity }}
                 />
               )}
-              <motion.button
+<motion.button
                 whileTap={myTurn && !amEliminated ? { scale: 0.95, y: 2 } as any : {}}
                 onClick={
                   pendingT3 ? handleSendT3
-                  : hasDrawnThisTurn ? handleEndTurn
+                  : (hasDrawnThisTurn || miniGameSkippedDraw) ? handleEndTurn
                   : handleDraw
                 }
                 disabled={
@@ -3261,7 +3360,7 @@ export function MultiplayerGameScreen() {
                     ? "#7f1d1d"
                     : pendingT3
                     ? "#EC4899"
-                    : (hasDrawnThisTurn && !showTaxNotif)
+                    : ((hasDrawnThisTurn || miniGameSkippedDraw) && !showTaxNotif)
                     ? "#22c55e"
                     : (hasDrawnThisTurn && showTaxNotif)
                     ? "rgba(255,255,255,0.06)"
@@ -3272,7 +3371,7 @@ export function MultiplayerGameScreen() {
                     ? "#fca5a5"
                     : pendingT3
                     ? "#fff"
-                    : (hasDrawnThisTurn && !showTaxNotif)
+                    : ((hasDrawnThisTurn || miniGameSkippedDraw) && !showTaxNotif)
                     ? "#fff"
                     : (hasDrawnThisTurn && showTaxNotif)
                     ? "rgba(255,255,255,0.28)"
@@ -3290,7 +3389,7 @@ export function MultiplayerGameScreen() {
                 {myTurn && !amEliminated && !pendingT3 && !(hasDrawnThisTurn && showTaxNotif) && (
                   <motion.div
                     className="absolute inset-0 w-1/3 skew-x-[-20deg]"
-                    style={{ background: hasDrawnThisTurn ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.20)" }}
+                    style={{ background: (hasDrawnThisTurn || miniGameSkippedDraw) ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.20)" }}
                     animate={{ x: ["-100%", "400%"] }}
                     transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.8 }}
                   />
@@ -3322,7 +3421,7 @@ export function MultiplayerGameScreen() {
                     <span style={{ fontSize: "0.78rem" }} className="text-center leading-snug opacity-60">
                       Ferme la notification d'abord
                     </span>
-                  ) : hasDrawnThisTurn ? (
+                  ) : (hasDrawnThisTurn || miniGameSkippedDraw) ? (
                     <><CheckCircle className="w-5 h-5" /> {isEndingTurn ? "EN COURS..." : "TERMINER MON TOUR"}</>
                   ) : myTurn && pendingAck.length > 0 && !hasDrawnThisTurn ? (
                     <span style={{ fontSize: "0.78rem" }} className="text-center leading-snug opacity-60">
@@ -3441,6 +3540,7 @@ export function MultiplayerGameScreen() {
             onClose={() => setShowMyTickets(false)}
             session={session}
             myPlayerId={playerId}
+            miniGameHistory={miniGameHistory}
           />
         )}
       </AnimatePresence>
@@ -3714,6 +3814,80 @@ export function MultiplayerGameScreen() {
                 >
                   CONFIRMER
                 </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─ Résultats de perquisition ─ */}
+      <AnimatePresence>
+        {miniGameResultsData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[85] flex items-center justify-center px-5"
+            style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(4px)" }}
+          >
+            <motion.div
+              initial={{ scale: 0.72, y: 44 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.72, y: 32, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 360, damping: 24 }}
+              className="w-full max-w-sm rounded-3xl border-[5px] border-black overflow-hidden"
+              style={{
+                background: "linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f1a3e 100%)",
+                boxShadow: "10px 10px 0px #000, 0 0 50px rgba(59,130,246,0.35)",
+                borderColor: "#3b82f6",
+              }}
+            >
+              {/* Header */}
+              <div
+                className="px-5 py-3 flex items-center gap-3 border-b-[4px] border-black"
+                style={{ background: "linear-gradient(90deg, #1d4ed8, #1e40af)" }}
+              >
+                <motion.div
+                  animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity }}
+                >
+                  <Search className="w-6 h-6 text-white" />
+                </motion.div>
+                <span style={{ ...FONT_BANGERS, fontSize: "1.3rem", letterSpacing: "0.07em" }} className="text-white flex-1">
+                  RÉSULTATS PERQUISITION
+                </span>
+              </div>
+
+              {/* Corps */}
+              <div className="px-5 py-4 flex flex-col gap-3">
+                {miniGameResultsData.map((r) => {
+                  const p = session.players.find(pl => pl.id === r.playerId);
+                  const isMe = r.playerId === playerId;
+                  return (
+                    <div
+                      key={r.playerId}
+                      className="flex items-center justify-between rounded-xl border-[2px] px-4 py-2.5"
+                      style={{
+                        borderColor: r.success ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)",
+                        background: r.success ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.success ? "#22c55e" : "#ef4444" }} />
+                        <span style={FONT_FREDOKA} className={`text-sm ${isMe ? "text-blue-300 font-bold" : "text-white/80"}`}>
+                          {isMe ? "Toi" : (p?.name ?? r.playerId)}
+                        </span>
+                      </div>
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.9rem", letterSpacing: "0.04em" }} className={r.success ? "text-green-400" : "text-red-400"}>
+                        {r.success ? `-${formatPrice(r.amount)}` : `+${formatPrice(r.amount)}`}
+                      </span>
+                    </div>
+                  );
+                })}
+                <p style={FONT_FREDOKA} className="text-white/40 text-xs text-center mt-1">
+                  Cette fenêtre se ferme automatiquement...
+                </p>
               </div>
             </motion.div>
           </motion.div>
