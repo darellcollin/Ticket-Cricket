@@ -154,3 +154,29 @@ export const sessionCustomCards = mysqlTable("session_custom_cards", {
 
 export type SessionCustomCards = typeof sessionCustomCards.$inferSelect;
 export type InsertSessionCustomCards = typeof sessionCustomCards.$inferInsert;
+
+/**
+ * Configurations de partie sauvegardées par les joueurs.
+ * Permet de sauvegarder et recharger rapidement ses réglages préférés
+ * (types de cartes, limite de tickets, cartes personnalisées activées).
+ * Maximum 10 configurations par joueur.
+ */
+export const gameConfigs = mysqlTable("game_configs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID du profil de jeu du joueur */
+  profileId: int("profileId").notNull(),
+  /** Nom donné à la configuration par le joueur */
+  name: varchar("name", { length: 50 }).notNull(),
+  /** Niveau de difficulté (clé de la difficulté sélectionnée) */
+  difficulty: varchar("difficulty", { length: 20 }).notNull(),
+  /** Désactiver les cartes contribuables (T2) */
+  disableT2: int("disableT2").notNull().default(0),
+  /** Désactiver les cartes investisseurs (T3) */
+  disableT3: int("disableT3").notNull().default(0),
+  /** Inclure les cartes personnalisées du joueur */
+  includeCustom: int("includeCustom").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GameConfig = typeof gameConfigs.$inferSelect;
+export type InsertGameConfig = typeof gameConfigs.$inferInsert;

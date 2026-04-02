@@ -7,6 +7,7 @@ import { savedGamesRouter } from "./savedGamesRouter";
 import { miniGameRouter } from "./miniGameRouter";
 import { customCardsRouter } from "./customCardsRouter";
 import { sessionCustomCardsRouter } from "./sessionCustomCardsRouter";
+import { gameConfigsRouter } from "./gameConfigsRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -35,6 +36,9 @@ export const appRouter = router({
 
   /** Partage de cartes personnalisées en session multijoueur */
   sessionCustomCards: sessionCustomCardsRouter,
+
+  /** Configurations de partie sauvegardées */
+  gameConfigs: gameConfigsRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -14,7 +14,7 @@ import { ALL_CARD_IDS, getCardConfig } from "@/game/utils/cardConfig";
 import ticketImg from "@/game/utils/ticketImg";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
-import { Sparkles } from "lucide-react";
+import { Sparkles, BookmarkPlus, Bookmark, Trash2 } from "lucide-react";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -408,6 +408,49 @@ export function MultiplayerModal({ onClose }: Props) {
 
   const resetError = () => setError("");
 
+  // ─ Configurations sauvegardées ─
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveConfigName, setSaveConfigName] = useState("");
+  const [saveConfigFor, setSaveConfigFor] = useState<"solo" | "multi">("solo");
+  const [showConfigs, setShowConfigs] = useState(false);
+
+  const { data: savedConfigs, refetch: refetchConfigs } = trpc.gameConfigs.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const saveConfigMutation = trpc.gameConfigs.save.useMutation({
+    onSuccess: () => { refetchConfigs(); setShowSaveModal(false); setSaveConfigName(""); },
+  });
+  const deleteConfigMutation = trpc.gameConfigs.delete.useMutation({
+    onSuccess: () => refetchConfigs(),
+  });
+
+  const handleSaveConfig = () => {
+    if (!saveConfigName.trim()) return;
+    const isMulti = saveConfigFor === "multi";
+    saveConfigMutation.mutate({
+      name: saveConfigName.trim(),
+      difficulty,
+      disableT2: isMulti ? mpDisableT2 : soloDisableT2,
+      disableT3: isMulti ? mpDisableT3 : false,
+      includeCustom: isMulti ? mpCustomEnabled : soloCustomEnabled,
+    });
+  };
+
+  const handleLoadConfig = (cfg: { difficulty: string; disableT2: boolean; disableT3: boolean; includeCustom: boolean }) => {
+    const key = cfg.difficulty as DifficultyKey;
+    if (DIFFICULTIES.find(d => d.key === key)) setDifficulty(key);
+    if (saveConfigFor === "multi") {
+      setMpDisableT2(cfg.disableT2);
+      setMpDisableT3(cfg.disableT3);
+      setMpCustomEnabled(cfg.includeCustom);
+    } else {
+      setSoloDisableT2(cfg.disableT2);
+      setSoloCustomEnabled(cfg.includeCustom);
+    }
+    setShowConfigs(false);
+  };
+
   const selectedDiff = DIFFICULTIES.find((d) => d.key === difficulty) ?? DIFFICULTIES[1];
 
   // Mutation pour publier les cartes personnalisées en session multijoueur
@@ -770,6 +813,68 @@ export function MultiplayerModal({ onClose }: Props) {
 
                 <DeckSummary disableT2={soloDisableT2} disableT3={false} isSolo={true} />
 
+                {/* ─ Configurations sauvegardées (solo) ─ */}
+                {isAuthenticated && (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => { setSaveConfigFor("solo"); setShowConfigs(!showConfigs || saveConfigFor !== "solo"); setSaveConfigFor("solo"); }}
+                        className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border-[2px] border-white/20 hover:border-yellow-400/60 transition-colors"
+                        style={{ background: "rgba(255,255,255,0.05)", ...FONT_FREDOKA }}
+                      >
+                        <Bookmark className="w-4 h-4 text-yellow-400/70" />
+                        <span className="text-white/60 text-sm">
+                          {savedConfigs && savedConfigs.length > 0 ? `${savedConfigs.length} config${savedConfigs.length > 1 ? "s" : ""} sauvegardée${savedConfigs.length > 1 ? "s" : ""}` : "Configs sauvegardées"}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => { setSaveConfigFor("solo"); setShowSaveModal(true); }}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-[2px] border-yellow-400/40 hover:border-yellow-400 transition-colors"
+                        style={{ background: "rgba(255,215,0,0.1)", ...FONT_FREDOKA }}
+                        title="Sauvegarder cette configuration"
+                      >
+                        <BookmarkPlus className="w-4 h-4 text-yellow-400" />
+                        <span className="text-yellow-400 text-sm">Sauvegarder</span>
+                      </button>
+                    </div>
+
+                    {/* Liste des configs sauvegardées */}
+                    {showConfigs && saveConfigFor === "solo" && savedConfigs && savedConfigs.length > 0 && (
+                      <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
+                        {savedConfigs.map((cfg) => (
+                          <div
+                            key={cfg.id}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl border-[2px] border-white/15"
+                            style={{ background: "rgba(255,255,255,0.05)" }}
+                          >
+                            <button
+                              onClick={() => handleLoadConfig(cfg)}
+                              className="flex-1 text-left"
+                            >
+                              <div style={{ ...FONT_BANGERS, fontSize: "0.95rem", letterSpacing: "0.04em" }} className="text-white">{cfg.name}</div>
+                              <div style={FONT_FREDOKA} className="text-white/40 text-xs">
+                                {DIFFICULTIES.find(d => d.key === cfg.difficulty)?.label ?? cfg.difficulty}
+                                {cfg.disableT2 ? " · sans contribuable" : ""}
+                                {cfg.includeCustom ? " · cartes perso" : ""}
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => deleteConfigMutation.mutate({ id: cfg.id })}
+                              className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-400/70 hover:text-red-400" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {showConfigs && saveConfigFor === "solo" && (!savedConfigs || savedConfigs.length === 0) && (
+                      <div style={FONT_FREDOKA} className="text-white/30 text-sm text-center py-2">Aucune configuration sauvegardée</div>
+                    )}
+                  </div>
+                )}
+
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   onClick={handlePlaySolo}
@@ -876,6 +981,68 @@ export function MultiplayerModal({ onClose }: Props) {
 
                 <DeckSummary disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} />
 
+                {/* ─ Configurations sauvegardées (multi) ─ */}
+                {isAuthenticated && (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => { setSaveConfigFor("multi"); setShowConfigs(!showConfigs || saveConfigFor !== "multi"); }}
+                        className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border-[2px] border-white/20 hover:border-yellow-400/60 transition-colors"
+                        style={{ background: "rgba(255,255,255,0.05)", ...FONT_FREDOKA }}
+                      >
+                        <Bookmark className="w-4 h-4 text-yellow-400/70" />
+                        <span className="text-white/60 text-sm">
+                          {savedConfigs && savedConfigs.length > 0 ? `${savedConfigs.length} config${savedConfigs.length > 1 ? "s" : ""} sauvegardée${savedConfigs.length > 1 ? "s" : ""}` : "Configs sauvegardées"}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => { setSaveConfigFor("multi"); setShowSaveModal(true); }}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-[2px] border-yellow-400/40 hover:border-yellow-400 transition-colors"
+                        style={{ background: "rgba(255,215,0,0.1)", ...FONT_FREDOKA }}
+                        title="Sauvegarder cette configuration"
+                      >
+                        <BookmarkPlus className="w-4 h-4 text-yellow-400" />
+                        <span className="text-yellow-400 text-sm">Sauvegarder</span>
+                      </button>
+                    </div>
+
+                    {showConfigs && saveConfigFor === "multi" && savedConfigs && savedConfigs.length > 0 && (
+                      <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
+                        {savedConfigs.map((cfg) => (
+                          <div
+                            key={cfg.id}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl border-[2px] border-white/15"
+                            style={{ background: "rgba(255,255,255,0.05)" }}
+                          >
+                            <button
+                              onClick={() => handleLoadConfig(cfg)}
+                              className="flex-1 text-left"
+                            >
+                              <div style={{ ...FONT_BANGERS, fontSize: "0.95rem", letterSpacing: "0.04em" }} className="text-white">{cfg.name}</div>
+                              <div style={FONT_FREDOKA} className="text-white/40 text-xs">
+                                {DIFFICULTIES.find(d => d.key === cfg.difficulty)?.label ?? cfg.difficulty}
+                                {cfg.disableT2 ? " · sans contribuable" : ""}
+                                {cfg.disableT3 ? " · sans investisseur" : ""}
+                                {cfg.includeCustom ? " · cartes perso" : ""}
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => deleteConfigMutation.mutate({ id: cfg.id })}
+                              className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-400/70 hover:text-red-400" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {showConfigs && saveConfigFor === "multi" && (!savedConfigs || savedConfigs.length === 0) && (
+                      <div style={FONT_FREDOKA} className="text-white/30 text-sm text-center py-2">Aucune configuration sauvegardée</div>
+                    )}
+                  </div>
+                )}
+
                 {/* Prénom */}
                 <div className="flex flex-col gap-1">
                   <label style={FONT_FREDOKA} className="text-white/70 text-sm">Ton prénom</label>
@@ -981,6 +1148,69 @@ export function MultiplayerModal({ onClose }: Props) {
         {/* Bottom spacing pour safe area */}
         <div className="h-4" />
       </motion.div>
+
+      {/* ─ Modal de sauvegarde de configuration ─ */}
+      <AnimatePresence>
+        {showSaveModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.7)" }}
+            onClick={(e) => e.target === e.currentTarget && setShowSaveModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm rounded-2xl border-[4px] border-black p-5 flex flex-col gap-4"
+              style={{ background: "#1a1a2e", boxShadow: "6px 6px 0px #000" }}
+            >
+              <div style={{ ...FONT_BANGERS, fontSize: "1.3rem", letterSpacing: "0.06em" }} className="text-yellow-400 text-center">
+                SAUVEGARDER LA CONFIG
+              </div>
+              <div style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
+                Mode {saveConfigFor === "solo" ? "Solo" : "Multijoueur"} · {selectedDiff.label}
+              </div>
+              <input
+                type="text"
+                value={saveConfigName}
+                onChange={(e) => setSaveConfigName(e.target.value.slice(0, 30))}
+                placeholder="Nom de la configuration..."
+                maxLength={30}
+                autoFocus
+                className="w-full px-4 py-3 rounded-xl border-[3px] border-black text-black text-base outline-none"
+                style={{ ...FONT_FREDOKA, boxShadow: "3px 3px 0px #000", background: "#fffbe6" }}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveConfig()}
+              />
+              {saveConfigMutation.error && (
+                <div style={{ ...FONT_FREDOKA, background: "#FF3B30" }} className="text-white text-sm text-center px-3 py-2 rounded-xl border-[2px] border-black">
+                  {saveConfigMutation.error.message}
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSaveModal(false)}
+                  className="flex-1 py-3 rounded-xl border-[3px] border-white/20 text-white/60 hover:border-white/40 transition-colors"
+                  style={{ ...FONT_FREDOKA, background: "rgba(255,255,255,0.05)" }}
+                >
+                  Annuler
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={handleSaveConfig}
+                  disabled={!saveConfigName.trim() || saveConfigMutation.isPending}
+                  className="flex-1 py-3 rounded-xl border-[3px] border-black text-black disabled:opacity-50"
+                  style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.05em", background: "#FFD700", boxShadow: "3px 3px 0px #000" }}
+                >
+                  {saveConfigMutation.isPending ? "SAUVEGARDE..." : "SAUVEGARDER"}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
