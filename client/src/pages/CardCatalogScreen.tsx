@@ -6,9 +6,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
-import { Home, Search, X, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Plus } from "lucide-react";
-import { getCardConfig, CATEGORY_INFO } from "@/game/utils/cardConfig";
+import {
+  Home, Search, X, ChevronLeft, ChevronRight,
+  AlertCircle, CheckCircle2, Plus,
+  Target, User, ArrowRight, Banknote,
+} from "lucide-react";
+import {
+  getCardConfig, CATEGORY_INFO, TYPE_INFO,
+  drawerNetAmount, nextPlayerAmount,
+  formatPrice as cfgFormatPrice,
+  type CardConfig, type CardCategory,
+} from "@/game/utils/cardConfig";
 import { GeneratedCard } from "@/game/components/GeneratedCard";
+import { getCardMefait } from "@/game/utils/cardMefaits";
 import {
   CARD_PRICES, getCardData, getCardNetAmount, computeTotal,
   MECHANIC_LABELS, MECHANIC_COLORS,
@@ -21,12 +31,12 @@ const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 
 // ── Palette par mécanisme ──────────────────────────────────────────────────────
-const MECH_STYLE: Record<CardMechanic, { bg: string; border: string; label: string; emoji: string }> = {
-  contravention: { bg: "#D97706", border: "#92400E", label: "Contravention", emoji: "" },
-  contribuable:  { bg: "#16A34A", border: "#14532D", label: "Contribuable",  emoji: "" },
-  investisseur:  { bg: "#DB2777", border: "#BE185D", label: "Investisseur",  emoji: "" },
-  frais_only:    { bg: "#0891B2", border: "#0E7490", label: "Frais",         emoji: "" },
-  bonus:         { bg: "#16A34A", border: "#14532D", label: "Bonus",         emoji: "" },
+const MECH_STYLE: Record<CardMechanic, { bg: string; border: string; label: string }> = {
+  contravention: { bg: "#D97706", border: "#92400E", label: "Contravention" },
+  contribuable:  { bg: "#16A34A", border: "#14532D", label: "Contribuable"  },
+  investisseur:  { bg: "#DB2777", border: "#BE185D", label: "Investisseur"  },
+  frais_only:    { bg: "#0891B2", border: "#0E7490", label: "Frais"         },
+  bonus:         { bg: "#16A34A", border: "#14532D", label: "Bonus"         },
 };
 
 // Résoudre la vraie couleur/label depuis cardConfig (source de vérité)
@@ -48,6 +58,24 @@ function formatPrice(n: number): string {
   return n < 0 ? `- ${str}` : str;
 }
 
+// ── PriceBox réutilisable ─────────────────────────────────────────────────────
+function PriceBox({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div
+      className="rounded-xl border-[2px] border-black p-2.5 flex flex-col items-center gap-1"
+      style={{ background: color + "22", borderColor: color, boxShadow: "2px 2px 0px #000" }}
+    >
+      <span style={FONT_FREDOKA} className="text-white/60 text-xs text-center leading-tight">{label}</span>
+      <span
+        style={{ ...FONT_BANGERS, fontSize: "1.1rem" }}
+        className={value >= 0 ? "text-red-400" : "text-green-400"}
+      >
+        {value >= 0 ? "+" : ""}{formatPrice(value)}
+      </span>
+    </div>
+  );
+}
+
 // ── Miniature de carte ─────────────────────────────────────────────────────────
 function CardThumb({
   cardNum,
@@ -58,9 +86,8 @@ function CardThumb({
   onClick: () => void;
   highlight?: boolean;
 }) {
-  const data = getCardData(cardNum);
   const cfg  = getCardConfig(cardNum);
-  const net  = getCardNetAmount(cardNum);
+  const net  = drawerNetAmount(cfg);
   const cs   = getCatStyle(cardNum);
 
   return (
@@ -90,7 +117,7 @@ function CardThumb({
   );
 }
 
-// ── Vue détaillée d'une carte ─────────────────────────────────────────────────
+// ── Vue détaillée d'une carte — Bottom Sheet optimisé ────────────────────────
 function CardDetail({
   cardNum,
   allFiltered,
@@ -104,17 +131,19 @@ function CardDetail({
   onPrev: () => void;
   onNext: () => void;
 }) {
-  const [zoomedIn, setZoomedIn] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
 
-  const data = getCardData(cardNum);
-  const cfg  = getCardConfig(cardNum);
-  const net  = getCardNetAmount(cardNum);
-  const ms   = MECH_STYLE[data.mechanic];
-  const cs   = getCatStyle(cardNum); // vraie catégorie depuis cardConfig
-  const idx  = allFiltered.indexOf(cardNum);
+  const cfg      = getCardConfig(cardNum);
+  const catInfo  = CATEGORY_INFO[cfg.category];
+  const typeInfo = TYPE_INFO[cfg.cardType];
+  const cs       = getCatStyle(cardNum);
+  const net      = drawerNetAmount(cfg);
+  const nextAmt  = nextPlayerAmount(cfg);
+  const mefait   = getCardMefait(cardNum);
+  const idx      = allFiltered.indexOf(cardNum);
 
   useEffect(() => {
-    setZoomedIn(false);
+    setZoomed(false);
   }, [cardNum]);
 
   return (
@@ -122,191 +151,202 @@ function CardDetail({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[70] flex flex-col items-center justify-center px-4 gap-4"
-      style={{ background: "rgba(0,0,0,0.94)" }}
+      className="fixed inset-0 z-[70] flex flex-col"
+      style={{ background: "rgba(0,0,0,0.80)" }}
       onClick={onClose}
     >
-      {/* Carte + bouton zoom */}
+      {/* ── Bottom Sheet ── */}
       <motion.div
-        initial={{ scale: 0.7, rotateY: -35 }}
-        animate={{ scale: 1, rotateY: 0 }}
-        exit={{ scale: 0.7, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className="relative flex-shrink-0"
-        style={{ width: "min(72vw, 270px)", aspectRatio: "5/7" }}
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 320, damping: 30 }}
+        className="mt-auto w-full max-w-md mx-auto rounded-t-3xl border-t-4 border-x-4 border-black overflow-hidden flex flex-col"
+        style={{
+          background: "linear-gradient(160deg, #111827 0%, #0c1a4e 100%)",
+          boxShadow: "0 -6px 0 #000",
+          maxHeight: "92dvh",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Carte générée */}
+        {/* ── Header coloré avec navigation ── */}
         <div
-          className="w-full h-full rounded-3xl border-[5px] border-black overflow-hidden cursor-pointer"
-          style={{ boxShadow: "10px 10px 0px #000" }}
-          onClick={() => setZoomedIn(true)}
+          className="flex items-center gap-3 px-4 py-3 border-b-[3px] flex-shrink-0"
+          style={{ borderColor: cs.bg, background: cs.bg + "22" }}
         >
-          <GeneratedCard card={cfg} size="md" style={{ width: '100%', height: '100%' }} />
-        </div>
-
-        {/* Bouton + zoom — déborde en coin bas droit */}
-        <motion.button
-          className="absolute -bottom-4 -right-4 w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center z-20 cursor-pointer"
-          style={{ background: "#FFD700", boxShadow: "3px 3px 0px #000" }}
-          animate={{ scale: [1, 1.18, 1] }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-          onClick={() => setZoomedIn(true)}
-          title="Agrandir l'image"
-        >
-          <Plus className="w-5 h-5 text-black" style={{ strokeWidth: 3 }} />
-        </motion.button>
-      </motion.div>
-
-      {/* Fiche de données */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.12 }}
-        className="w-full max-w-sm rounded-2xl border-[3px] border-black overflow-hidden"
-        style={{ boxShadow: "6px 6px 0px #000" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* En-tête coloré */}
-        <div
-          className="flex items-center justify-between px-4 py-3"
-          style={{ background: cs.bg }}
-        >
-          <div className="flex items-center gap-2.5">
-            {/* Miniature cliquable avec badge + */}
-            <motion.button
-              whileTap={{ scale: 0.9 } as any}
-              onClick={() => setZoomedIn(true)}
-              className="relative flex-shrink-0 rounded-xl border-[2px] border-yellow-300 overflow-visible cursor-pointer"
-              style={{
-                width: "42px",
-                aspectRatio: "5/7",
-                background: "#0c1a4e",
-                boxShadow: "2px 2px 0px #000",
-              }}
-              title="Agrandir la carte"
-            >
-              <div className="w-full h-full rounded-[10px] overflow-hidden">
-                <GeneratedCard card={cfg} size="xs" style={{ width: '100%', height: '100%' }} />
-              </div>
-              {/* Badge + jaune en coin supérieur droit */}
-              <motion.div
-                className="absolute -top-2 -right-2 w-5 h-5 rounded-full border-[2px] border-black flex items-center justify-center z-20"
-                style={{ background: "#FFD700", boxShadow: "1px 1px 0px #000" }}
-                animate={{ scale: [1, 1.3, 1] }}
-                transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+          <div className="flex-1">
+            <div style={{ ...FONT_BANGERS, fontSize: "1.5rem", letterSpacing: "0.06em" }} className="text-white leading-none">
+              CARTE #{String(cardNum).padStart(3, "0")}
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              <span
+                className="px-2 py-0.5 rounded-full border-[2px] border-black text-white"
+                style={{ ...FONT_BANGERS, background: cs.bg, fontSize: "0.7rem" }}
               >
-                <Plus className="w-3 h-3 text-black" style={{ strokeWidth: 3 }} />
-              </motion.div>
-            </motion.button>
-
-            <div>
-              <div style={{ ...FONT_BANGERS, fontSize: "1.05rem", letterSpacing: "0.06em" }} className="text-white leading-none">
                 {cs.label}
-              </div>
-              <div style={FONT_FREDOKA} className="text-white/70 text-sm leading-none mt-0.5">
-                Carte #{String(cardNum).padStart(3, "0")}
-              </div>
+              </span>
+              <span
+                className="px-2 py-0.5 rounded-full border-[2px] border-black text-white"
+                style={{ ...FONT_BANGERS, background: typeInfo.color, fontSize: "0.7rem" }}
+              >
+                {typeInfo.shortLabel}
+              </span>
             </div>
           </div>
 
-          {data.confirmed
-            ? <CheckCircle2 className="w-5 h-5 text-white/80" />
-            : <AlertCircle  className="w-5 h-5 text-yellow-300" />}
-        </div>
-
-        {/* Corps — prix net */}
-        <div
-          className="px-4 py-3 flex flex-col gap-2"
-          style={{ background: "linear-gradient(160deg,#0c1a4e,#1a083d)" }}
-        >
-          {/* Montant principal */}
-          <div className="flex justify-between items-center">
-            <span style={FONT_FREDOKA} className="text-white/60 text-sm">Montant principal</span>
-            <span
-              style={{ ...FONT_BANGERS, fontSize: "1.3rem", letterSpacing: "0.04em" }}
-              className={data.isSubtraction ? "text-green-400" : "text-red-400"}
-            >
-              {data.isSubtraction ? "-" : "+"}{formatPrice(data.basePrice)}
+          {/* Nav + fermer */}
+          <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1">
+              <motion.button whileTap={{ scale: 0.88 }} onClick={onPrev} disabled={idx <= 0}
+                className="w-8 h-8 bg-white/10 border-[2px] border-white/20 rounded-lg flex items-center justify-center disabled:opacity-20">
+                <ChevronLeft className="w-4 h-4 text-white" />
+              </motion.button>
+              <motion.button whileTap={{ scale: 0.88 }} onClick={onNext} disabled={idx >= allFiltered.length - 1}
+                className="w-8 h-8 bg-white/10 border-[2px] border-white/20 rounded-lg flex items-center justify-center disabled:opacity-20">
+                <ChevronRight className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
+            <motion.button whileTap={{ scale: 0.88 }} onClick={onClose}
+              className="w-8 h-8 bg-red-500 border-[2px] border-black rounded-full flex items-center justify-center"
+              style={{ boxShadow: "2px 2px 0px #000" }}>
+              <X className="w-4 h-4 text-white" />
+            </motion.button>
+            <span style={FONT_FREDOKA} className="text-white/30 text-[0.6rem]">
+              {idx + 1}/{allFiltered.length}
             </span>
           </div>
+        </div>
 
-          {/* Frais */}
-          {(data.frais ?? 0) > 0 && (
-            <div className="flex justify-between items-center">
-              <span style={FONT_FREDOKA} className="text-cyan-400/80 text-sm">+ Frais</span>
-              <span style={{ ...FONT_BANGERS, fontSize: "1.1rem" }} className="text-cyan-400">
-                +{formatPrice(data.frais!)}
+        {/* ── Corps scrollable ── */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+
+          {/* ── Carte agrandie centrée + bouton zoom ── */}
+          <div className="flex justify-center">
+            <div className="relative" style={{ width: "min(60vw, 220px)", aspectRatio: "5/7" }}>
+              <div
+                className="w-full h-full rounded-2xl border-[4px] border-black overflow-hidden cursor-pointer"
+                style={{ boxShadow: `8px 8px 0px #000, 0 0 30px ${cs.bg}44`, background: "#0c1a4e" }}
+                onClick={() => setZoomed(true)}
+              >
+                <GeneratedCard card={cfg} size="md" style={{ width: '100%', height: '100%' }} />
+              </div>
+
+              {/* Bouton + zoom */}
+              <motion.button
+                className="absolute -bottom-4 -right-4 w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center z-20"
+                style={{ background: "#FFD700", boxShadow: "3px 3px 0px #000" }}
+                animate={{ scale: [1, 1.18, 1] }}
+                transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                onClick={() => setZoomed(true)}
+                title="Agrandir la carte"
+              >
+                <Plus className="w-5 h-5 text-black" style={{ strokeWidth: 3 }} />
+              </motion.button>
+            </div>
+          </div>
+
+          {/* ── Texte du méfait ── */}
+          {mefait && mefait !== "---" && (
+            <div
+              className="rounded-2xl border-[3px] border-black px-4 py-3 text-center"
+              style={{ background: cs.bg + "18", borderColor: cs.bg, boxShadow: "3px 3px 0px #000" }}
+            >
+              <span
+                style={{ ...FONT_BANGERS, fontSize: "1.3rem", letterSpacing: "0.04em", lineHeight: 1.2 }}
+                className="text-white"
+              >
+                {mefait}
               </span>
             </div>
           )}
 
-          {/* Total net */}
-          <div className="border-t border-white/10 pt-2 flex justify-between items-center">
-            <span style={FONT_FREDOKA} className="text-yellow-400 text-sm">Net total</span>
-            <span
-              style={{ ...FONT_BANGERS, fontSize: "1.5rem", letterSpacing: "0.04em" }}
-              className={net < 0 ? "text-green-400" : "text-yellow-400"}
-            >
-              {net >= 0 ? "+" : ""}{formatPrice(net)}
+          {/* ── Effets de cette carte ── */}
+          <div
+            className="rounded-2xl border-[3px] border-black p-3 flex flex-col gap-2"
+            style={{ background: "rgba(255,215,0,0.08)", borderColor: "#FFD700", boxShadow: "3px 3px 0px #000" }}
+          >
+            <span style={FONT_FREDOKA} className="text-yellow-400/60 text-xs uppercase tracking-wide flex items-center gap-1">
+              <Target className="w-3.5 h-3.5" /> Effets de cette carte
             </span>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <span style={FONT_FREDOKA} className="text-white/70 text-sm flex items-center gap-1">
+                  <User className="w-3.5 h-3.5" /> Joueur qui pioche
+                </span>
+                <motion.span
+                  key={net}
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                  style={{ ...FONT_BANGERS, fontSize: "1.4rem" }}
+                  className={net >= 0 ? "text-red-400" : "text-green-400"}
+                >
+                  {net >= 0 ? "+" : ""}{formatPrice(net)}
+                </motion.span>
+              </div>
+              {nextAmt > 0 && (
+                <div className="flex items-center justify-between">
+                  <span style={FONT_FREDOKA} className="text-purple-300 text-sm flex items-center gap-1">
+                    <ArrowRight className="w-3.5 h-3.5" /> Joueur suivant recoit
+                  </span>
+                  <span style={{ ...FONT_BANGERS, fontSize: "1.4rem" }} className="text-purple-300">
+                    +{formatPrice(nextAmt)}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Avertissement prix non confirmé */}
-          {!data.confirmed && (
-            <div className="flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-400/30 rounded-lg px-3 py-1.5 mt-1">
+          {/* ── Détail des montants ── */}
+          <div className="rounded-2xl border-[2px] border-white/10 bg-white/5 p-3 flex flex-col gap-2">
+            <span style={FONT_FREDOKA} className="text-white/50 text-xs uppercase tracking-wide flex items-center gap-1">
+              <Banknote className="w-3.5 h-3.5" /> Detail des montants
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              {cfg.cardType === 1 && (
+                <>
+                  <PriceBox label="Ticket de base" value={cfg.ticketPrice} color="#DC2626" />
+                  {(cfg.frais ?? 0) > 0
+                    ? <PriceBox label="Frais additionnels" value={cfg.frais!} color="#0891B2" />
+                    : <PriceBox label="Frais additionnels" value={0} color="#374151" />
+                  }
+                </>
+              )}
+              {cfg.cardType === 2 && (
+                <PriceBox label="Reduction impots" value={-(cfg.impots ?? 0)} color="#16A34A" />
+              )}
+              {cfg.cardType === 3 && (
+                <>
+                  <PriceBox label="Ticket (joueur suivant)" value={cfg.ticketPrice} color="#7C3AED" />
+                  {cfg.taxe !== undefined && cfg.taxe > 0 && (
+                    <PriceBox label="Taxe (reduction piocheur)" value={-(cfg.taxe)} color="#16A34A" />
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ── Note ── */}
+          {cfg.note && (
+            <div className="px-3 py-2 rounded-lg bg-white/5 border border-white/10">
+              <span style={FONT_FREDOKA} className="text-white/50 text-sm italic">{cfg.note}</span>
+            </div>
+          )}
+
+          {/* ── Avertissement prix non confirmé ── */}
+          {!getCardData(cardNum).confirmed && (
+            <div className="flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-400/30 rounded-lg px-3 py-1.5">
               <AlertCircle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
               <span style={FONT_FREDOKA} className="text-yellow-400/80 text-xs">
-                Prix non confirmé — valeur par défaut
+                Prix non confirme — valeur par defaut
               </span>
             </div>
           )}
         </div>
       </motion.div>
 
-      {/* Boutons navigation */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="flex items-center gap-3"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onPrev}
-          disabled={idx <= 0}
-          className="w-12 h-12 bg-white/10 border-[2px] border-white/20 rounded-xl flex items-center justify-center text-white/60 disabled:opacity-20"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </motion.button>
-
-        <span style={FONT_FREDOKA} className="text-white/40 text-sm min-w-[5rem] text-center">
-          {idx + 1} / {allFiltered.length}
-        </span>
-
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onNext}
-          disabled={idx >= allFiltered.length - 1}
-          className="w-12 h-12 bg-white/10 border-[2px] border-white/20 rounded-xl flex items-center justify-center text-white/60 disabled:opacity-20"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </motion.button>
-
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onClose}
-          className="w-12 h-12 bg-red-500 border-[3px] border-black rounded-full flex items-center justify-center ml-1"
-          style={{ boxShadow: "3px 3px 0px #000" }}
-        >
-          <X className="w-6 h-6 text-white" />
-        </motion.button>
-      </motion.div>
-
-      {/* ── Vue plein écran de la carte ── */}
+      {/* ── Overlay zoom plein écran ── */}
       <AnimatePresence>
-        {zoomedIn && (
+        {zoomed && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -314,23 +354,19 @@ function CardDetail({
             transition={{ duration: 0.18 }}
             className="fixed inset-0 z-[80] flex flex-col items-center justify-center"
             style={{ background: "rgba(0,0,0,0.97)" }}
-            onClick={() => setZoomedIn(false)}
+            onClick={() => setZoomed(false)}
           >
             {/* Badge catégorie */}
             <motion.div
               initial={{ y: -12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.08 }}
-              className="absolute top-6 left-0 right-0 flex justify-center pointer-events-none"
+              className="absolute top-6 flex items-center gap-2 px-4 py-1.5 rounded-full border-[2px] border-black"
+              style={{ background: cs.bg, boxShadow: "3px 3px 0px #000" }}
             >
-              <div
-                className="px-4 py-1.5 rounded-full border-[2px] border-black flex items-center gap-2"
-                style={{ background: cs.bg, boxShadow: "3px 3px 0px #000" }}
-              >
-                <span style={{ ...FONT_BANGERS, fontSize: "0.95rem", letterSpacing: "0.08em" }} className="text-white">
-                  #{String(cardNum).padStart(3, "0")} — {cs.label}
-                </span>
-              </div>
+              <span style={{ ...FONT_BANGERS, fontSize: "0.95rem", letterSpacing: "0.08em" }} className="text-white">
+                #{String(cardNum).padStart(3, "0")} — {cs.label}
+              </span>
             </motion.div>
 
             {/* Image agrandie */}
@@ -356,7 +392,7 @@ function CardDetail({
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
               whileTap={{ scale: 0.9 } as any}
-              onClick={() => setZoomedIn(false)}
+              onClick={() => setZoomed(false)}
               className="absolute bottom-8 w-14 h-14 bg-red-500 border-[4px] border-black rounded-full flex items-center justify-center"
               style={{ boxShadow: "4px 4px 0px #000" }}
             >
@@ -370,7 +406,7 @@ function CardDetail({
               style={FONT_FREDOKA}
               className="absolute bottom-24 text-white/25 text-xs"
             >
-              Appuie n'importe où pour fermer
+              Appuie n'importe ou pour fermer
             </motion.p>
           </motion.div>
         )}
@@ -434,7 +470,7 @@ export function CardCatalogScreen() {
             CATALOGUE DES CARTES
           </div>
           <div style={FONT_FREDOKA} className="text-yellow-400/50 text-xs leading-none">
-            {totalConfirmed} / 324 prix confirmés
+            {totalConfirmed} / 324 prix confirmes
           </div>
         </div>
       </div>
@@ -444,7 +480,7 @@ export function CardCatalogScreen() {
       {/* Statistiques rapides */}
       <div className="px-4 pt-3 pb-2 grid grid-cols-3 gap-2">
         {[
-          { label: "Confirmés",     value: totalConfirmed,   color: "#22c55e" },
+          { label: "Confirmes",     value: totalConfirmed,   color: "#22c55e" },
           { label: "Soustractions", value: totalSubtraction, color: "#22c55e" },
           { label: "Avec frais",    value: totalWithFrais,   color: "#0891B2" },
         ].map((s) => (
@@ -465,7 +501,7 @@ export function CardCatalogScreen() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
           <input
             type="text"
-            placeholder="Rechercher par numéro…"
+            placeholder="Rechercher par numero..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-9 py-2.5 rounded-xl border-[2px] border-white/20 bg-white/8 text-white text-sm outline-none focus:border-yellow-400/60"
@@ -559,7 +595,6 @@ export function CardCatalogScreen() {
       <div className="flex-1 overflow-y-auto px-4 pb-6">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-16">
-            <span className="text-4xl opacity-30">🔍</span>
             <p style={FONT_FREDOKA} className="text-white/30 text-center text-sm">
               Aucune carte ne correspond aux filtres.
             </p>
@@ -581,7 +616,7 @@ export function CardCatalogScreen() {
       <PoliceTape />
       <div className="w-full bg-[#111] py-1.5 text-center flex-shrink-0">
         <span style={FONT_FREDOKA} className="text-yellow-400/50 text-xs tracking-widest">
-          © TICKET CRICKET 2026 — CATALOGUE
+          TICKET CRICKET 2026 — CATALOGUE
         </span>
       </div>
 

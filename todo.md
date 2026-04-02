@@ -38,3 +38,7 @@
 - [x] Refonte artistique cartes: supprimer tous les emojis des cartes
 - [x] Refonte artistique cartes: supprimer le mot "méfait" de toutes les cartes
 - [x] Refonte artistique cartes: augmenter la police d'écriture de tous les éléments
+- [x] Optimiser la prévisualisation carte sélectionnée: design plus attractif et percutant
+- [x] Améliorer la prévisualisation: carte agrandie avec tous les détails bien visibles
+- [x] Améliorer la prévisualisation: transitions et animations fluides
+- [x] Améliorer la prévisualisation: informations financières mieux organisées et plus lisibles
