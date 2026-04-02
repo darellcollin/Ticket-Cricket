@@ -408,6 +408,27 @@ export function MultiplayerModal({ onClose }: Props) {
 
   const resetError = () => setError("");
 
+  // ─ Auth ─
+  const { isAuthenticated } = useGameAuth();
+
+  const selectedDiff = DIFFICULTIES.find((d) => d.key === difficulty) ?? DIFFICULTIES[1];
+
+  // Mutation pour publier les cartes personnalisées en session multijoueur
+  const publishSessionCards = trpc.sessionCustomCards.publish.useMutation();
+
+  // Cartes personnalisées du joueur connecté
+  const { data: customCardsData } = trpc.customCards.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const customCards = customCardsData ?? [];
+  const hasCustomCards = customCards.length > 0;
+  const { data: saveData } = trpc.savedGames.loadGame.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const hasSave = saveData?.hasSave === true;
+
   // ─ Configurations sauvegardées ─
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveConfigName, setSaveConfigName] = useState("");
@@ -450,27 +471,6 @@ export function MultiplayerModal({ onClose }: Props) {
     }
     setShowConfigs(false);
   };
-
-  const selectedDiff = DIFFICULTIES.find((d) => d.key === difficulty) ?? DIFFICULTIES[1];
-
-  // Mutation pour publier les cartes personnalisées en session multijoueur
-  const publishSessionCards = trpc.sessionCustomCards.publish.useMutation();
-
-  // ─ Auth et sauvegarde ─
-  const { isAuthenticated } = useGameAuth();
-
-  // Cartes personnalisées du joueur connecté
-  const { data: customCardsData } = trpc.customCards.list.useQuery(undefined, {
-    enabled: isAuthenticated,
-    retry: false,
-  });
-  const customCards = customCardsData ?? [];
-  const hasCustomCards = customCards.length > 0;
-  const { data: saveData } = trpc.savedGames.loadGame.useQuery(undefined, {
-    enabled: isAuthenticated,
-    retry: false,
-  });
-  const hasSave = saveData?.hasSave === true;
 
   // Reprendre la partie sauvegardée
   const handleResume = () => {
