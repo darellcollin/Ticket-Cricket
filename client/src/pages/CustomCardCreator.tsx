@@ -76,9 +76,10 @@ function buildPreviewCard(
 // On utilise un patch temporaire de getCardMefait via un module override
 // En pratique, GeneratedCard appelle getCardMefait(card.id). Pour la preview,
 // La prévisualisation utilise un overlay pour afficher le méfait personnalisé
-// (GeneratedCard retourne undefined pour id=9999, l'overlay prend le relais)
+// (GeneratedCard retourne undefined pour id=9999, l'overlay prend // ─── Composant prévisualisation avec méfait personnalisé ────────────────────────────────────────────────
+// Utilise mefaitOverride de GeneratedCard pour centrer correctement le texte
+const INVESTISSEUR_DEFAULT_TEXT = "Ticket au prochain criminel";
 
-// ─── Composant prévisualisation avec méfait personnalisé ─────────────────────
 function PreviewCard({
   cardConfig,
   mefait,
@@ -86,50 +87,24 @@ function PreviewCard({
   cardConfig: CardConfig;
   mefait: string;
 }) {
-  // On utilise GeneratedCard mais on override le méfait via CSS/overlay
-  // En réalité, GeneratedCard appelle getCardMefait(card.id) qui retourne undefined pour id=9999
-  // On va donc créer un wrapper qui affiche la carte et superpose le texte du méfait
+  // Déterminer le texte à afficher selon la catégorie
+  let displayMefait: string;
+  if (cardConfig.category === "investisseur") {
+    displayMefait = INVESTISSEUR_DEFAULT_TEXT;
+  } else {
+    displayMefait = mefait || "Votre texte ici…";
+  }
 
   return (
-    <div className="relative" style={{ display: "inline-block" }}>
-      <GeneratedCard card={cardConfig} size="lg" />
-      {/* Overlay du méfait personnalisé */}
-      {(cardConfig.category === "contravention" || cardConfig.category === "contribuable") && (
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            top: "28%",
-            left: "5%",
-            right: "5%",
-            bottom: "22%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "4px 6px",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'Fredoka One', cursive",
-              fontSize: "1.05rem",
-              color: cardConfig.category === "contravention" ? "#5D2E00" : "#00401A",
-              textAlign: "center",
-              lineHeight: 1.3,
-              wordBreak: "break-word",
-              overflowWrap: "break-word",
-              display: "block",
-              width: "100%",
-            }}
-          >
-            {mefait || <span style={{ opacity: 0.35, fontStyle: "italic" }}>Votre texte ici…</span>}
-          </span>
-        </div>
-      )}
-    </div>
+    <GeneratedCard
+      card={cardConfig}
+      size="lg"
+      mefaitOverride={displayMefait}
+    />
   );
 }
 
-// ─── Composant principal ──────────────────────────────────────────────────────
+// ─── Composant principal ──────────────────────────────────────────────────────────────────
 export default function CustomCardCreator() {
   const [, navigate] = useLocation();
   const { profile, isAuthenticated } = useGameAuth();

@@ -79,7 +79,12 @@ function loadCustomCards(): number[] {
     for (const card of cards) {
       const cfg = dbCustomToConfig(card);
       customCardRegistry.set(cfg.id, cfg);
-      if (card.mefait) customMefaitRegistry.set(cfg.id, card.mefait);
+      // Texte méfait : soit le texte personnalisé, soit le texte par défaut investisseur
+      if (card.mefait) {
+        customMefaitRegistry.set(cfg.id, card.mefait);
+      } else if (card.category === "investisseur") {
+        customMefaitRegistry.set(cfg.id, "Ticket au prochain criminel");
+      }
       ids.push(cfg.id);
     }
     return ids;
@@ -137,10 +142,13 @@ function getSoloCardIds(): number[] {
     if (noContribuable && cfg.category === "contribuable") return false;
     return true;
   });
-  // Filtrer les cartes perso selon le même critère no-contribuable
+  // Filtrer les cartes perso selon les mêmes critères :
+  // - investisseur toujours exclus en solo (règle fixe)
+  // - contribuable exclus si noContribuable
   const filteredCustom = customIds.filter((id) => {
     const cfg = customCardRegistry.get(id);
     if (!cfg) return false;
+    if (cfg.category === "investisseur") return false; // toujours exclus en solo
     if (noContribuable && cfg.category === "contribuable") return false;
     return true;
   });

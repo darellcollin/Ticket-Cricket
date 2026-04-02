@@ -22,6 +22,7 @@ const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive"
 // ── Clés localStorage ─────────────────────────────────────────
 export const SOLO_DIFFICULTY_KEY            = "ticket_cricket_difficulty";
 export const SOLO_NO_CONTRIBUABLE_KEY       = "ticket_cricket_no_contribuable";
+export const SOLO_NO_INVESTISSEUR_KEY       = "ticket_cricket_no_investisseur";
 export const SOLO_CUSTOM_CARDS_ENABLED_KEY  = "ticket_cricket_custom_cards_enabled";
 export const SOLO_CUSTOM_CARDS_DATA_KEY     = "ticket_cricket_custom_cards_data";
 
@@ -449,11 +450,27 @@ export function MultiplayerModal({ onClose }: Props) {
     setLoading(true);
     setError("");
     try {
-      const allowedCardIds = computeAllowedCardIds(mpDisableT2, mpDisableT3);
+      // Calculer les IDs standards autorisés
+      const standardAllowedIds = computeAllowedCardIds(mpDisableT2, mpDisableT3);
       const disabledCardTypes: number[] = [
         ...(mpDisableT2 ? [2] : []),
         ...(mpDisableT3 ? [3] : []),
       ];
+
+      // Filtrer et préparer les cartes personnalisées
+      let filteredCustomCards: typeof customCards = [];
+      if (mpCustomEnabled && customCards.length > 0) {
+        filteredCustomCards = customCards.filter((c: any) => {
+          if (mpDisableT2 && c.category === "contribuable") return false;
+          if (mpDisableT3 && c.category === "investisseur") return false;
+          return true;
+        });
+      }
+
+      // Inclure les IDs négatifs des cartes perso dans le deck Supabase
+      const customNegativeIds = filteredCustomCards.map((c: any) => -c.id);
+      const allowedCardIds = [...standardAllowedIds, ...customNegativeIds];
+
       const { code: sessionCode, playerId } = await createSession(
         name.trim(),
         selectedDiff.threshold,
@@ -462,12 +479,13 @@ export function MultiplayerModal({ onClose }: Props) {
       );
       mpStorage.save(sessionCode, playerId, name.trim(), true);
 
-      // Publier les cartes personnalisées de l'hôte si activées
-      if (mpCustomEnabled && customCards.length > 0) {
+      // Publier les cartes personnalisées dans la DB pour que tous les joueurs
+      // puissent charger les configs (texte, prix, etc.)
+      if (filteredCustomCards.length > 0) {
         try {
           await publishSessionCards.mutateAsync({
             sessionCode,
-            cards: customCards.map((c: any) => ({
+            cards: filteredCustomCards.map((c: any) => ({
               id: c.id,
               category: c.category,
               mefait: c.mefait ?? null,

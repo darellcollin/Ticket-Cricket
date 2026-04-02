@@ -171,3 +171,17 @@
 
 - [x] Renommer le bouton "CATALOGUE DES CARTES" sur l'accueil en "PERSONNALISATION" → pointe vers /custom-cards
 - [x] Accès catalogue conservé via bouton PERSONNALISATION dans le header du catalogue (/admin)
+
+## Modifications session 15 — Filtrage cartes perso selon types sélectionnés
+
+- [x] Dans GameScreen (solo) : filtrer les cartes personnalisées selon soloDisableT2/T3 au moment de construire le deck
+- [x] Dans MultiplayerGameScreen (multi) : filtrer les cartes personnalisées selon mpDisableT2/T3 au moment de construire le deck (IDs négatifs inclus dans allowedCardIds envoyés à Supabase)
+- [x] Vérifier que l'accès aux cartes personnalisées est conditionné à isAuthenticated dans les deux modes
+- [x] Vérifier que les cartes perso désactivées par défaut (soloCustomEnabled=false) ne rentrent pas dans le deck
+
+## Modifications session 16 — Affichage cartes perso + UI
+
+- [x] Centrer le texte (description infraction/remboursement) sur la carte personnalisée via mefaitOverride dans GeneratedCard
+- [x] Texte par défaut investisseur personnalisé : "Ticket au prochain criminel" (injecté dans les registres méfait solo et multi)
+- [x] Boutons accueil côte à côte sur PC : JOUER + RÈGLES en flex-row sm, PERSONNALISATION pleine largeur en dessous
+- [x] Limite prix contravention et investisseur : 10$ à 4000$ (validé dans handleSubmit)

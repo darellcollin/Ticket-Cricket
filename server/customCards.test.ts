@@ -280,3 +280,154 @@ describe("IDs négatifs pour cartes personnalisées", () => {
     expect(overlap).toHaveLength(0);
   });
 });
+
+// ── Helpers de filtrage (reproduits depuis GameScreen/MultiplayerModal) ────────
+
+const INVESTISSEUR_DEFAULT_TEXT = "Ticket au prochain criminel";
+
+function getMefaitForCustomCard(card: {
+  category: string;
+  mefait: string | null;
+}): string {
+  if (card.mefait) return card.mefait;
+  if (card.category === "investisseur") return INVESTISSEUR_DEFAULT_TEXT;
+  return "";
+}
+
+function filterCustomCardsByType(
+  cards: Array<{ id: number; category: string }>,
+  disableT2: boolean,
+  disableT3: boolean,
+): Array<{ id: number; category: string }> {
+  return cards.filter((c) => {
+    if (disableT2 && c.category === "contribuable") return false;
+    if (disableT3 && c.category === "investisseur") return false;
+    return true;
+  });
+}
+
+// En solo, les investisseurs sont toujours exclus (règle fixe)
+function filterCustomCardsForSolo(
+  cards: Array<{ id: number; category: string }>,
+  disableT2: boolean,
+): Array<{ id: number; category: string }> {
+  return cards.filter((c) => {
+    if (c.category === "investisseur") return false; // toujours exclus en solo
+    if (disableT2 && c.category === "contribuable") return false;
+    return true;
+  });
+}
+
+describe("Texte méfait par défaut pour cartes personnalisées", () => {
+  it("retourne le texte personnalisé pour une contravention", () => {
+    const card = { category: "contravention", mefait: "Stationnement interdit" };
+    expect(getMefaitForCustomCard(card)).toBe("Stationnement interdit");
+  });
+
+  it("retourne le texte personnalisé pour un contribuable", () => {
+    const card = { category: "contribuable", mefait: "Remboursement de taxe" };
+    expect(getMefaitForCustomCard(card)).toBe("Remboursement de taxe");
+  });
+
+  it("retourne le texte par défaut pour un investisseur sans méfait", () => {
+    const card = { category: "investisseur", mefait: null };
+    expect(getMefaitForCustomCard(card)).toBe(INVESTISSEUR_DEFAULT_TEXT);
+  });
+
+  it("retourne le texte par défaut exact pour investisseur", () => {
+    const card = { category: "investisseur", mefait: null };
+    expect(getMefaitForCustomCard(card)).toBe("Ticket au prochain criminel");
+  });
+
+  it("retourne chaîne vide pour contravention sans méfait (cas invalide)", () => {
+    const card = { category: "contravention", mefait: null };
+    expect(getMefaitForCustomCard(card)).toBe("");
+  });
+});
+
+describe("Filtrage des cartes personnalisées par type (multi)", () => {
+  const cards = [
+    { id: 1, category: "contravention" },
+    { id: 2, category: "contribuable" },
+    { id: 3, category: "investisseur" },
+    { id: 4, category: "contravention" },
+  ];
+
+  it("garde toutes les cartes si aucun type désactivé", () => {
+    expect(filterCustomCardsByType(cards, false, false)).toHaveLength(4);
+  });
+
+  it("exclut les contribuables si T2 désactivé", () => {
+    const result = filterCustomCardsByType(cards, true, false);
+    expect(result.every(c => c.category !== "contribuable")).toBe(true);
+    expect(result).toHaveLength(3);
+  });
+
+  it("exclut les investisseurs si T3 désactivé", () => {
+    const result = filterCustomCardsByType(cards, false, true);
+    expect(result.every(c => c.category !== "investisseur")).toBe(true);
+    expect(result).toHaveLength(3);
+  });
+
+  it("exclut contribuables ET investisseurs si T2 et T3 désactivés", () => {
+    const result = filterCustomCardsByType(cards, true, true);
+    expect(result.every(c => c.category === "contravention")).toBe(true);
+    expect(result).toHaveLength(2);
+  });
+});
+
+describe("Filtrage des cartes personnalisées en solo (investisseurs toujours exclus)", () => {
+  const cards = [
+    { id: 1, category: "contravention" },
+    { id: 2, category: "contribuable" },
+    { id: 3, category: "investisseur" },
+  ];
+
+  it("exclut toujours les investisseurs en solo", () => {
+    const result = filterCustomCardsForSolo(cards, false);
+    expect(result.every(c => c.category !== "investisseur")).toBe(true);
+    expect(result).toHaveLength(2);
+  });
+
+  it("exclut investisseurs ET contribuables si T2 désactivé en solo", () => {
+    const result = filterCustomCardsForSolo(cards, true);
+    expect(result).toHaveLength(1);
+    expect(result[0].category).toBe("contravention");
+  });
+
+  it("les IDs négatifs des cartes filtrées ne sont pas dans le deck solo", () => {
+    const filtered = filterCustomCardsForSolo(cards, false);
+    const negativeIds = filtered.map(c => -c.id);
+    expect(negativeIds).not.toContain(-3); // investisseur exclu
+    expect(negativeIds).toContain(-1); // contravention incluse
+    expect(negativeIds).toContain(-2); // contribuable incluse
+  });
+});
+
+describe("Inclusion des IDs négatifs dans le deck multi", () => {
+  it("les IDs négatifs des cartes perso sont inclus dans allowedCardIds", () => {
+    const customCards = [
+      { id: 5, category: "contravention" },
+      { id: 10, category: "contribuable" },
+    ];
+    const standardIds = [1, 2, 3, 4];
+    const customNegativeIds = customCards.map(c => -c.id);
+    const allowedCardIds = [...standardIds, ...customNegativeIds];
+
+    expect(allowedCardIds).toContain(-5);
+    expect(allowedCardIds).toContain(-10);
+    expect(allowedCardIds).toContain(1);
+  });
+
+  it("les IDs négatifs filtrés ne sont pas dans allowedCardIds", () => {
+    const allCustomCards = [
+      { id: 5, category: "contravention" },
+      { id: 6, category: "investisseur" }, // exclu si T3 désactivé
+    ];
+    const filtered = filterCustomCardsByType(allCustomCards, false, true); // T3 désactivé
+    const customNegativeIds = filtered.map(c => -c.id);
+
+    expect(customNegativeIds).toContain(-5);
+    expect(customNegativeIds).not.toContain(-6); // investisseur exclu
+  });
+});

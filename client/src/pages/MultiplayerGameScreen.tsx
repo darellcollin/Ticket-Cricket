@@ -98,7 +98,12 @@ function loadMpCustomCards(cards: Array<{
       taxe: card.taxe,
     } as unknown as CardConfig;
     mpCustomCardRegistry.set(-card.id, cfg);
-    if (card.mefait) mpCustomMefaitRegistry.set(-card.id, card.mefait);
+    // Texte méfait : soit le texte personnalisé, soit le texte par défaut investisseur
+    if (card.mefait) {
+      mpCustomMefaitRegistry.set(-card.id, card.mefait);
+    } else if (cat === "investisseur") {
+      mpCustomMefaitRegistry.set(-card.id, "Ticket au prochain criminel");
+    }
   }
 }
 
@@ -107,7 +112,7 @@ function getCardConfigMp(id: number): CardConfig {
     const custom = mpCustomCardRegistry.get(id);
     if (custom) return custom;
   }
-  return getCardConfigMp(id);
+  return getCardConfig(id);
 }
 
 function getMpCustomMefait(id: number): string | undefined {

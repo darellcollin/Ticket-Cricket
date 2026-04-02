@@ -324,64 +324,68 @@ export default function Home() {
               <SpeechBubble />
             </div>
 
-            {/* ── JOUER BUTTON ── */}
-            <div className="relative w-full max-w-[220px]">
-              <motion.div
-                className="absolute inset-0 rounded-2xl bg-yellow-400 -z-10"
-                animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <motion.button
-                className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-black relative overflow-hidden"
-                style={{
-                  ...FONT_FREDOKA,
-                  letterSpacing: "0.1em",
-                  fontSize: "1.7rem",
-                  boxShadow: "5px 5px 0px #000",
-                }}
-                whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
-                whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
-                onClick={() => setShowMpModal(true)}
-              >
+            {/* Ligne 1 : JOUER + RÈGLES côte à côte sur PC, en colonne sur mobile */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+              {/* ── JOUER BUTTON ── */}
+              <div className="relative w-full max-w-[220px]">
                 <motion.div
-                  className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
-                  animate={{ x: ["-100%", "400%"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+                  className="absolute inset-0 rounded-2xl bg-yellow-400 -z-10"
+                  animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 />
-                JOUER
-              </motion.button>
+                <motion.button
+                  className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-black relative overflow-hidden"
+                  style={{
+                    ...FONT_FREDOKA,
+                    letterSpacing: "0.1em",
+                    fontSize: "1.7rem",
+                    boxShadow: "5px 5px 0px #000",
+                  }}
+                  whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
+                  whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                  onClick={() => setShowMpModal(true)}
+                >
+                  <motion.div
+                    className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                    animate={{ x: ["-100%", "400%"] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+                  />
+                  JOUER
+                </motion.button>
+              </div>
+
+              {/* ── RÈGLES BUTTON ── */}
+              <div className="relative w-full max-w-[220px]">
+                <motion.div
+                  className="absolute inset-0 rounded-2xl bg-blue-500 -z-10"
+                  animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                <motion.button
+                  className="w-full py-2.5 bg-[#1565C0] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                  style={{
+                    ...FONT_FREDOKA,
+                    letterSpacing: "0.1em",
+                    fontSize: "1.7rem",
+                    boxShadow: "5px 5px 0px #000",
+                  }}
+                  whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
+                  whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                  onClick={handleRulesClick}
+                >
+                  <motion.div
+                    className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                    animate={{ x: ["-100%", "400%"] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+                  />
+                  RÈGLES
+                </motion.button>
+              </div>
             </div>
 
-            {/* ── RÈGLES BUTTON ── */}
-            <div className="relative w-full max-w-[220px]">
-              <motion.div
-                className="absolute inset-0 rounded-2xl bg-blue-500 -z-10"
-                animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <motion.button
-                className="w-full py-2.5 bg-[#1565C0] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
-                style={{
-                  ...FONT_FREDOKA,
-                  letterSpacing: "0.1em",
-                  fontSize: "1.7rem",
-                  boxShadow: "5px 5px 0px #000",
-                }}
-                whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
-                whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
-                onClick={handleRulesClick}
-              >
-                <motion.div
-                  className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
-                  animate={{ x: ["-100%", "400%"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
-                />
-                RÈGLES
-              </motion.button>
-            </div>
-
+            {/* Ligne 2 : PERSONNALISATION pleine largeur (max 460px sur PC) */}
             {/* ── PERSONNALISATION BUTTON ── */}
-            <div className="relative w-full max-w-[220px]">
+            <div className="relative w-full max-w-[220px] sm:max-w-[460px]">
               <motion.button
                 className="w-full py-2 bg-[#FF4081] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                 style={{
