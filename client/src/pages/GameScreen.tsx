@@ -1105,41 +1105,41 @@ export function GameScreen() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
+       {/* Header */}
       <div className="w-full bg-[#111] border-b-4 border-yellow-400 flex items-center justify-between px-4 py-2.5 z-10 flex-shrink-0">
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowConfirmLeave(true)}
-          className="w-11 h-11 bg-yellow-400 border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ boxShadow: "3px 3px 0px #000" }}
-        >
-          <Home className="w-5 h-5 text-black" />
-        </motion.button>
-
-        {/* Bouton sauvegarde — seulement si connecté */}
-        {isAuthenticated && (
+        {/* Groupe gauche : Accueil + Sauvegarder */}
+        <div className="flex items-center gap-2">
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => handleSaveGame(drawnCount)}
-            disabled={saveStatus === "saving"}
-            className="flex items-center gap-1.5 px-3 h-11 border-[3px] border-black rounded-xl flex-shrink-0 disabled:opacity-60"
-            style={{
-              background: saveStatus === "saved" ? "#16a34a" : saveStatus === "error" ? "#dc2626" : "#7C3AED",
-              boxShadow: "3px 3px 0px #000",
-            }}
+            onClick={() => setShowConfirmLeave(true)}
+            className="w-11 h-11 bg-yellow-400 border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ boxShadow: "3px 3px 0px #000" }}
           >
-            {saveStatus === "saving" ? (
-              <Loader2 className="w-4 h-4 text-white animate-spin" />
-            ) : saveStatus === "saved" ? (
-              <Check className="w-4 h-4 text-white" />
-            ) : (
-              <CloudUpload className="w-4 h-4 text-white" />
-            )}
-            <span style={{ ...FONT_BANGERS, fontSize: "0.75rem", letterSpacing: "0.05em" }} className="text-white">
-              {saveStatus === "saving" ? "SAUVEGARDE..." : saveStatus === "saved" ? "SAUVEGARDÉ" : saveStatus === "error" ? "ERREUR" : "SAUVEGARDER"}
-            </span>
+            <Home className="w-5 h-5 text-black" />
           </motion.button>
-        )}
+          {/* Bouton sauvegarde — seulement si connecté */}
+          {isAuthenticated && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleSaveGame(drawnCount)}
+              disabled={saveStatus === "saving"}
+              className="w-11 h-11 border-[3px] border-black rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-60"
+              style={{
+                background: saveStatus === "saved" ? "#16a34a" : saveStatus === "error" ? "#dc2626" : "#7C3AED",
+                boxShadow: "3px 3px 0px #000",
+              }}
+              title={saveStatus === "saving" ? "Sauvegarde..." : saveStatus === "saved" ? "Sauvegardé" : saveStatus === "error" ? "Erreur" : "Sauvegarder"}
+            >
+              {saveStatus === "saving" ? (
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              ) : saveStatus === "saved" ? (
+                <Check className="w-5 h-5 text-white" />
+              ) : (
+                <CloudUpload className="w-5 h-5 text-white" />
+              )}
+            </motion.button>
+          )}
+        </div>
 
         <motion.button
           whileTap={{ scale: 0.9 }}

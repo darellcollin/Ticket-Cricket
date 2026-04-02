@@ -189,11 +189,11 @@ function SectionCards() {
 
       {/* INVESTISSEURS */}
       <RuleBlock
-        icon={<Zap className="w-5 h-5" />}
+        icon={<TrendingDown className="w-5 h-5 rotate-180" />}
         title="INVESTISSEURS"
-        color="text-yellow-300"
-        bg="rgba(91,33,182,0.45)"
-        border="border-purple-600"
+        color="text-pink-300"
+        bg="rgba(131,24,67,0.45)"
+        border="border-pink-700"
         delay={0.15}
       >
         <InfoLine
@@ -512,26 +512,11 @@ function SectionGoal() {
         />
       </RuleBlock>
 
-      {/* Multi */}
-      <RuleBlock
-        icon={<Zap className="w-5 h-5" />}
-        title="MODE MULTIJOUEUR"
-        color="text-purple-300"
-        bg="rgba(91,33,182,0.4)"
-        border="border-purple-600"
-        delay={0.15}
-      >
-        <InfoLine
-          icon={<ArrowRight className="w-3.5 h-3.5 text-purple-400/70 mt-0.5" />}
-          text="Jusqu'à 10 joueurs. Les tours s'enchaînent à tour de rôle."
-        />
-      </RuleBlock>
-
       {/* Astuce finale */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.25, type: "spring", stiffness: 260, damping: 22 }}
+        transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 22 }}
         className="rounded-2xl border-[4px] border-yellow-400 px-4 py-3 text-center"
         style={{ background: "rgba(255,215,0,0.1)", boxShadow: "4px 4px 0px #000" }}
       >

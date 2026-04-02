@@ -93,3 +93,10 @@
 - [x] Méfaits T2 contribuables: intégrer les textes des cartes 76-129 dans cardMefaits.ts
 - [x] Règles: améliorer la section "mécaniques" avec explication des Perquisitions (ex-mini-jeux)
 - [x] Renommer "mini-jeu surprise" en "Perquisition" partout dans le jeu
+
+## Modifications session 6
+
+- [x] Règles Mécaniques: déplacer le bloc ASTUCE (barre de progression) après LIMITE & ÉLIMINATION
+- [x] Règles Objectif: supprimer le bloc MODE MULTIJOUEUR
+- [x] Règles Les cartes: bulle Investisseurs → couleurs rose/mauve, remplacer icône éclair par flèche montante (TrendingDown rotatée)
+- [x] Header solo: bouton Sauvegarder → petit carré mauve (w-11 h-11), placé à côté du bouton Accueil, sans texte
