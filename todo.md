@@ -160,3 +160,9 @@
 - [x] Renommer bouton "PERSONNALISATION" sur l'accueil en "CATALOGUE DES CARTES" et rediriger vers /admin
 - [x] Ajouter bouton "PERSONNALISATION" visible dans le header du catalogue (/admin) qui ouvre /custom-cards
 - [x] Corriger le bouton retour dans CustomCardCreator pour revenir au catalogue (/admin) et non à l'accueil
+
+## Modifications session 13 — Option cartes personnalisées toujours visible
+
+- [x] Afficher l'option "Cartes personnalisées" dans la fenêtre solo même si le joueur n'a pas de cartes (désactivé + message "Aucune carte créée — Personnaliser")
+- [x] Afficher l'option "Cartes personnalisées" dans la fenêtre multi (host) même si le joueur n'a pas de cartes
+- [x] L'option doit être visible pour les joueurs non connectés aussi (avec message "Connexion requise")
