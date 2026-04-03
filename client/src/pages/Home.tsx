@@ -526,6 +526,8 @@ export default function Home() {
               </motion.button>
             </div>
 
+            </div>
+
             {/* Ligne 3 : PARTAGER LE JEU — centré sous Boutique */}
             <div className="flex items-center justify-center w-full">
               <motion.button
@@ -545,8 +547,6 @@ export default function Home() {
                 <Share2 size={16} />
                 PARTAGER LE JEU
               </motion.button>
-            </div>
-
             </div>
           </div>
         </div>
