@@ -1814,7 +1814,8 @@ export function MultiplayerGameScreen() {
   // ── Polling mini-jeu pour les spectateurs ───────────────────────────────────
   // Interroge getActive toutes les 1.5s pour détecter un mini-jeu déclenché par un autre joueur
   const fetchActiveMiniGame = useCallback(async () => {
-    if (!code || miniGameMode !== null || waitingForAllPlayers) return; // Déjà en train de jouer ou d'attendre
+    if (!code || miniGameMode !== null) return; // Déjà en train de jouer un mini-jeu
+    // Note : on laisse passer même si waitingForAllPlayers=true pour que le déclencheur reçoive aussi le mini-jeu
     try {
       const res = await fetch(`/api/trpc/miniGame.getActive?input=${encodeURIComponent(JSON.stringify({ sessionCode: code }))}`, {
         credentials: "include",
@@ -1828,17 +1829,20 @@ export function MultiplayerGameScreen() {
         setMiniGameMode(event.mode);
         setMiniGameEventId(event.id);
         setMiniGameTriggeredBy(event.triggeredBy ?? null);
-        // Calculer le nombre de joueurs actifs
+        // Calculer le nombre de joueurs actifs depuis la session courante
         if (session) {
           const eliminated = session.eliminatedPlayers ?? [];
           const activePlayers = session.turnOrder.filter((id: string) => !eliminated.includes(id));
-          setMiniGameTotalPlayers(Math.max(1, activePlayers.length));
+          const total = Math.max(1, activePlayers.length);
+          setMiniGameTotalPlayers(total);
         }
+        // Réinitialiser l'état d'attente si un nouveau mini-jeu arrive
+        setWaitingForAllPlayers(false);
       }
     } catch (e) {
       // Silencieux
     }
-  }, [code, miniGameMode, playerId, waitingForAllPlayers, session]);
+  }, [code, miniGameMode, playerId, session]);
   useEffect(() => {
     fetchActiveMiniGame();
     miniGamePollRef.current = setInterval(fetchActiveMiniGame, 1500);
@@ -1857,6 +1861,11 @@ export function MultiplayerGameScreen() {
       const json = await res.json();
       const status = json?.result?.data;
       if (status?.allDone) {
+        // Stopper le polling de statut immédiatement pour éviter les doubles appels
+        if (miniGameStatusPollRef.current) {
+          clearInterval(miniGameStatusPollRef.current);
+          miniGameStatusPollRef.current = null;
+        }
         // Tous ont terminé : résoudre et afficher les résultats
         setWaitingForAllPlayers(false);
         setMiniGameResultsData(status.results);
@@ -1881,6 +1890,7 @@ export function MultiplayerGameScreen() {
         // Marquer l'événement comme résolu
         resolveMiniGame.mutateAsync({ sessionCode: code, eventId: miniGameEventId }).catch(() => {});
         setMiniGameEventId(null);
+        // miniGameSkippedDraw reste true pour que le bouton "TERMINER MON TOUR" soit disponible
         // Fermer les résultats après 4s
         setTimeout(() => setMiniGameResultsData(null), 4000);
       }
@@ -2252,23 +2262,22 @@ export function MultiplayerGameScreen() {
               showNotifRef.current = false;
               setShowNotif(false);
               // Déclencher le mini-jeu au moment où le joueur clique "JE COMMENCE"
+              // Le joueur crée l'événement en DB — le polling le détectera pour TOUS (y compris lui)
               if (myTurn && session && !(session.eliminatedPlayers ?? []).includes(playerId)) {
                 const { triggered, mode } = rollMiniGame();
                 if (triggered) {
-                  setMiniGameMode(mode);
                   setMiniGameSkippedDraw(true); // Ce joueur ne piochera pas ce tour
                   try {
                     const eliminated = session.eliminatedPlayers ?? [];
                     const activePlayers = session.turnOrder.filter((id: string) => !eliminated.includes(id));
                     const totalPlayers = Math.max(1, activePlayers.length);
                     setMiniGameTotalPlayers(totalPlayers);
-                    const result = await triggerMiniGame.mutateAsync({ sessionCode: code, playerId, mode, totalPlayers });
-                    if (result.eventId) {
-                      setMiniGameEventId(result.eventId);
-                      setMiniGameTriggeredBy(playerId);
-                    }
+                    // Créer l'événement en DB — le polling fetchActiveMiniGame le détectera pour tous
+                    await triggerMiniGame.mutateAsync({ sessionCode: code, playerId, mode, totalPlayers });
+                    // Ne pas setMiniGameMode ici — le polling s'en chargera pour tout le monde
                   } catch (e) {
                     console.error("Erreur trigger mini-jeu:", e);
+                    setMiniGameSkippedDraw(false); // Annuler si erreur
                   }
                 }
               }
@@ -3939,10 +3948,12 @@ export function MultiplayerGameScreen() {
               }
               setMiniGameMode(null);
               // Si c'est le piocheur (celui qui a déclenché le mini-jeu), attendre que tous aient terminé
+              // Mais seulement s'il y a plus d'un joueur actif
               const isTriggerer = miniGameTriggeredBy === playerId;
-              if (isTriggerer) {
+              if (isTriggerer && miniGameTotalPlayers > 1) {
                 setWaitingForAllPlayers(true);
               }
+              // S'il est seul ou non-déclencheur, le mini-jeu est terminé pour lui
             }}
           />
         )}

@@ -270,3 +270,13 @@
 - [x] Créer composant ShareScore.tsx avec boutons X, Facebook, WhatsApp et copie de lien
 - [x] Intégrer ShareScore dans WinnerOverlay (fin de partie multi)
 - [x] Intégrer ShareScore dans GameScreen (fin de partie solo) — via WinnerOverlay déjà utilisé
+
+## Corrections session 26 — Mini-jeux multijoueur
+- [x] Serveur : mini-jeu déclenché au début du tour (avant pioche), pas après
+- [x] Serveur : quand mini-jeu actif, bloquer la pioche pour le joueur principal
+- [x] Serveur : fin de tour sans pioche quand mini-jeu a été joué
+- [x] Serveur : tous les joueurs reçoivent le mini-jeu simultanément via polling
+- [x] Serveur : joueur principal attend que tous aient terminé avant de finir son tour
+- [x] Client : afficher le mini-jeu à tous les joueurs dès qu'il est créé (polling)
+- [x] Client : joueur principal voit un écran d'attente pendant que les autres jouent
+- [x] Client : une fois tous terminés, joueur principal peut finir son tour (sans pioche)
