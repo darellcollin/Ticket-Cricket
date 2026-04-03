@@ -414,28 +414,28 @@ export default function Home() {
           </div>
 
           {/* ── ZONE BOUTONS ── */}
-          <div className="flex flex-col items-center gap-2 w-full flex-shrink-0">
+          <div className="flex flex-col items-center gap-2 w-full flex-shrink-0" style={{ maxWidth: "min(480px, 90vw)", margin: "0 auto" }}>
 
             {/* Bulle slogan au-dessus du bouton JOUER */}
             <div style={{ zIndex: 2, position: "relative" }}>
               <SpeechBubble />
             </div>
 
-            {/* Ligne 1 : JOUER + RÈGLES côte à côte sur PC, en colonne sur mobile */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+            {/* Ligne 1 : JOUER + RÈGLES côte à côte */}
+            <div className="flex flex-row items-center justify-center gap-3 w-full">
               {/* ── JOUER BUTTON ── */}
-              <div className="relative w-full max-w-[220px]">
+              <div className="relative flex-1">
                 <motion.div
                   className="absolute inset-0 rounded-2xl bg-[#34C759] -z-10"
                   animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <motion.button
-                  className="w-full py-2.5 bg-[#34C759] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                  className="w-full py-3 bg-[#34C759] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                   style={{
                     ...FONT_FREDOKA,
                     letterSpacing: "0.1em",
-                    fontSize: "1.7rem",
+                    fontSize: "clamp(1.3rem, 4vw, 1.8rem)",
                     boxShadow: "5px 5px 0px #000",
                   }}
                   whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
@@ -452,18 +452,18 @@ export default function Home() {
               </div>
 
               {/* ── RÈGLES BUTTON ── */}
-              <div className="relative w-full max-w-[220px]">
+              <div className="relative flex-1">
                 <motion.div
                   className="absolute inset-0 rounded-2xl bg-yellow-400 -z-10"
                   animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <motion.button
-                  className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                  className="w-full py-3 bg-yellow-400 border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                   style={{
                     ...FONT_FREDOKA,
                     letterSpacing: "0.1em",
-                    fontSize: "1.7rem",
+                    fontSize: "clamp(1.3rem, 4vw, 1.8rem)",
                     boxShadow: "5px 5px 0px #000",
                   }}
                   whileHover={{ scale: 1.06, y: -3, boxShadow: "7px 7px 0px #000" } as any}
@@ -481,15 +481,15 @@ export default function Home() {
             </div>
 
             {/* Ligne 2 : PERSONNALISATION + BOUTIQUE */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+            <div className="flex flex-row items-center justify-center gap-3 w-full">
             {/* ── PERSONNALISATION BUTTON ── */}
-            <div className="relative w-full max-w-[220px]">
+            <div className="relative flex-1">
               <motion.button
-                className="w-full py-2 bg-[#FF4081] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                className="w-full py-2.5 bg-[#FF4081] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                 style={{
                   ...FONT_FREDOKA,
-                  letterSpacing: "0.08em",
-                  fontSize: "1.1rem",
+                  letterSpacing: "0.05em",
+                  fontSize: "clamp(0.85rem, 2.5vw, 1.1rem)",
                   boxShadow: "5px 5px 0px #000",
                 }}
                 whileHover={{ scale: 1.05, y: -2, boxShadow: "7px 7px 0px #000" } as any}
@@ -506,13 +506,13 @@ export default function Home() {
             </div>
 
             {/* ── BOUTIQUE BUTTON ── */}
-            <div className="relative w-full max-w-[220px]">
+            <div className="relative flex-1">
               <motion.button
-                className="w-full py-2 bg-[#7C3AED] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                className="w-full py-2.5 bg-[#7C3AED] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                 style={{
                   ...FONT_FREDOKA,
-                  letterSpacing: "0.08em",
-                  fontSize: "1.1rem",
+                  letterSpacing: "0.05em",
+                  fontSize: "clamp(0.85rem, 2.5vw, 1.1rem)",
                   boxShadow: "5px 5px 0px #000",
                 }}
                 whileHover={{ scale: 1.05, y: -2, boxShadow: "7px 7px 0px #000" } as any}

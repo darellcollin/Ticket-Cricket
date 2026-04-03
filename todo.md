@@ -372,3 +372,26 @@
 ## Corrections session 41 — Responsive PC/mobile
 - [x] Boutique skins : s'adapter au PC (plein écran, cartes plus grandes, layout adapté)
 - [x] Section Règles : prendre tout l'écran sur PC et mobile
+
+## Session 42 — Responsive complet toutes interfaces
+
+- [ ] Home.tsx : centrage parfait sur toutes tailles, boutons bien proportionnés, titre/logo adaptatif
+- [ ] MultiplayerModal : layout adaptatif PC/mobile, boutons bien dimensionnés
+- [ ] LobbyScreen : layout adaptatif PC/mobile, QR code bien positionné
+- [ ] GameScreen (solo) : header, cartes, boutons, overlays adaptés PC/mobile
+- [ ] MultiplayerGameScreen : header, cartes, boutons, overlays adaptés PC/mobile
+- [ ] ShopModal : toutes les vues (accueil, packs, skins, don) adaptées PC/mobile
+- [ ] CustomCardCreator : formulaire + aperçu carte adaptés PC/mobile
+- [ ] RulesScreen : contenu bien lisible et proportionné sur toutes tailles
+- [ ] CardCatalogScreen (/admin) : grille de cartes adaptée PC/mobile
+- [ ] ProfileModal : contenu adapté PC/mobile
+- [ ] GameInfoModal : contenu adapté PC/mobile
+- [ ] WinnerOverlay / EliminationOverlay : centré et proportionné sur toutes tailles
+- [ ] MiniGame : interface adaptée PC/mobile
+
+## Session 43 — Skins respectant le design des 324 cartes
+
+- [x] Analyser la structure visuelle exacte de GeneratedCard.tsx (lignes, sections, proportions)
+- [x] Refaire les tokens visuels des 5 skins (Néon, Rétro, Glace, Feu, Royal) en respectant la même structure de carte que le skin Classique
+- [x] Chaque skin doit avoir les mêmes zones (header catégorie, zone méfait, zone prix, footer) avec les nouvelles couleurs
+- [x] Vérifier le rendu dans la boutique, le sélecteur et le jeu
