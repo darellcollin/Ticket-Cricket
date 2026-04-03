@@ -297,7 +297,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(2.4rem, 10vw, 5rem)",
+                    fontSize: "clamp(2rem, 7vw, 4rem)",
                     letterSpacing: "0.06em",
                     lineHeight: 1,
                     display: "block",
@@ -313,7 +313,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(1.8rem, 7.5vw, 3.8rem)",
+                    fontSize: "clamp(1.5rem, 5.5vw, 3rem)",
                     letterSpacing: "0.1em",
                     lineHeight: 1,
                     display: "block",
@@ -331,10 +331,6 @@ export default function Home() {
 
           {/* ── ZONE BOUTONS ── */}
           <div className="flex flex-col items-center gap-2 w-full pb-1">
-            {/* Bulle de texte au-dessus des boutons */}
-            <div style={{ zIndex: 2, position: "relative" }}>
-              <SpeechBubble />
-            </div>
 
             {/* Ligne 1 : JOUER + RÈGLES côte à côte sur PC, en colonne sur mobile */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
