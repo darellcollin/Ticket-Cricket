@@ -262,10 +262,10 @@ export default function Home() {
         <BackgroundParticles />
 
         {/* ── MAIN CONTENT ── */}
-        <div className="relative z-10 flex flex-col items-center justify-between h-full px-6 pt-3 pb-3">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 pt-3 pb-3" style={{ gap: "clamp(1rem, 3vh, 2.5rem)" }}>
 
           {/* ── ZONE LOGO + TITRE ── */}
-          <div className="flex-1 flex flex-col items-center justify-center w-full" style={{ gap: "clamp(0.2rem, 1vw, 0.6rem)" }}>
+          <div className="flex flex-col items-center flex-shrink-0" style={{ gap: "clamp(0.2rem, 1vw, 0.6rem)" }}>
             {/* Logo ticket animé */}
             <motion.div
               style={{
@@ -330,7 +330,7 @@ export default function Home() {
           </div>
 
           {/* ── ZONE BOUTONS ── */}
-          <div className="flex flex-col items-center gap-2 w-full pb-1">
+          <div className="flex flex-col items-center gap-2 w-full flex-shrink-0">
 
             {/* Ligne 1 : JOUER + RÈGLES côte à côte sur PC, en colonne sur mobile */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
