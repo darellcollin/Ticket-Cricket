@@ -296,127 +296,84 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.18 }}
-                  className="overflow-y-auto flex-1 px-5 py-5 flex flex-col gap-4"
+                  className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-3"
                   style={{ scrollbarWidth: "thin" }}
                 >
                   <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
-                    15 cartes gratuites incluses. Débloquez-en plus de façon permanente.
+                    15 cartes gratuites incluses — débloquez-en plus de façon permanente.
                   </p>
 
-                  {/* Sélecteur de pack — navigation gauche/droite */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setSelectedPack((p) => (p - 1 + CARD_PACKS.length) % CARD_PACKS.length)}
-                      className="w-10 h-10 rounded-xl border-[3px] border-white/20 bg-white/8 flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
-                    >
-                      <ChevronLeft className="w-5 h-5 text-white/70" />
-                    </button>
+                  {!isLoggedIn && (
+                    <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
+                      <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
+                        Connectez-vous pour acheter un pack.
+                      </p>
+                    </div>
+                  )}
 
-                    {/* Carte du pack sélectionné */}
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={pack.id}
-                        initial={{ opacity: 0, scale: 0.92 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.92 }}
-                        transition={{ duration: 0.15 }}
-                        className="flex-1 rounded-2xl border-[3px] border-black overflow-hidden"
-                        style={{ background: pack.color + "20", boxShadow: "4px 4px 0px #000" }}
+                  {CARD_PACKS.map((p) => (
+                    <div
+                      key={p.id}
+                      className="rounded-2xl border-[3px] border-black overflow-hidden"
+                      style={{ background: p.color + "18", boxShadow: "3px 3px 0px #000" }}
+                    >
+                      {/* Bandeau badge */}
+                      <div
+                        className="w-full text-center py-1 border-b-[2px] border-black"
+                        style={{ background: p.color, fontFamily: "'Bangers', cursive", fontSize: "0.72rem", letterSpacing: "0.1em", color: "#fff" }}
                       >
-                        {/* Badge */}
+                        {p.badge}
+                      </div>
+
+                      {/* Corps : icône | infos | prix+bouton */}
+                      <div className="flex items-center gap-3 px-3 py-3">
+                        {/* Icône */}
                         <div
-                          className="w-full text-center py-1.5 border-b-[2px] border-black"
-                          style={{ background: pack.color, fontFamily: "'Bangers', cursive", fontSize: "0.85rem", letterSpacing: "0.1em", color: "#fff" }}
+                          className="w-11 h-11 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
+                          style={{ background: p.color, boxShadow: "2px 2px 0px #000" }}
                         >
-                          {pack.badge}
+                          <Layers className="w-5 h-5 text-white" />
                         </div>
 
-                        <div className="p-5 flex flex-col items-center gap-4">
-                          {/* Icône + nom */}
-                          <div className="flex flex-col items-center gap-2">
-                            <div
-                              className="w-20 h-20 rounded-2xl border-[4px] border-black flex items-center justify-center"
-                              style={{ background: pack.color, boxShadow: "4px 4px 0px #000" }}
-                            >
-                              <Layers className="w-10 h-10 text-white" />
-                            </div>
-                            <div style={{ ...FONT_BANGERS, fontSize: "1.5rem" }} className="text-white text-center">
-                              {pack.name}
-                            </div>
-                            <div
-                              className="px-4 py-1 rounded-full border-[2px] border-black"
-                              style={{ background: pack.color, fontFamily: "'Bangers', cursive", fontSize: "1.8rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
-                            >
-                              {pack.cards} cartes
-                            </div>
+                        {/* Infos centrales */}
+                        <div className="flex-1 min-w-0">
+                          <div style={{ ...FONT_BANGERS, fontSize: "1rem", lineHeight: 1 }} className="text-white">
+                            {p.name}
                           </div>
-
-                          {/* Avantages */}
-                          <div className="w-full space-y-2">
-                            {pack.perks.map((perk) => (
-                              <div key={perk} className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded-full border-[2px] border-black flex items-center justify-center flex-shrink-0" style={{ background: pack.color }}>
-                                  <Check className="w-3 h-3 text-white" />
-                                </div>
-                                <span style={FONT_FREDOKA} className="text-white/80 text-sm">{perk}</span>
-                              </div>
-                            ))}
+                          <div style={{ ...FONT_BANGERS, fontSize: "1.45rem", lineHeight: 1.1 }}>
+                            <span style={{ color: p.color }}>{p.cards}</span>
+                            <span style={{ ...FONT_FREDOKA, fontSize: "0.8rem", color: "rgba(255,255,255,0.6)", marginLeft: "4px" }}>cartes</span>
                           </div>
-
-                          {/* Prix + bouton */}
-                          <div className="w-full flex flex-col items-center gap-2">
-                            <div
-                              className="px-6 py-2 rounded-xl border-[3px] border-black"
-                              style={{ background: pack.color, fontFamily: "'Bangers', cursive", fontSize: "2rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "3px 3px 0px #000" }}
-                            >
-                              {pack.price}
-                            </div>
-                            <motion.button
-                              whileTap={{ scale: 0.96 }}
-                              onClick={() => handleBuyPack(pack.id)}
-                              disabled={!isLoggedIn || !!loadingId}
-                              className="w-full py-3 rounded-2xl border-[4px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
-                              style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.3rem", letterSpacing: "0.06em", boxShadow: "4px 4px 0px #000" }}
-                            >
-                              {loadingId === pack.id ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                              ACHETER
-                            </motion.button>
-                            {!isLoggedIn && (
-                              <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
-                                Connectez-vous pour acheter.
-                              </p>
-                            )}
+                          <div style={{ ...FONT_FREDOKA, fontSize: "0.65rem" }} className="text-white/45 leading-tight">
+                            {p.perks[1]}
                           </div>
                         </div>
-                      </motion.div>
-                    </AnimatePresence>
 
-                    <button
-                      onClick={() => setSelectedPack((p) => (p + 1) % CARD_PACKS.length)}
-                      className="w-10 h-10 rounded-xl border-[3px] border-white/20 bg-white/8 flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
-                    >
-                      <ChevronRight className="w-5 h-5 text-white/70" />
-                    </button>
-                  </div>
+                        {/* Prix + bouton ACHETER */}
+                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                          <div
+                            className="px-2.5 py-0.5 rounded-lg border-[2px] border-black"
+                            style={{ background: p.color, fontFamily: "'Bangers', cursive", fontSize: "1.1rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "1px 1px 0px #000" }}
+                          >
+                            {p.price}
+                          </div>
+                          <motion.button
+                            whileTap={{ scale: 0.93 }}
+                            onClick={() => handleBuyPack(p.id)}
+                            disabled={!isLoggedIn || !!loadingId}
+                            className="px-3 py-1.5 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-1"
+                            style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.9rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                          >
+                            {loadingId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                            ACHETER
+                          </motion.button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
 
-                  {/* Indicateurs de position */}
-                  <div className="flex justify-center gap-2">
-                    {CARD_PACKS.map((p, i) => (
-                      <button
-                        key={p.id}
-                        onClick={() => setSelectedPack(i)}
-                        className="rounded-full border-[2px] border-black transition-all"
-                        style={{
-                          width: i === selectedPack ? "2rem" : "0.6rem",
-                          height: "0.6rem",
-                          background: i === selectedPack ? CARD_PACKS[i].color : "rgba(255,255,255,0.2)",
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center">
-                    Paiement sécurisé via Stripe. Achat permanent et non remboursable.
+                  <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
+                    Paiement sécurisé via Stripe — Achat permanent et non remboursable.
                   </p>
                 </motion.div>
               )}

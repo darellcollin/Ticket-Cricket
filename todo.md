@@ -319,3 +319,6 @@
 
 ## Corrections session 33 — Boutique navigation packs
 - [x] Boutique : remplacer la liste directe des packs par un bouton "Packs de cartes" qui ouvre une vue dédiée
+
+## Corrections session 34 — Refonte vue packs boutique
+- [x] Boutique vue packs : refaire le design (layout propre, visuellement attrayant, bien équilibré)
