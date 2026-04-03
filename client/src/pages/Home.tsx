@@ -562,7 +562,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* ── Modal Infos sur le jeu ── */}
-      <GameInfoModal open={showInfoModal} onClose={() => setShowInfoModal(false)} />
+      <GameInfoModal open={showInfoModal} onClose={() => setShowInfoModal(false)} onOpenShop={() => { setShowInfoModal(false); setShowShopModal(true); }} />
 
       {/* ── Modal Boutique ── */}
       <ShopModal open={showShopModal} onClose={() => setShowShopModal(false)} isLoggedIn={isAuthenticated} />

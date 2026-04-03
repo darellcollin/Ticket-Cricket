@@ -11,9 +11,10 @@ const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive"
 interface GameInfoModalProps {
   open: boolean;
   onClose: () => void;
+  onOpenShop?: () => void;
 }
 
-export function GameInfoModal({ open, onClose }: GameInfoModalProps) {
+export function GameInfoModal({ open, onClose, onOpenShop }: GameInfoModalProps) {
   return (
     <AnimatePresence>
       {open && (
@@ -85,8 +86,10 @@ export function GameInfoModal({ open, onClose }: GameInfoModalProps) {
                   animate={{ scale: [1, 1.04, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <div
-                    className="flex items-center gap-2 px-6 py-3 rounded-2xl border-[3px] border-black"
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { onClose(); onOpenShop?.(); }}
+                    className="flex items-center gap-2 px-6 py-3 rounded-2xl border-[3px] border-black cursor-pointer"
                     style={{
                       background: "linear-gradient(135deg, #FF3B30 0%, #FF6B6B 100%)",
                       boxShadow: "4px 4px 0px #000",
@@ -96,7 +99,7 @@ export function GameInfoModal({ open, onClose }: GameInfoModalProps) {
                     <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em", color: "#fff" }}>
                       SOUTENIR LE PROJET
                     </span>
-                  </div>
+                  </motion.button>
                 </motion.div>
               </div>
             </div>
