@@ -98,11 +98,19 @@ function SkinScrollRow({ previewSkin, ownedSkins, onSelect }: {
   const rowRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLButtonElement>(null);
 
-  // Scroll auto vers le skin sélectionné chaque fois qu'il change
+  // Scroll auto vers le skin sélectionné dans le conteneur horizontal
   useEffect(() => {
-    if (selectedRef.current && rowRef.current) {
-      selectedRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
+    const container = rowRef.current;
+    const selected = selectedRef.current;
+    if (!container || !selected) return;
+    // Calcule la position du bouton sélectionné relative au conteneur
+    const containerLeft = container.getBoundingClientRect().left;
+    const selectedLeft = selected.getBoundingClientRect().left;
+    const containerWidth = container.clientWidth;
+    const selectedWidth = selected.offsetWidth;
+    // Centre le bouton sélectionné dans le conteneur
+    const targetScrollLeft = container.scrollLeft + (selectedLeft - containerLeft) - (containerWidth / 2) + (selectedWidth / 2);
+    container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
   }, [previewSkin]);
 
   return (

@@ -613,3 +613,7 @@
 
 - [x] Boutons Partager/Politiques visibles juste au-dessus du footer sur mobile
 - [x] Symbole skin Néons → Lightbulb (ampoule) partout dans l'app (ShopModal, ProfileModal, CustomCardCreator)
+
+## Session 65 — Correction scroll skins PC
+
+- [x] Icônes de skins scrollent en même temps que la prévisualisation (SkinScrollRow dans ShopModal)
