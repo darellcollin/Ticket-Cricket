@@ -206,3 +206,36 @@ export const purchases = mysqlTable("purchases", {
 
 export type Purchase = typeof purchases.$inferSelect;
 export type InsertPurchase = typeof purchases.$inferInsert;
+
+/**
+ * Skins débloqués par un joueur (achat Stripe ou classique gratuit).
+ */
+export const userSkins = mysqlTable("user_skins", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID du profil de jeu du joueur */
+  profileId: int("profileId").notNull(),
+  /** Identifiant du skin : classique | neon | retro | glace | feu | royal */
+  skinId: varchar("skinId", { length: 30 }).notNull(),
+  /** Date de déblocage */
+  unlockedAt: timestamp("unlockedAt").defaultNow().notNull(),
+});
+
+export type UserSkin = typeof userSkins.$inferSelect;
+export type InsertUserSkin = typeof userSkins.$inferInsert;
+
+/**
+ * Skin actif du joueur (un seul par joueur).
+ * Utilisé pour afficher les cartes en jeu solo et multijoueur.
+ */
+export const userActiveSkin = mysqlTable("user_active_skin", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID du profil de jeu du joueur */
+  profileId: int("profileId").notNull().unique(),
+  /** Skin actif sélectionné */
+  skinId: varchar("skinId", { length: 30 }).notNull().default("classique"),
+  /** Date de la dernière modification */
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserActiveSkin = typeof userActiveSkin.$inferSelect;
+export type InsertUserActiveSkin = typeof userActiveSkin.$inferInsert;

@@ -1,13 +1,17 @@
 /**
  * ShopModal — Boutique en jeu Ticket Cricket.
  * Vue principale avec boutons de navigation.
- * Clic sur "Packs de cartes" → vue dédiée avec les 3 packs.
+ * Vues : accueil → packs | skins | don
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Lock, Layers, Heart, Sparkles, Gift, Crown, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { GeneratedCard } from "@/game/components/GeneratedCard";
+import { SKIN_CATALOG } from "@/game/utils/skinConfig";
+import type { CardSkinId, SkinMeta } from "@/game/utils/skinConfig";
+import type { CardConfig } from "@/game/utils/cardConfig";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive", letterSpacing: "0.06em" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -55,20 +59,41 @@ const CARD_PACKS = [
 ];
 
 const COMING_SOON = [
-  { icon: Sparkles, name: "Skins de cartes",    desc: "Designs exclusifs pour vos cartes",  color: "#7C3AED" },
   { icon: Gift,     name: "Decks exclusifs",    desc: "Nouveaux tickets thématiques",        color: "#FF9500" },
-  { icon: Crown,    name: "Skins + Decks",      desc: "Bundles exclusifs en préparation",   color: "#F59E0B" },
   { icon: Star,     name: "Contenu saisonnier", desc: "Événements et cartes limitées",       color: "#FFD700" },
 ];
 
-type View = "home" | "packs" | "don";
+// Carte de démo pour la preview des skins
+const DEMO_CARD: CardConfig = {
+  id: 150,
+  category: "contravention",
+  cardType: 1,
+  ticketPrice: 200,
+  frais: 30,
+};
+
+const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
+  classique: Layers,
+  neon: Sparkles,
+  retro: Star,
+  glace: Snowflake,
+  feu: Flame,
+  royal: Crown,
+};
+
+type View = "home" | "packs" | "don" | "skins";
 
 export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   const [view, setView] = useState<View>("home");
-  const [selectedPack, setSelectedPack] = useState<number>(1); // index 0-2
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [donAmount, setDonAmount] = useState<string>("5");
   const [donError, setDonError] = useState<string | null>(null);
+  const [previewSkin, setPreviewSkin] = useState<CardSkinId>("classique");
+
+  // Skins débloqués par le joueur
+  const { data: ownedSkins = [] } = trpc.skins.listOwnedSkins.useQuery(undefined, {
+    enabled: isLoggedIn,
+  });
 
   const checkoutMutation = trpc.shop.createCheckout.useMutation({
     onSuccess: ({ url }) => {
@@ -99,20 +124,20 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   });
 
   function handleBuyPack(productId: string) {
-    if (!isLoggedIn) {
-      toast.error("Connectez-vous pour acheter.");
-      return;
-    }
+    if (!isLoggedIn) { toast.error("Connectez-vous pour acheter."); return; }
+    setLoadingId(productId);
+    checkoutMutation.mutate({ productId, origin: window.location.origin });
+  }
+
+  function handleBuySkin(productId: string) {
+    if (!isLoggedIn) { toast.error("Connectez-vous pour acheter."); return; }
     setLoadingId(productId);
     checkoutMutation.mutate({ productId, origin: window.location.origin });
   }
 
   function handleDon() {
     setDonError(null);
-    if (!isLoggedIn) {
-      toast.error("Connectez-vous pour faire un don.");
-      return;
-    }
+    if (!isLoggedIn) { toast.error("Connectez-vous pour faire un don."); return; }
     const amount = parseFloat(donAmount.replace(",", "."));
     if (isNaN(amount) || amount < 1) { setDonError("Montant minimum : 1,00 $"); return; }
     if (amount > 1000) { setDonError("Montant maximum : 1 000,00 $"); return; }
@@ -126,7 +151,12 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
     onClose();
   }
 
-  const pack = CARD_PACKS[selectedPack];
+  const headerTitle = {
+    home: "BOUTIQUE",
+    packs: "PACKS DE CARTES",
+    don: "SOUTENIR LE PROJET",
+    skins: "SKINS DE CARTES",
+  }[view];
 
   return (
     <AnimatePresence>
@@ -167,7 +197,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                 )}
                 <ShoppingBag className="w-6 h-6 text-white" />
                 <span style={{ ...FONT_BANGERS, fontSize: "1.6rem", color: "#fff" }}>
-                  {view === "home" ? "BOUTIQUE" : view === "packs" ? "PACKS DE CARTES" : "SOUTENIR LE PROJET"}
+                  {headerTitle}
                 </span>
               </div>
               <button
@@ -221,6 +251,33 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                         </div>
                         <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
                           Débloquez des cartes personnalisables supplémentaires — de 2,99 $ à 9,99 $
+                        </div>
+                      </div>
+                      <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
+                    </div>
+                  </motion.button>
+
+                  {/* Bouton Skins de cartes */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setView("skins")}
+                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
+                    style={{ boxShadow: "4px 4px 0px #000" }}
+                  >
+                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#7C3AED", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
+                      1 SKIN GRATUIT INCLUS
+                    </div>
+                    <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(124,58,237,0.12)" }}>
+                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#7C3AED", boxShadow: "3px 3px 0px #000" }}>
+                        <Sparkles className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem" }} className="text-white leading-none">
+                          SKINS DE CARTES
+                        </div>
+                        <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
+                          6 designs exclusifs — Néon, Rétro, Glace, Feu, Royal — 2,99 $ chacun
                         </div>
                       </div>
                       <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
@@ -303,7 +360,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   style={{ scrollbarWidth: "thin" }}
                 >
                   <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
-                    Vous avez déjà 15 cartes personnalisables gratuites. Les packs s’ajoutent par-dessus.
+                    Vous avez déjà 15 cartes personnalisables gratuites. Les packs s'ajoutent par-dessus.
                   </p>
 
                   {!isLoggedIn && (
@@ -330,7 +387,6 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
 
                       {/* Corps : icône | infos | prix+bouton */}
                       <div className="flex items-center gap-3 px-3 py-3">
-                        {/* Icône */}
                         <div
                           className="w-11 h-11 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
                           style={{ background: p.color, boxShadow: "2px 2px 0px #000" }}
@@ -338,7 +394,6 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                           <Layers className="w-5 h-5 text-white" />
                         </div>
 
-                        {/* Infos centrales */}
                         <div className="flex-1 min-w-0">
                           <div style={{ ...FONT_BANGERS, fontSize: "1rem", lineHeight: 1 }} className="text-white">
                             {p.name}
@@ -348,11 +403,10 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                             <span style={{ ...FONT_FREDOKA, fontSize: "0.75rem", color: "rgba(255,255,255,0.6)", marginLeft: "4px" }}>cartes</span>
                           </div>
                           <div style={{ ...FONT_FREDOKA, fontSize: "0.62rem" }} className="text-white/45 leading-tight">
-                            Total avec les 15 gratuites : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
+                            Total avec les 15 gratuites : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
                           </div>
                         </div>
 
-                        {/* Prix + bouton ACHETER */}
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                           <div
                             className="px-2.5 py-0.5 rounded-lg border-[2px] border-black"
@@ -374,6 +428,129 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                       </div>
                     </div>
                   ))}
+
+                  <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
+                    Paiement sécurisé via Stripe — Achat permanent et non remboursable.
+                  </p>
+                </motion.div>
+              )}
+
+              {/* ── VUE SKINS ── */}
+              {view === "skins" && (
+                <motion.div
+                  key="skins"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.18 }}
+                  className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4"
+                  style={{ scrollbarWidth: "thin" }}
+                >
+                  {/* Preview de la carte avec le skin sélectionné */}
+                  <div className="flex flex-col items-center gap-2">
+                    <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
+                      Aperçu — cliquez sur un skin pour le visualiser
+                    </p>
+                    <div className="flex justify-center py-2">
+                      <GeneratedCard
+                        card={DEMO_CARD}
+                        size="sm"
+                        skinId={previewSkin}
+                        mefaitOverride="Excès de vitesse dans une zone scolaire"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Grille des 5 skins achetables (Classique est gratuit/défaut) */}
+                  <div className="flex flex-col gap-2">
+                    {SKIN_CATALOG.filter((s) => s.id !== "classique").map((skin: SkinMeta) => {
+                      const Icon = SKIN_ICON_MAP[skin.id];
+                      const isOwned = skin.id === "classique" || ownedSkins.includes(skin.id);
+                      const isSelected = previewSkin === skin.id;
+                      return (
+                        <motion.div
+                          key={skin.id}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setPreviewSkin(skin.id)}
+                          className="rounded-2xl border-[3px] border-black overflow-hidden cursor-pointer transition-all"
+                          style={{
+                            background: isSelected ? skin.color + "22" : "rgba(255,255,255,0.04)",
+                            boxShadow: isSelected ? `3px 3px 0px ${skin.color}` : "2px 2px 0px #000",
+                            borderColor: isSelected ? skin.color : "#000",
+                          }}
+                        >
+                          <div className="flex items-center gap-3 px-3 py-2.5">
+                            {/* Icône */}
+                            <div
+                              className="w-10 h-10 rounded-xl border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                              style={{ background: skin.color, boxShadow: "2px 2px 0px #000" }}
+                            >
+                              <Icon className="w-5 h-5 text-white" />
+                            </div>
+
+                            {/* Infos */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span style={{ ...FONT_BANGERS, fontSize: "1rem", color: "#fff", lineHeight: 1 }}>
+                                  {skin.name.toUpperCase()}
+                                </span>
+                                {isOwned && (
+                                  <span
+                                    className="px-1.5 py-0.5 rounded-md border border-black text-[0.55rem]"
+                                    style={{ background: "#34C759", color: "#fff", fontFamily: "'Bangers', cursive", letterSpacing: "0.05em" }}
+                                  >
+                                    DÉBLOQUÉ
+                                  </span>
+                                )}
+                              </div>
+                              <div style={FONT_FREDOKA} className="text-white/45 text-[0.65rem] leading-tight mt-0.5">
+                                {skin.description}
+                              </div>
+                            </div>
+
+                            {/* Prix / Bouton */}
+                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                              {isOwned ? (
+                                <div
+                                  className="w-8 h-8 rounded-lg border-[2px] border-black flex items-center justify-center"
+                                  style={{ background: "#34C759", boxShadow: "1px 1px 0px #000" }}
+                                >
+                                  <Check className="w-4 h-4 text-white" />
+                                </div>
+                              ) : (
+                                <>
+                                  <div
+                                    className="px-2 py-0.5 rounded-lg border-[2px] border-black"
+                                    style={{ background: skin.color, fontFamily: "'Bangers', cursive", fontSize: "0.95rem", color: "#fff", boxShadow: "1px 1px 0px #000" }}
+                                  >
+                                    {skin.price}
+                                  </div>
+                                  <motion.button
+                                    whileTap={{ scale: 0.93 }}
+                                    onClick={(e) => { e.stopPropagation(); handleBuySkin(skin.productId); }}
+                                    disabled={!isLoggedIn || !!loadingId}
+                                    className="px-2.5 py-1 rounded-lg border-[2px] border-black text-black disabled:opacity-40 flex items-center gap-1"
+                                    style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.75rem", boxShadow: "1px 1px 0px #000" }}
+                                  >
+                                    {loadingId === skin.productId ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                                    ACHETER
+                                  </motion.button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {!isLoggedIn && (
+                    <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
+                      <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
+                        Connectez-vous pour acheter un skin.
+                      </p>
+                    </div>
+                  )}
 
                   <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
                     Paiement sécurisé via Stripe — Achat permanent et non remboursable.

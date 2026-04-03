@@ -9,12 +9,15 @@ import { useLocation } from "wouter";
 import {
   Plus, Trash2, ArrowLeft, ChevronRight,
   Lock, CheckCircle2, AlertCircle, Sparkles,
+  Layers, Flame, Snowflake, Crown, Star, Check,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
-import { GeneratedCard } from "@/game/components/GeneratedCard";
+import { GeneratedCard, SKIN_CATALOG } from "@/game/components/GeneratedCard";
+import type { CardSkinId, SkinMeta } from "@/game/components/GeneratedCard";
 import { AccountModal } from "@/game/components/AccountModal";
 import type { CardConfig, CardCategory } from "@/game/utils/cardConfig";
+import { toast } from "sonner";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive", letterSpacing: "0.06em" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -35,6 +38,15 @@ const FEE_OPTIONS = [0, 10, 20, 30, 40, 50] as const;
 type FeeOption = typeof FEE_OPTIONS[number];
 
 const MAX_CARDS_FREE = 15;
+
+const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
+  classique: Layers,
+  neon: Sparkles,
+  retro: Star,
+  glace: Snowflake,
+  feu: Flame,
+  royal: Crown,
+};
 
 // ─── Convertir une carte DB en CardConfig pour la prévisualisation ───────────
 function dbCardToConfig(card: {
@@ -80,14 +92,20 @@ function buildPreviewCard(
 // Utilise mefaitOverride de GeneratedCard pour centrer correctement le texte
 const INVESTISSEUR_DEFAULT_TEXT = "Ticket au prochain criminel";
 
+// ─── Cartes de démo pour l'aperçu des skins ────────────────────────────────────
+const DEMO_CONTRAVENTION: CardConfig = { id: 9001, category: "contravention", cardType: 1, ticketPrice: 250, frais: 30 };
+const DEMO_CONTRIBUABLE: CardConfig = { id: 9002, category: "contribuable", cardType: 2, ticketPrice: 0, impots: 20 };
+const DEMO_INVESTISSEUR: CardConfig = { id: 9003, category: "investisseur", cardType: 3, ticketPrice: 500, taxe: 10 };
+
 function PreviewCard({
   cardConfig,
   mefait,
+  skinId,
 }: {
   cardConfig: CardConfig;
   mefait: string;
+  skinId: CardSkinId;
 }) {
-  // Déterminer le texte à afficher selon la catégorie
   let displayMefait: string;
   if (cardConfig.category === "investisseur") {
     displayMefait = INVESTISSEUR_DEFAULT_TEXT;
@@ -99,6 +117,7 @@ function PreviewCard({
     <GeneratedCard
       card={cardConfig}
       size="lg"
+      skinId={skinId}
       mefaitOverride={displayMefait}
     />
   );
@@ -120,9 +139,26 @@ export default function CustomCardCreator() {
   const [taxe, setTaxe] = useState<FeeOption>(0);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [activeSkin, setActiveSkin] = useState<CardSkinId>("classique");
+  const [skinView, setSkinView] = useState(false);
+  const [previewSkin, setPreviewSkin] = useState<CardSkinId>("classique");
 
   // tRPC
   const utils = trpc.useUtils();
+  const { data: ownedSkins = [] } = trpc.skins.listOwnedSkins.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: savedActiveSkin } = trpc.skins.getActiveSkin.useQuery(undefined, {
+    enabled: isAuthenticated,
+    onSuccess: (skin: CardSkinId) => setActiveSkin(skin),
+  } as any);
+  const setActiveSkinMutation = trpc.skins.setActiveSkin.useMutation({
+    onSuccess: ({ skinId }) => {
+      setActiveSkin(skinId as CardSkinId);
+      toast.success(`Skin "${skinId}" activé !`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
   const { data: cards = [], isLoading } = trpc.customCards.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -187,6 +223,9 @@ export default function CustomCardCreator() {
   const cardCount = countData?.count ?? cards.length;
   const atLimit = cardCount >= MAX_CARDS_FREE;
 
+  // Synchroniser le skin actif depuis le serveur
+  const currentSkin: CardSkinId = (savedActiveSkin as CardSkinId | undefined) ?? activeSkin;
+
   // ── Mur d'authentification ──
   if (!isAuthenticated) {
     return (
@@ -236,37 +275,161 @@ export default function CustomCardCreator() {
       <div className="sticky top-0 z-30 bg-[#0c1a4e]/95 backdrop-blur border-b-4 border-yellow-400 px-4 py-3 flex items-center gap-3">
         <motion.button
           whileTap={{ scale: 0.9 }}
-          onClick={() => view === "create" ? (setView("list"), resetForm()) : navigate("/")}
+          onClick={() => {
+            if (skinView) { setSkinView(false); return; }
+            if (view === "create") { setView("list"); resetForm(); return; }
+            navigate("/");
+          }}
           className="w-9 h-9 bg-white/10 border-2 border-white/20 rounded-full flex items-center justify-center"
         >
           <ArrowLeft className="w-4 h-4 text-white" />
         </motion.button>
         <div className="flex-1">
           <div style={{ ...FONT_BANGERS, fontSize: "1.4rem" }} className="text-yellow-400 leading-none">
-            {view === "create" ? "NOUVELLE CARTE" : "MES CARTES"}
+            {skinView ? "SKINS DE CARTES" : view === "create" ? "NOUVELLE CARTE" : "MES CARTES"}
           </div>
           <div style={FONT_FREDOKA} className="text-white/50 text-xs">
-            {view === "list"
+            {skinView
+              ? "Choisis le skin actif pour tes cartes"
+              : view === "list"
               ? `${cardCount} / ${MAX_CARDS_FREE} cartes gratuites — ${profile?.pseudo ?? ""}`
               : "Personnalise ta carte"}
           </div>
         </div>
-        {view === "list" && !atLimit && (
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setView("create")}
-            className="flex items-center gap-1.5 px-3 py-2 bg-yellow-400 border-[3px] border-black rounded-xl text-black"
-            style={{ ...FONT_BANGERS, fontSize: "1rem", boxShadow: "3px 3px 0px #000" }}
-          >
-            <Plus className="w-4 h-4" />
-            CRÉER
-          </motion.button>
+        {view === "list" && !skinView && (
+          <div className="flex items-center gap-2">
+            {/* Bouton Skins */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setSkinView(true)}
+              className="flex items-center gap-1.5 px-3 py-2 border-[3px] border-black rounded-xl"
+              style={{ background: "#7C3AED", ...FONT_BANGERS, fontSize: "0.9rem", boxShadow: "3px 3px 0px #000", color: "#fff" }}
+            >
+              <Sparkles className="w-4 h-4" />
+              SKINS
+            </motion.button>
+            {!atLimit && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setView("create")}
+                className="flex items-center gap-1.5 px-3 py-2 bg-yellow-400 border-[3px] border-black rounded-xl text-black"
+                style={{ ...FONT_BANGERS, fontSize: "1rem", boxShadow: "3px 3px 0px #000" }}
+              >
+                <Plus className="w-4 h-4" />
+                CRÉER
+              </motion.button>
+            )}
+          </div>
         )}
       </div>
 
       <AnimatePresence mode="wait">
+
+        {/* ── VUE SKINS ── */}
+        {skinView && (
+          <motion.div
+            key="skins"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="flex-1 px-4 py-6 flex flex-col gap-3"
+          >
+            <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
+              Le skin actif s'applique à toutes tes cartes personnalisées en jeu.
+            </p>
+
+            {SKIN_CATALOG.map((skin: SkinMeta) => {
+              const Icon = SKIN_ICON_MAP[skin.id];
+              const isOwned = skin.id === "classique" || ownedSkins.includes(skin.id);
+              const isActive = currentSkin === skin.id;
+              return (
+                <motion.div
+                  key={skin.id}
+                  whileTap={{ scale: 0.98 }}
+                  className="rounded-2xl border-[3px] overflow-hidden"
+                  style={{
+                    borderColor: isActive ? skin.color : "#000",
+                    background: isActive ? skin.color + "22" : "rgba(255,255,255,0.04)",
+                    boxShadow: isActive ? `3px 3px 0px ${skin.color}` : "2px 2px 0px #000",
+                  }}
+                >
+                  <div className="flex items-center gap-3 px-3 py-3">
+                    {/* Icône */}
+                    <div
+                      className="w-12 h-12 rounded-xl border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: skin.color, boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+
+                    {/* Infos */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span style={{ ...FONT_BANGERS, fontSize: "1.05rem", color: "#fff", lineHeight: 1 }}>
+                          {skin.name.toUpperCase()}
+                        </span>
+                        {isActive && (
+                          <span
+                            className="px-1.5 py-0.5 rounded-md border border-black text-[0.55rem]"
+                            style={{ background: "#34C759", color: "#fff", fontFamily: "'Bangers', cursive" }}
+                          >
+                            ACTIF
+                          </span>
+                        )}
+                        {!isOwned && (
+                          <span
+                            className="px-1.5 py-0.5 rounded-md border border-black text-[0.55rem]"
+                            style={{ background: "#FF6B00", color: "#fff", fontFamily: "'Bangers', cursive" }}
+                          >
+                            {skin.price}
+                          </span>
+                        )}
+                      </div>
+                      <div style={FONT_FREDOKA} className="text-white/45 text-[0.65rem] leading-tight mt-0.5">
+                        {skin.description}
+                      </div>
+                    </div>
+
+                    {/* Bouton activer / verrouillé */}
+                    <div className="flex-shrink-0">
+                      {isOwned ? (
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => !isActive && setActiveSkinMutation.mutate({ skinId: skin.id })}
+                          disabled={isActive || setActiveSkinMutation.isPending}
+                          className="px-3 py-1.5 rounded-xl border-[2px] border-black text-black disabled:opacity-50 flex items-center gap-1"
+                          style={{
+                            background: isActive ? "#34C759" : "#FFD700",
+                            fontFamily: "'Bangers', cursive",
+                            fontSize: "0.85rem",
+                            boxShadow: "2px 2px 0px #000",
+                            color: isActive ? "#fff" : "#000",
+                          }}
+                        >
+                          {isActive ? <><Check className="w-3 h-3" /> ACTIF</> : "ACTIVER"}
+                        </motion.button>
+                      ) : (
+                        <div
+                          className="w-9 h-9 rounded-xl border-[2px] border-black flex items-center justify-center"
+                          style={{ background: "rgba(255,255,255,0.08)", boxShadow: "1px 1px 0px #000" }}
+                        >
+                          <Lock className="w-4 h-4 text-white/40" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            <p style={FONT_FREDOKA} className="text-white/30 text-[10px] text-center mt-2">
+              Achetez de nouveaux skins dans la Boutique.
+            </p>
+          </motion.div>
+        )}
+
         {/* ── VUE LISTE ── */}
-        {view === "list" && (
+        {!skinView && view === "list" && (
           <motion.div
             key="list"
             initial={{ opacity: 0, x: -20 }}
@@ -694,7 +857,7 @@ export default function CustomCardCreator() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <PreviewCard cardConfig={previewCard} mefait={mefait} />
+                <PreviewCard cardConfig={previewCard} mefait={mefait} skinId={currentSkin} />
               </motion.div>
               <div style={FONT_FREDOKA} className="text-white/30 text-xs text-center max-w-[200px]">
                 La carte apparaîtra dans ton deck avec ce design

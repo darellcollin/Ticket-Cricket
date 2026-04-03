@@ -70,7 +70,9 @@ async function startServer() {
       if (profileId && productId && session.id) {
         try {
           const { getDb } = await import("../db");
-          const { purchases } = await import("../../drizzle/schema");
+          const { purchases, userSkins } = await import("../../drizzle/schema");
+          const { SHOP_PRODUCTS } = await import("../products");
+          const { and, eq } = await import("drizzle-orm");
           const db = await getDb();
           if (db) {
             await db.insert(purchases).values({
@@ -83,6 +85,20 @@ async function startServer() {
               cardsUnlocked: extraCards,
             }).onDuplicateKeyUpdate({ set: { productId } }); // déduplication
             console.log(`[Stripe Webhook] Achat enregistré en DB — profile=${profileId}, ${extraCards} cartes débloquées`);
+
+            // Débloquer le skin si c'est un achat de skin
+            const product = SHOP_PRODUCTS.find(p => p.id === productId);
+            if (product?.category === "skin" && product.skinId) {
+              const existing = await db
+                .select()
+                .from(userSkins)
+                .where(and(eq(userSkins.profileId, profileId), eq(userSkins.skinId, product.skinId)))
+                .then(r => r[0]);
+              if (!existing) {
+                await db.insert(userSkins).values({ profileId, skinId: product.skinId });
+                console.log(`[Stripe Webhook] Skin "${product.skinId}" débloqué pour profile=${profileId}`);
+              }
+            }
           }
         } catch (dbErr: any) {
           console.error("[Stripe Webhook] Erreur DB:", dbErr.message);

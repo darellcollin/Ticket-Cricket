@@ -9,88 +9,10 @@ import {
   formatPrice,
 } from "@/game/utils/cardConfig";
 import { getCardMefait } from "@/game/utils/cardMefaits";
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  DESIGN TOKENS — Style "Goofy" par catégorie
-//    Jaune vif = Contravention | Vert fluo = Contribuable | Rose choc = Investisseur
-// ─────────────────────────────────────────────────────────────────────────────
-
-const CATEGORY_STYLES: Record<
-  CardCategory,
-  {
-    headerBg: string;
-    headerText: string;
-    bodyBg: string;
-    bodyText: string;
-    accentColor: string;
-    accentDark: string;
-    priceBg: string;
-    priceText: string;
-    stripColor1: string;
-    stripColor2: string;
-    glowColor: string;
-    detailBg: string;
-    detailBorder: string;
-    badgeBg: string;
-    badgeText: string;
-    splatColor: string;
-  }
-> = {
-  contravention: {
-    headerBg: "linear-gradient(135deg, #FFD700 0%, #FFA500 60%, #FF6B00 100%)",
-    headerText: "#000000",
-    bodyBg: "#FFFDE7",
-    bodyText: "#5D2E00",
-    accentColor: "#FF8C00",
-    accentDark: "#7B3800",
-    priceBg: "linear-gradient(135deg, #FF6B00 0%, #FF8C00 50%, #FFD700 100%)",
-    priceText: "#FFFFFF",
-    stripColor1: "#FFD700",
-    stripColor2: "#000000",
-    glowColor: "rgba(255,165,0,0.5)",
-    detailBg: "rgba(255,165,0,0.12)",
-    detailBorder: "rgba(255,140,0,0.35)",
-    badgeBg: "#FF6B00",
-    badgeText: "#FFFFFF",
-    splatColor: "rgba(255,215,0,0.18)",
-  },
-  contribuable: {
-    headerBg: "linear-gradient(135deg, #00E676 0%, #00C853 60%, #009624 100%)",
-    headerText: "#000000",
-    bodyBg: "#E8FFF0",
-    bodyText: "#003D1A",
-    accentColor: "#00C853",
-    accentDark: "#004D20",
-    priceBg: "linear-gradient(135deg, #009624 0%, #00C853 50%, #69F0AE 100%)",
-    priceText: "#FFFFFF",
-    stripColor1: "#00E676",
-    stripColor2: "#000000",
-    glowColor: "rgba(0,200,83,0.5)",
-    detailBg: "rgba(0,200,83,0.12)",
-    detailBorder: "rgba(0,150,36,0.35)",
-    badgeBg: "#009624",
-    badgeText: "#FFFFFF",
-    splatColor: "rgba(0,230,118,0.18)",
-  },
-  investisseur: {
-    headerBg: "linear-gradient(135deg, #FF4081 0%, #E91E63 60%, #C2185B 100%)",
-    headerText: "#FFFFFF",
-    bodyBg: "#FFF0F5",
-    bodyText: "#6A0030",
-    accentColor: "#E91E63",
-    accentDark: "#880E4F",
-    priceBg: "linear-gradient(135deg, #C2185B 0%, #E91E63 50%, #FF80AB 100%)",
-    priceText: "#FFFFFF",
-    stripColor1: "#FF4081",
-    stripColor2: "#000000",
-    glowColor: "rgba(233,30,99,0.5)",
-    detailBg: "rgba(233,30,99,0.12)",
-    detailBorder: "rgba(194,24,91,0.35)",
-    badgeBg: "#C2185B",
-    badgeText: "#FFFFFF",
-    splatColor: "rgba(255,64,129,0.18)",
-  },
-};
+import { CardSkinId, SkinMeta, SKIN_CATALOG, SKIN_STYLES } from "@/game/utils/skinConfig";
+// Re-exports pour compatibilité avec les imports existants
+export type { CardSkinId, SkinMeta };
+export { SKIN_CATALOG };
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  COMPOSANT PRINCIPAL
@@ -103,6 +25,8 @@ interface GeneratedCardProps {
   style?: React.CSSProperties;
   /** Texte de méfait à afficher à la place du registre statique (pour les cartes personnalisées) */
   mefaitOverride?: string;
+  /** Skin visuel à appliquer. Défaut : "classique" */
+  skinId?: CardSkinId;
 }
 
 export function GeneratedCard({
@@ -111,9 +35,10 @@ export function GeneratedCard({
   className = "",
   style,
   mefaitOverride,
+  skinId = "classique",
 }: GeneratedCardProps) {
   const catInfo = CATEGORY_INFO[card.category];
-  const catStyle = CATEGORY_STYLES[card.category];
+  const catStyle = SKIN_STYLES[skinId][card.category];
   // Pour les cartes personnalisées (IDs négatifs), utiliser le texte fourni
   const mefait = mefaitOverride ?? getCardMefait(card.id);
 
@@ -275,7 +200,7 @@ export function GeneratedCard({
           borderBottom: `${dims.borderW}px solid #000`,
         }}
       >
-        {/* Nom de la catégorie — GROS et goofy */}
+        {/* Nom de la catégorie */}
         <div
           style={{
             fontSize: dims.catFontSize,
@@ -291,7 +216,7 @@ export function GeneratedCard({
           {catInfo.label}
         </div>
 
-        {/* Badge numéro de carte — style goofy */}
+        {/* Badge numéro de carte */}
         <div
           style={{
             background: catStyle.badgeBg,
@@ -313,7 +238,7 @@ export function GeneratedCard({
         </div>
       </div>
 
-      {/* ── CORPS : TEXTE DU MEFAIT — ELEMENT CENTRAL GROS ── */}
+      {/* ── CORPS : TEXTE DU MEFAIT ── */}
       <div
         style={{
           flex: 1,
@@ -341,7 +266,7 @@ export function GeneratedCard({
             position: "relative",
             zIndex: 1,
             letterSpacing: "0.01em",
-            textShadow: "0px 1px 0px rgba(255,255,255,0.6)",
+            textShadow: "0px 1px 0px rgba(255,255,255,0.1)",
             wordBreak: "break-word",
           }}
         >
@@ -395,7 +320,7 @@ export function GeneratedCard({
         </div>
       )}
 
-      {/* ── PRIX PRINCIPAL — GROS, GOOFY, ATTRACTIF ── */}
+      {/* ── PRIX PRINCIPAL ── */}
       <div
         style={{
           background: catStyle.priceBg,
@@ -409,7 +334,6 @@ export function GeneratedCard({
           borderTop: `${dims.borderW}px solid #000`,
         }}
       >
-        {/* Décor gauche */}
         {size !== "xs" && (
           <span
             style={{
@@ -440,7 +364,6 @@ export function GeneratedCard({
         >
           {mainPriceText}
         </span>
-        {/* Décor droite */}
         {size !== "xs" && (
           <span
             style={{

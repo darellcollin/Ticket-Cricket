@@ -459,7 +459,7 @@ export default function Home() {
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <motion.button
-                  className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-black relative overflow-hidden"
+                  className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                   style={{
                     ...FONT_FREDOKA,
                     letterSpacing: "0.1em",

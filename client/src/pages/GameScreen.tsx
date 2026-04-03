@@ -26,6 +26,7 @@ import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLE
 import type { CardConfig } from "@/game/utils/cardConfig";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
+import type { CardSkinId } from "@/game/components/GeneratedCard";
 import { MiniGame } from "@/game/components/MiniGame";
 import { rollMiniGame } from "@/game/utils/miniGameUtils";
 
@@ -248,6 +249,7 @@ function EliminationOverlay({
   threshold,
   totalCards,
   lastCardNum,
+  skinId = "classique",
   onRestart,
   onMenu,
 }: {
@@ -256,6 +258,7 @@ function EliminationOverlay({
   threshold:   number;
   totalCards?: number;
   lastCardNum?: number | null;
+  skinId?:     CardSkinId;
   onRestart:   () => void;
   onMenu:      () => void;
 }) {
@@ -430,7 +433,7 @@ function EliminationOverlay({
                 className="rounded-2xl border-[5px] border-black overflow-hidden"
                 style={{ width: 220, height: 310, boxShadow: "8px 8px 0px #000, 0 0 40px rgba(192,132,252,0.3)" }}
               >
-                <GeneratedCard card={getCardConfigSafe(lastCardNum)} size="md" mefaitOverride={getCustomMefait(lastCardNum)} style={{ width: "100%", height: "100%" }} />
+                <GeneratedCard card={getCardConfigSafe(lastCardNum)} size="md" skinId={skinId} mefaitOverride={getCustomMefait(lastCardNum)} style={{ width: "100%", height: "100%" }} />
               </div>
               <motion.button
                 whileTap={{ scale: 0.93 }}
@@ -512,6 +515,7 @@ function SoloMyTicketsPanel({
   noContribuable,
   onClose,
   miniGameHistory = [],
+  skinId = "classique",
 }: {
   drawn:            number[];
   isEliminated:     boolean;
@@ -519,6 +523,7 @@ function SoloMyTicketsPanel({
   noContribuable:   boolean;
   onClose:          () => void;
   miniGameHistory?: Array<{ success: boolean; amount: number; turnLabel: string }>;
+  skinId?:          CardSkinId;
 }) {
   // N'afficher que les catégories présentes dans le jeu
   const SOLO_CATS: CardCategory[] = noContribuable
@@ -929,7 +934,7 @@ function SoloMyTicketsPanel({
                       className="relative rounded-xl border-[3px] border-black overflow-hidden cursor-pointer"
                       style={{ aspectRatio: "5/7", boxShadow: "3px 3px 0px #000", background: "#0c1a4e", borderColor: catInfo.color }}
                     >
-                      <GeneratedCard card={getCardConfigSafe(cardNum)} size="xs" mefaitOverride={getCustomMefait(cardNum)} style={{ width: '100%', height: '100%' }} />
+                      <GeneratedCard card={getCardConfigSafe(cardNum)} size="xs" skinId={skinId} mefaitOverride={getCustomMefait(cardNum)} style={{ width: '100%', height: '100%' }} />
                       <div className="absolute bottom-0 left-0 right-0 py-0.5 flex items-center justify-center" style={{ background: catInfo.color + "ee" }}>
                         <span style={{ ...FONT_BANGERS, fontSize: "0.52rem" }} className="text-white leading-none">
                           {net >= 0 ? "+" : ""}{formatPrice(net)}
@@ -976,7 +981,7 @@ function SoloMyTicketsPanel({
                 style={{ width: "min(78vw, 260px)", aspectRatio: "5/7", boxShadow: "10px 10px 0px #000" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <GeneratedCard card={getCardConfigSafe(focusedCard)} size="md" mefaitOverride={getCustomMefait(focusedCard)} style={{ width: '100%', height: '100%' }} />
+                <GeneratedCard card={getCardConfigSafe(focusedCard)} size="md" skinId={skinId} mefaitOverride={getCustomMefait(focusedCard)} style={{ width: '100%', height: '100%' }} />
               </motion.div>
 
               <div
@@ -1081,6 +1086,12 @@ export function GameScreen() {
   const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
   const [miniGameBonus, setMiniGameBonus] = useState(0); // Bonus/pénalité cumulé des mini-jeux
   const [soloMiniGameHistory, setSoloMiniGameHistory] = useState<Array<{ success: boolean; amount: number; turnLabel: string }>>([]);
+
+  // ─ Skin actif ─
+  const { data: activeSkinId } = trpc.skins.getActiveSkin.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const currentSkin: CardSkinId = (activeSkinId as CardSkinId | undefined) ?? "classique";
 
   // ─ Mutations tRPC sauvegarde ─
   const utils = trpc.useUtils();
@@ -1416,7 +1427,7 @@ export function GameScreen() {
               >
                 {showFront ? (
                   <div className="w-full h-full flex items-center justify-center p-1">
-                    <GeneratedCard card={getCardConfigSafe(currentCard)} size="md" mefaitOverride={getCustomMefait(currentCard)} style={{ width: '100%', height: '100%' }} />
+                    <GeneratedCard card={getCardConfigSafe(currentCard)} size="md" skinId={currentSkin} mefaitOverride={getCustomMefait(currentCard)} style={{ width: '100%', height: '100%' }} />
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -1600,6 +1611,7 @@ export function GameScreen() {
             threshold={ELIMINATION_THRESHOLD}
             totalCards={deckTotal}
             lastCardNum={currentCard}
+            skinId={currentSkin}
             onRestart={doReset}
             onMenu={() => {
               // Effacer la partie sauvegardée → repartir à zéro au prochain lancement
@@ -1620,6 +1632,7 @@ export function GameScreen() {
             noContribuable={noContribuable}
             onClose={() => setShowMyTickets(false)}
             miniGameHistory={soloMiniGameHistory}
+            skinId={currentSkin}
           />
         )}
       </AnimatePresence>

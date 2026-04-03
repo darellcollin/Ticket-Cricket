@@ -22,6 +22,8 @@ export interface ShopProduct {
   available: boolean;
   /** Nombre de cartes supplémentaires accordées (pour card_pack uniquement) */
   extraCards?: number;
+  /** ID du skin à débloquer (pour skin uniquement) */
+  skinId?: string;
 }
 
 export const SHOP_PRODUCTS: ShopProduct[] = [
@@ -76,28 +78,66 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     available: true,
   },
 
-  // ── SKINS DE CARTES (bientôt) ──
+  // ── SKINS DE CARTES (disponibles) ──
   {
     id: "skin_neon",
     name: "Skin Néon",
-    description: "Des cartes qui brillent dans le noir. Style néon vibrant.",
+    description: "Cyberpunk sombre avec lueurs néon vives. Cartes lumineuses sur fond noir.",
     price: 299,
     currency: "cad",
     category: "skin",
     icon: "sparkles",
-    color: "#007AFF",
-    available: false,
+    color: "#00F5FF",
+    available: true,
+    skinId: "neon",
   },
   {
-    id: "skin_gold",
-    name: "Skin Or",
-    description: "Cartes dorées pour les joueurs qui se prennent au sérieux.",
-    price: 499,
+    id: "skin_retro",
+    name: "Skin Rétro",
+    description: "Dégradés pastel et typographie années 80. Nostalgie garantie.",
+    price: 299,
     currency: "cad",
     category: "skin",
     icon: "star",
-    color: "#FFD700",
-    available: false,
+    color: "#FF6B9D",
+    available: true,
+    skinId: "retro",
+  },
+  {
+    id: "skin_glace",
+    name: "Skin Glace",
+    description: "Tons bleus glacés et effet cristal. Froid comme la banquise.",
+    price: 299,
+    currency: "cad",
+    category: "skin",
+    icon: "snowflake",
+    color: "#A8D8EA",
+    available: true,
+    skinId: "glace",
+  },
+  {
+    id: "skin_feu",
+    name: "Skin Feu",
+    description: "Flammes et lave — rouge et orange intenses. Pour les joueurs qui brûlent.",
+    price: 299,
+    currency: "cad",
+    category: "skin",
+    icon: "flame",
+    color: "#FF4500",
+    available: true,
+    skinId: "feu",
+  },
+  {
+    id: "skin_royal",
+    name: "Skin Royal",
+    description: "Fond sombre, dorures et marbre luxueux. Pour les joueurs de prestige.",
+    price: 299,
+    currency: "cad",
+    category: "skin",
+    icon: "crown",
+    color: "#C9A84C",
+    available: true,
+    skinId: "royal",
   },
 
   // ── DECKS EXCLUSIFS (bientôt) ──

@@ -9,6 +9,7 @@ import { customCardsRouter } from "./customCardsRouter";
 import { sessionCustomCardsRouter } from "./sessionCustomCardsRouter";
 import { gameConfigsRouter } from "./gameConfigsRouter";
 import { shopRouter } from "./shopRouter";
+import { skinRouter } from "./skinRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -43,6 +44,9 @@ export const appRouter = router({
 
   /** Boutique Ticket Cricket — produits et paiements Stripe */
   shop: shopRouter,
+
+  /** Skins de cartes — déblocage et sélection */
+  skins: skinRouter,
 });
 
 export type AppRouter = typeof appRouter;
