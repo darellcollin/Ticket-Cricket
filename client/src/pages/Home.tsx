@@ -262,14 +262,14 @@ export default function Home() {
         <BackgroundParticles />
 
         {/* ── MAIN CONTENT ── */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 py-4 gap-6">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 py-4 gap-4">
 
           {/* ── ZONE LOGO + TITRE ── */}
-          <div className="flex flex-col items-center w-full" style={{ gap: "clamp(0.5rem, 2vw, 1.2rem)" }}>
+          <div className="flex flex-col items-center w-full" style={{ gap: "clamp(0.3rem, 1.5vw, 0.8rem)" }}>
             {/* Logo ticket animé */}
             <motion.div
               style={{
-                width: "clamp(160px, 40vw, 320px)",
+                width: "clamp(120px, 28vw, 240px)",
                 userSelect: "none",
                 flexShrink: 0,
               }}
@@ -297,7 +297,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(3.5rem, 18vw, 7rem)",
+                    fontSize: "clamp(2.8rem, 12vw, 5.5rem)",
                     letterSpacing: "0.06em",
                     lineHeight: 1,
                     display: "block",
@@ -313,7 +313,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(2.6rem, 14vw, 5.2rem)",
+                    fontSize: "clamp(2rem, 9vw, 4rem)",
                     letterSpacing: "0.1em",
                     lineHeight: 1,
                     display: "block",
