@@ -10,7 +10,7 @@ import {
   Plus, Trash2, ArrowLeft, ChevronRight,
   Lock, CheckCircle2, AlertCircle, Sparkles,
   Layers, Flame, Snowflake, Crown, Star, Check,
-  Trees, Cog, Gem, Globe, Wand2,
+  Trees, Cog, Gem, Globe, Wand2, Zap, Gift,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
@@ -52,6 +52,10 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   foret: Trees,
   metal: Cog,
   prestige: Gem,
+  negatif: Zap,
+  bonbon: Gift,
+  glitch: AlertCircle,
+  pastel: CheckCircle2,
 };
 
 // ─── Convertir une carte DB en CardConfig pour la prévisualisation ───────────

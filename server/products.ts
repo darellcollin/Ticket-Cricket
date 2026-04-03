@@ -40,6 +40,7 @@ export interface ShopProduct {
 export const ALL_PAID_SKIN_IDS = [
   "neon", "retro", "glace", "feu", "royal",
   "cosmic", "magique", "foret", "metal", "prestige",
+  "negatif", "bonbon", "glitch", "pastel",
 ];
 
 // IDs des cartes du Ticket Cricket Plus (325-352)
@@ -50,7 +51,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "expansion_plus",
     name: "Ticket Cricket Plus",
-    description: "28 nouvelles cartes exclusives thème Halloween — 16 contraventions, 6 contribuables et 6 investisseurs. S'ajoutent automatiquement et définitivement à votre deck de 324 cartes.",
+    description: "28 nouvelles cartes exclusives — 16 contraventions, 6 contribuables et 6 investisseurs. S'ajoutent automatiquement et définitivement à votre deck de 324 cartes.",
     price: 299, // 2.99 CAD
     currency: "cad",
     category: "expansion_pack",
@@ -116,7 +117,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "bundle_all_skins",
     name: "Forfait Tous les Skins",
-    description: "Débloquez les 10 skins en une seule fois. Économisez plus de 4 $.",
+    description: "Débloquez les 14 skins en une seule fois. Économisez plus de 10 $.",
     price: 1599, // 15.99 CAD
     currency: "cad",
     category: "bundle",
@@ -252,6 +253,58 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     color: "#B388FF",
     available: true,
     skinId: "prestige",
+    premium: true,
+  },
+  {
+    id: "skin_negatif",
+    name: "Skin Négatif",
+    description: "Inversion totale — blanc laiteux, bleus froids et effet radiographie. Comme voir à travers les cartes.",
+    price: 199, // 1.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "zap",
+    color: "#4A90D9",
+    available: true,
+    skinId: "negatif",
+    premium: true,
+  },
+  {
+    id: "skin_bonbon",
+    name: "Skin Bonbon",
+    description: "Explosion sucrée — rose bubble-gum, jaune citron, vert menthe et violet raisin. Vos cartes en confiserie.",
+    price: 199, // 1.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "gift",
+    color: "#FF1493",
+    available: true,
+    skinId: "bonbon",
+    premium: true,
+  },
+  {
+    id: "skin_glitch",
+    name: "Skin Glitch",
+    description: "Erreur système — pixels corrompus, décalages RGB et artefacts numériques colorés. Le chaos numérique.",
+    price: 199, // 1.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "ghost",
+    color: "#00FF41",
+    available: true,
+    skinId: "glitch",
+    premium: true,
+  },
+  {
+    id: "skin_pastel",
+    name: "Skin Pastel",
+    description: "Douceur mate — lavande, pêche, menthe et bleu ciel en tons pastel complémentaires et gras.",
+    price: 199, // 1.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "heart",
+    color: "#C490D8",
+    available: true,
+    skinId: "pastel",
     premium: true,
   },
 

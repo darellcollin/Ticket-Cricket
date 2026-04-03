@@ -80,6 +80,10 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   foret: Trees,
   metal: Cog,
   prestige: Gem,
+  negatif: Zap,
+  bonbon: Gift,
+  glitch: Ghost,
+  pastel: Heart,
 };
 
 type View = "home" | "packs" | "don" | "skins" | "cart" | "extensions";
@@ -327,7 +331,14 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     </div>
                     <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(124,58,237,0.12)" }}>
                       <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#7C3AED", boxShadow: "3px 3px 0px #000" }}>
-                        <Sparkles className="w-7 h-7 text-white" />
+                        {/* Carte avec étoile — icône personnalisée */}
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          {/* Carte */}
+                          <rect x="3" y="6" width="18" height="22" rx="2.5" fill="white" fillOpacity="0.25" stroke="white" strokeWidth="2"/>
+                          <rect x="3" y="6" width="18" height="5" rx="2.5" fill="white" fillOpacity="0.5"/>
+                          {/* Étoile en haut à droite */}
+                          <path d="M21 2 L22.2 5.5 L26 5.5 L23 7.8 L24.2 11.3 L21 9 L17.8 11.3 L19 7.8 L16 5.5 L19.8 5.5 Z" fill="#FFD700" stroke="#000" strokeWidth="0.5"/>
+                        </svg>
                       </div>
                       <div className="flex-1 text-left">
                         <div style={{ ...FONT_BANGERS, fontSize: "1.3rem" }} className="text-white leading-none">
@@ -469,7 +480,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   style={{ scrollbarWidth: "thin" }}
                 >
                   <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
-                    Les extensions ajoutent de nouvelles cartes standard directement et définitivement à votre deck de jeu.
+                    Les extensions ajoutent de nouvelles cartes directement et définitivement à votre deck de jeu.
                   </p>
                   {!isLoggedIn && (
                     <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
@@ -507,7 +518,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                           16 contraventions · 6 contribuables · 6 investisseurs
                         </div>
                         <div style={{ ...FONT_FREDOKA, fontSize: "0.65rem" }} className="text-white/40 mt-0.5 leading-tight">
-                          Cartes standards du jeu — thème québécois humoristique
+                          Cartes originales — situations inédites et décalées
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -567,9 +578,9 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     {/* Détail des cartes incluses */}
                     <div className="px-4 pb-4 grid grid-cols-3 gap-2">
                       {[
-                        { label: "Contraventions", count: 16, color: "#FF3B30", desc: "Nouvelles infractions québécoises" },
-                        { label: "Contribuables", count: 6, color: "#34C759", desc: "Situations fiscales inédites" },
-                        { label: "Investisseurs", count: 6, color: "#007AFF", desc: "Nouvelles opportunités" },
+                        { label: "Contraventions", count: 16, color: "#FF3B30", desc: "Nouvelles situations inédites" },
+                        { label: "Contribuables", count: 6, color: "#34C759", desc: "Nouvelles situations inédites" },
+                        { label: "Investisseurs", count: 6, color: "#007AFF", desc: "Nouvelles cartes exclusives" },
                       ].map((cat) => (
                         <div
                           key={cat.label}

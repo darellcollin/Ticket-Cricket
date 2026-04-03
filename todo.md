@@ -504,3 +504,23 @@
 - [x] Moteur de jeu : remplacer "halloween" par "plus" dans la clé localStorage et la logique d'injection
 - [x] Panier universel : calcul du total et affichage pour tous les types de produits (skins, packs, extensions)
 - [x] Tests vitest : 110 tests passent
+
+## Session 54 — Corrections boutique + 4 nouveaux skins
+
+- [ ] Boutique : supprimer "infractions québécoises" et "thème québécois humoristique" des textes
+- [ ] Boutique extensions : supprimer le mot "standard" de la description
+- [ ] Boutique packs personnalisables : corriger le layout (bulles mal cadrées, éléments illisibles)
+- [ ] Améliorer les descriptions de tous les skins existants (en lien avec leur design)
+- [ ] Nouveau skin "Négatif" : blanc/bleuté, effet négatif photo, rayons X
+- [ ] Nouveau skin "Bonbon" : multicolore, thème confiserie, sucre
+- [ ] Nouveau skin "Glitch" : effet glitch coloré, pixelisé, numérique
+- [ ] Nouveau skin "Pastel" : couleurs pastel, effet mat, couleurs complémentaires, gras
+- [ ] Intégrer les 4 nouveaux skins dans products.ts (1,99 $ chacun)
+- [ ] Intégrer les 4 nouveaux skins dans le bundle "Tous les skins"
+- [ ] Intégrer les 4 nouveaux skins dans ShopModal (icônes, SKIN_ICON_MAP)
+- [ ] Intégrer les 4 nouveaux skins dans GeneratedCard (rendu visuel)
+- [ ] Tests vitest + checkpoint
+- [x] Boutique accueil : retirer "1 skin gratuit inclus - 10 designs exclusifs" de la bulle Skins
+- [x] Boutique accueil : retirer "15 cartes personnalisables gratuites incluses" de la bulle Packs
+- [x] Boutique accueil : icône "Skins de cartes" → carte avec étoile SVG personnalisée
+- [x] Bug /custom-cards : "Element type is invalid" dans CustomCardCreator — import d'icône undefined
