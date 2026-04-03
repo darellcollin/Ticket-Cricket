@@ -130,7 +130,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
       setLoadingId(null);
       if (url) {
         toast.success("Redirection vers le paiement...");
-        window.open(url, "_blank");
+        window.location.href = url;
       }
     },
     onError: (err) => {
@@ -160,7 +160,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
       setLoadingId(null);
       if (url) {
         toast.success("Redirection vers le paiement...");
-        window.open(url, "_blank");
+        window.location.href = url;
       }
     },
     onError: (err) => {
@@ -174,7 +174,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
       setLoadingId(null);
       if (url) {
         toast.success("Redirection vers le paiement...");
-        window.open(url, "_blank");
+        window.location.href = url;
       }
     },
     onError: (err) => {
@@ -229,7 +229,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[95] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center sm:p-4"
           style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(6px)" }}
           onClick={handleClose}
         >
@@ -238,7 +238,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.85, y: 30, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
-            className="relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[88dvh] overflow-hidden rounded-3xl border-[4px] border-black flex flex-col"
+            className="relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl h-[92dvh] sm:max-h-[88dvh] sm:h-auto overflow-hidden rounded-t-3xl sm:rounded-3xl border-t-[4px] sm:border-[4px] border-x-[4px] sm:border-x-[4px] border-black flex flex-col"
             style={{
               background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)",
               boxShadow: "8px 8px 0px #000",
@@ -381,9 +381,11 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
                     style={{ boxShadow: "4px 4px 0px #000" }}
                   >
-                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#FF6B00", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
-                      {hasPlusPack ? "TICKET CRICKET PLUS DÉBLOQUÉ ✓" : "NOUVELLES CARTES STANDARD — S'AJOUTENT AU DECK"}
-                    </div>
+                    {hasPlusPack && (
+                      <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#FF6B00", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
+                        TICKET CRICKET PLUS DÉBLOQUÉ ✓
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(255,107,0,0.12)" }}>
                       <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#FF6B00", boxShadow: "3px 3px 0px #000" }}>
                         <Package className="w-7 h-7 text-white" />
@@ -494,7 +496,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                       className="w-full text-center py-1.5 border-b-[2px] border-black"
                       style={{ background: "#FF6B00", fontFamily: "'Bangers', cursive", fontSize: "0.75rem", letterSpacing: "0.1em", color: "#fff" }}
                     >
-                      {hasPlusPack ? "✓ DÉJÀ DÉBLOQUÉ — 28 CARTES ACTIVES DANS VOTRE DECK" : "28 NOUVELLES CARTES — S'AJOUTENT DÉFINITIVEMENT AU DECK"}
+                      {hasPlusPack ? "✓ DÉJÀ DÉBLOQUÉ — 28 CARTES ACTIVES DANS VOTRE DECK" : "TICKET CRICKET PLUS — EXTENSION EXCLUSIVE"}
                     </div>
                     {/* Corps */}
                     <div className="flex items-center gap-3 px-4 py-4">
@@ -674,16 +676,38 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                         </div>
                       </div>
 
-                      {/* ── FOOTER : bouton pleine largeur ── */}
-                      <div className="px-3 pb-3">
+                      {/* ── FOOTER : boutons panier + acheter ── */}
+                      <div className="px-3 pb-3 flex items-center gap-2">
+                        {/* Bouton Ajouter/Retirer du panier */}
+                        {cart.includes(p.id) ? (
+                          <motion.button
+                            whileTap={{ scale: 0.93 }}
+                            onClick={() => removeFromCart(p.id)}
+                            className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 flex-shrink-0"
+                            style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </motion.button>
+                        ) : (
+                          <motion.button
+                            whileTap={{ scale: 0.93 }}
+                            onClick={() => addToCart(p.id)}
+                            disabled={!isLoggedIn}
+                            className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 disabled:opacity-40 flex-shrink-0"
+                            style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </motion.button>
+                        )}
+                        {/* Bouton Acheter direct */}
                         <motion.button
                           whileTap={{ scale: 0.96 }}
                           onClick={() => handleBuyPack(p.id)}
                           disabled={!isLoggedIn || !!loadingId}
-                          className="w-full py-2 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
+                          className="flex-1 py-2 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
                           style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1rem", letterSpacing: "0.06em", boxShadow: "2px 2px 0px #000" }}
                         >
-                          {loadingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                          {loadingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
                           ACHETER — {p.price}
                         </motion.button>
                       </div>

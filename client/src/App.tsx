@@ -14,6 +14,7 @@ import { MultiplayerGameScreen } from "./pages/MultiplayerGameScreen";
 import { CardAdminScreen } from "./pages/CardAdminScreen";
 import { TestCarteScreen } from "./pages/TestCarteScreen";
 import { CardConfigEditor } from "./pages/CardConfigEditor";
+import ShopSuccess from "./pages/ShopSuccess";
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
@@ -29,6 +30,7 @@ function Router() {
       <Route path={"/admin"} component={CardAdminScreen} />
       <Route path={"/test-carte"} component={TestCarteScreen} />
       <Route path={"/config-cartes"} component={CardConfigEditor} />
+      <Route path={"/shop/success"} component={ShopSuccess} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

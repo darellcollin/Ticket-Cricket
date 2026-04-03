@@ -223,7 +223,11 @@ export default function Home() {
   });
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showShopModal, setShowShopModal] = useState(false);
+  const [showShopModal, setShowShopModal] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get("shop") === "open";
+    } catch { return false; }
+  });
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const { profile, isAuthenticated, logout } = useGameAuth();

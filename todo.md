@@ -543,3 +543,25 @@
 - [x] Responsive mobile : boutique skins refondre (sélecteur horizontal scrollable, aperçu pleine largeur)
 - [ ] Responsive mobile : optimiser DifficultyModal (solo) pour mobile
 - [ ] Responsive mobile : optimiser LobbyScreen (multi) pour mobile
+
+## Session 57 — Boutique complète + Stripe + Responsive
+
+- [x] Boutique extensions : retirer "nouvelles cartes standard - s'ajoutent au deck" de la ligne orange
+- [x] Boutique skins : prévisualisation interactive (GeneratedCard avec le skin sélectionné en temps réel — déjà implémentée)
+- [x] Stripe : createCheckout migré vers gameAuthProtectedProcedure (profile_id correct dans metadata)
+- [x] Stripe : tous les boutons redirigent dans la même fenêtre (window.location.href au lieu de window.open)
+- [x] Stripe : webhook corrigé — extraCards calculé depuis les produits du panier (cart)
+- [x] Stripe : page /shop/success créée avec confettis, bouton retour et compte à rebours
+- [x] Stripe : Home.tsx ouvre automatiquement la boutique si ?shop=open dans l'URL
+- [x] Stripe : vérifier le webhook (checkout.session.completed → intégration jeu immédiate)
+- [x] Stripe : vérifier que les skins achetés s'activent immédiatement dans le jeu
+- [x] Stripe : vérifier que les extensions achetées s'ajoutent immédiatement au deck
+- [x] Stripe : vérifier que les packs personnalisables achetés augmentent immédiatement le quota
+- [x] Stripe : vérifier que les dons fonctionnent correctement
+- [x] Responsive : boutique — modal en bottom-sheet sur mobile (h-[92dvh], rounded-t-3xl, items-end)
+- [x] Responsive : boutique packs — bouton "Ajouter au panier" ajouté pour les packs personnalisables
+- [x] Responsive : boutique skins — sélecteur horizontal scrollable + prévisualisation GeneratedCard (xs mobile, sm desktop)
+- [x] Tests vitest : 110 tests passés (7 fichiers)
+- [ ] Responsive : mode de jeu solo (DifficultyModal) — tous les toggles et options visibles sur mobile
+- [ ] Responsive : lobby multijoueur (LobbyScreen) — options host bien lisibles sur mobile
+- [ ] Checkpoint final

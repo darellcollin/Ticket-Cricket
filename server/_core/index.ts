@@ -84,7 +84,17 @@ async function startServer() {
             const productName = isCart
               ? `Panier (${rawProductIds.length} article${rawProductIds.length > 1 ? "s" : ""})`
               : (session.metadata?.product_name ?? "Achat");
-            const extraCards = session.metadata?.extra_cards ? parseInt(session.metadata.extra_cards) : 0;
+            // Pour un achat individuel, utiliser extra_cards des métadonnées
+            // Pour un panier, calculer la somme des extraCards de chaque produit
+            let extraCards = 0;
+            if (isCart) {
+              for (const pid of rawProductIds) {
+                const p = SHOP_PRODUCTS.find(pr => pr.id === pid);
+                if (p && p.extraCards) extraCards += p.extraCards;
+              }
+            } else {
+              extraCards = session.metadata?.extra_cards ? parseInt(session.metadata.extra_cards) : 0;
+            }
             const mainProductId = isCart ? `cart_${session.id.slice(-8)}` : rawProductIds[0];
             await db.insert(purchases).values({
               profileId,
