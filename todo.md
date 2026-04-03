@@ -565,3 +565,16 @@
 - [ ] Responsive : mode de jeu solo (DifficultyModal) — tous les toggles et options visibles sur mobile
 - [ ] Responsive : lobby multijoueur (LobbyScreen) — options host bien lisibles sur mobile
 - [ ] Checkpoint final
+
+## Session 58 — Skins/Extensions en jeu + UX boutique connexion
+
+- [x] Boutique : bouton "SE CONNECTER" visible dans la vue Accueil quand non connecté
+- [x] Boutique : bouton "SE CONNECTER" visible dans la vue Extensions quand non connecté
+- [x] Boutique : bouton "SE CONNECTER" visible dans la vue Packs quand non connecté
+- [x] Boutique : onLogin callback passé depuis Home.tsx (ouvre AccountModal sans fermer la boutique)
+- [x] GameScreen (solo) : lecture de SOLO_SKINS_ENABLED_KEY depuis localStorage
+- [x] GameScreen (solo) : skin actif conditionné par soloSkinsEnabled (classique si désactivé)
+- [x] MultiplayerGameScreen : useEffect pour enregistrer le skin du joueur local via registerPlayerSkin
+- [x] MultiplayerGameScreen : skins par joueur appliqués sur les cartes piochées (playerSkinMap)
+- [x] MultiplayerModal : toggles skins/extensions dynamiques depuis la DB (évolutifs)
+- [x] Tests vitest : 110 tests passent

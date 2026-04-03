@@ -85,6 +85,20 @@
       "when": 1775208919746,
       "tag": "0011_shiny_jasper_sitwell",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1775214828072,
+      "tag": "0012_wakeful_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1775214917232,
+      "tag": "0013_kind_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

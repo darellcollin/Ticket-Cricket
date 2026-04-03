@@ -10,6 +10,7 @@ import { sessionCustomCardsRouter } from "./sessionCustomCardsRouter";
 import { gameConfigsRouter } from "./gameConfigsRouter";
 import { shopRouter } from "./shopRouter";
 import { skinRouter } from "./skinRouter";
+import { sessionOptionsRouter } from "./sessionOptionsRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -47,6 +48,9 @@ export const appRouter = router({
 
   /** Skins de cartes — déblocage et sélection */
   skins: skinRouter,
+
+  /** Options de session multijoueur — skins, extensions */
+  sessionOptions: sessionOptionsRouter,
 });
 
 export type AppRouter = typeof appRouter;

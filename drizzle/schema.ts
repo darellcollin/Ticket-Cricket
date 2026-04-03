@@ -256,3 +256,27 @@ export const userExpansionPacks = mysqlTable("user_expansion_packs", {
 });
 export type UserExpansionPack = typeof userExpansionPacks.$inferSelect;
 export type InsertUserExpansionPack = typeof userExpansionPacks.$inferInsert;
+
+/**
+ * Options de session multijoueur — configurées par le host avant le lancement.
+ * Permet d'activer/désactiver les skins des joueurs et les extensions en jeu.
+ * Architecture évolutive : les extensionPackIds sont stockés en JSON pour supporter
+ * n'importe quel futur pack sans modification de schéma.
+ */
+export const sessionOptions = mysqlTable("session_options", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Code de la session multijoueur Supabase */
+  sessionCode: varchar("sessionCode", { length: 10 }).notNull().unique(),
+  /** ID du profil du host */
+  hostProfileId: int("hostProfileId").notNull(),
+  /** Autoriser les joueurs à afficher leur skin actif sur leurs cartes */
+  skinsEnabled: boolean("skinsEnabled").notNull().default(false),
+  /** IDs des packs d'extension activés (JSON array de strings, ex: ["plus", "halloween"]) */
+  extensionPackIds: varchar("extensionPackIds", { length: 500 }).notNull().default("[]"),
+  /** Skins actifs des joueurs (JSON: { playerName: skinId }) — mis à jour en temps réel */
+  playerSkins: varchar("playerSkins", { length: 2000 }).notNull().default("{}"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SessionOptions = typeof sessionOptions.$inferSelect;
+export type InsertSessionOptions = typeof sessionOptions.$inferInsert;

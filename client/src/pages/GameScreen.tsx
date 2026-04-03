@@ -22,7 +22,7 @@ import {
 import { filterByCategory } from "@/game/utils/cardCategories";
 import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
-import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY, SOLO_MINI_GAME_LEVEL_KEY, SOLO_PLUS_PACK_KEY, SOLO_EXTENSION_ENABLED_KEY } from "@/game/components/MultiplayerModal";
+import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY, SOLO_MINI_GAME_LEVEL_KEY, SOLO_PLUS_PACK_KEY, SOLO_EXTENSION_ENABLED_KEY, SOLO_SKINS_ENABLED_KEY } from "@/game/components/MultiplayerModal";
 import type { CardConfig } from "@/game/utils/cardConfig";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
@@ -1115,10 +1115,12 @@ export function GameScreen() {
   const [soloMiniGameLevel] = useState<MiniGameLevel>(() => readMiniGameLevel());
 
   // ─ Skin actif ─
+  const soloSkinsEnabled = localStorage.getItem(SOLO_SKINS_ENABLED_KEY) !== "0"; // activé par défaut
   const { data: activeSkinId } = trpc.skins.getActiveSkin.useQuery(undefined, {
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && soloSkinsEnabled,
   });
-  const currentSkin: CardSkinId = (activeSkinId as CardSkinId | undefined) ?? "classique";
+  // Si les skins sont désactivés ou le joueur n'est pas connecté, on utilise le skin classique
+  const currentSkin: CardSkinId = (soloSkinsEnabled && (activeSkinId as CardSkinId | undefined)) ? (activeSkinId as CardSkinId) : "classique";
 
   // ─ Ticket Cricket Plus — synchronisation serveur → localStorage ─
   const { data: ownedExpansionPacks } = trpc.shop.listExpansionPacks.useQuery(undefined, {

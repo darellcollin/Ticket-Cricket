@@ -20,6 +20,7 @@ interface ShopModalProps {
   open: boolean;
   onClose: () => void;
   isLoggedIn: boolean;
+  onLogin?: () => void;
 }
 
 const CARD_PACKS = [
@@ -88,7 +89,7 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
 
 type View = "home" | "packs" | "don" | "skins" | "cart" | "extensions";
 
-export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
+export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps) {
   const [view, setView] = useState<View>("home");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [donAmount, setDonAmount] = useState<string>("5");
@@ -304,10 +305,20 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   style={{ scrollbarWidth: "thin" }}
                 >
                   {!isLoggedIn && (
-                    <div className="p-3 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
-                      <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
-                        Connectez-vous pour acheter ou faire un don.
+                    <div className="p-3 bg-yellow-400/15 border-[2px] border-yellow-400/50 rounded-2xl flex flex-col items-center gap-2">
+                      <p style={FONT_FREDOKA} className="text-yellow-300 text-sm text-center">
+                        🔓 Connectez-vous pour acheter ou faire un don.
                       </p>
+                      {onLogin && (
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => { handleClose(); onLogin(); }}
+                          className="px-5 py-2 rounded-xl border-[3px] border-black text-black"
+                          style={{ background: "#FFD700", ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px #000" }}
+                        >
+                          SE CONNECTER
+                        </motion.button>
+                      )}
                     </div>
                   )}
 
@@ -479,10 +490,20 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     Les extensions ajoutent de nouvelles cartes directement et définitivement à votre deck de jeu.
                   </p>
                   {!isLoggedIn && (
-                    <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
-                      <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
-                        Connectez-vous pour acheter une extension.
+                    <div className="p-3 bg-yellow-400/15 border-[2px] border-yellow-400/50 rounded-2xl flex flex-col items-center gap-2">
+                      <p style={FONT_FREDOKA} className="text-yellow-300 text-sm text-center">
+                        🔓 Connectez-vous pour acheter une extension.
                       </p>
+                      {onLogin && (
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => { handleClose(); onLogin(); }}
+                          className="px-5 py-2 rounded-xl border-[3px] border-black text-black"
+                          style={{ background: "#FFD700", ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px #000" }}
+                        >
+                          SE CONNECTER
+                        </motion.button>
+                      )}
                     </div>
                   )}
 
@@ -612,10 +633,20 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   </p>
 
                   {!isLoggedIn && (
-                    <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
-                      <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
-                        Connectez-vous pour acheter un pack.
+                    <div className="p-3 bg-yellow-400/15 border-[2px] border-yellow-400/50 rounded-2xl flex flex-col items-center gap-2">
+                      <p style={FONT_FREDOKA} className="text-yellow-300 text-sm text-center">
+                        🔓 Connectez-vous pour acheter un pack.
                       </p>
+                      {onLogin && (
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => { handleClose(); onLogin(); }}
+                          className="px-5 py-2 rounded-xl border-[3px] border-black text-black"
+                          style={{ background: "#FFD700", ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px #000" }}
+                        >
+                          SE CONNECTER
+                        </motion.button>
+                      )}
                     </div>
                   )}
 

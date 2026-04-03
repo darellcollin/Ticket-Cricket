@@ -29,6 +29,8 @@ export const SOLO_CUSTOM_CARDS_DATA_KEY     = "ticket_cricket_custom_cards_data"
 export const SOLO_MINI_GAME_LEVEL_KEY       = "ticket_cricket_mini_game_level";
 export const SOLO_PLUS_PACK_KEY             = "ticket_cricket_plus_pack";
 export const SOLO_EXTENSION_ENABLED_KEY    = "ticket_cricket_extension_enabled";
+export const SOLO_SKINS_ENABLED_KEY        = "ticket_cricket_skins_enabled";
+export const SOLO_EXTRA_EXTENSIONS_KEY     = "ticket_cricket_extra_extensions"; // JSON array de packIds actifs
 
 // ── Niveaux de difficulté ──────────────────────────────────────
 export const DIFFICULTIES = [
@@ -572,6 +574,9 @@ export function MultiplayerModal({ onClose }: Props) {
   const [mpDisableT3, setMpDisableT3] = useState(false);
   const [mpCustomEnabled, setMpCustomEnabled] = useState(false);
   const [mpExtensionEnabled, setMpExtensionEnabled] = useState(true); // activé par défaut si pack possédé
+  // Options skins
+  const [soloSkinsEnabled, setSoloSkinsEnabled] = useState(true); // activé par défaut
+  const [mpSkinsEnabled, setMpSkinsEnabled] = useState(true); // activé par défaut
 
   const resetError = () => setError("");
 
@@ -601,6 +606,20 @@ export function MultiplayerModal({ onClose }: Props) {
     retry: false,
   });
   const hasSave = saveData?.hasSave === true;
+
+  // Extensions dynamiques du host (tous les packs achetés, chargés depuis la DB)
+  const { data: hostExpansionPacks } = trpc.sessionOptions.getHostExpansionPacks.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const hasAnyExpansionPack = (hostExpansionPacks ?? []).length > 0;
+  // IDs des packs sélectionnés pour la session (multi)
+  const [mpSelectedPackIds, setMpSelectedPackIds] = useState<string[]>([]);
+  // IDs des packs sélectionnés pour le solo
+  const [soloSelectedPackIds, setSoloSelectedPackIds] = useState<string[]>([]);
+
+  // Mutation pour publier les options de session
+  const setOptionsMutation = trpc.sessionOptions.setOptions.useMutation();
 
   // ─ Configurations sauvegardées ─
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -717,6 +736,18 @@ export function MultiplayerModal({ onClose }: Props) {
         }
       }
 
+      // Publier les options de session (skins + extensions dynamiques)
+      // Architecture évolutive : tout nouveau pack ajouté à la boutique sera automatiquement disponible
+      try {
+        await setOptionsMutation.mutateAsync({
+          sessionCode,
+          skinsEnabled: mpSkinsEnabled,
+          extensionPackIds: mpSelectedPackIds,
+        });
+      } catch {
+        // Non-bloquant : la partie continue sans options de session
+      }
+
       navigate("/lobby");
     } catch (e: any) {
       setError(e.message || "Erreur réseau");
@@ -742,15 +773,22 @@ export function MultiplayerModal({ onClose }: Props) {
     }
   };
 
-  //  // ── SOLO : sauvegarder les préfs et naviguer ─────────────
+  //  // ── SOLO : sauvegarder les préfs et naviguer ─────────────────────────
   const handlePlaySolo = () => {
     try {
       localStorage.setItem(SOLO_DIFFICULTY_KEY, String(selectedDiff.threshold));
       localStorage.setItem(SOLO_NO_CONTRIBUABLE_KEY, soloDisableT2 ? "1" : "0");
       localStorage.setItem(SOLO_CUSTOM_CARDS_ENABLED_KEY, soloCustomEnabled ? "1" : "0");
       localStorage.setItem(SOLO_MINI_GAME_LEVEL_KEY, String(miniGameLevel));
-      // Toggle extension Ticket Cricket Plus
+      // Toggle extension Ticket Cricket Plus (compatibilité ancienne clé)
       localStorage.setItem(SOLO_EXTENSION_ENABLED_KEY, (hasPlusPack && soloExtensionEnabled) ? "1" : "0");
+      // Nouvelles options : skins et extensions dynamiques
+      localStorage.setItem(SOLO_SKINS_ENABLED_KEY, soloSkinsEnabled ? "1" : "0");
+      // Packs sélectionnés (dynamique — inclut automatiquement les futurs packs)
+      const activePackIds = soloSelectedPackIds.filter(id =>
+        (hostExpansionPacks ?? []).some(p => p.packId === id)
+      );
+      localStorage.setItem(SOLO_EXTRA_EXTENSIONS_KEY, JSON.stringify(activePackIds));
       if (soloCustomEnabled && customCards.length > 0) {
         localStorage.setItem(SOLO_CUSTOM_CARDS_DATA_KEY, JSON.stringify(customCards));
       } else {
@@ -997,6 +1035,85 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 </motion.button>
 
+                {/* Option Skins des joueurs (solo) — toujours visible si connecté */}
+                {isAuthenticated && (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSoloSkinsEnabled(!soloSkinsEnabled)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+                    style={{
+                      borderColor: soloSkinsEnabled ? "#AF52DE" : "rgba(255,255,255,0.15)",
+                      background: soloSkinsEnabled ? "rgba(175,82,222,0.2)" : "rgba(255,255,255,0.05)",
+                      boxShadow: soloSkinsEnabled ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: soloSkinsEnabled ? "#AF52DE" : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <span style={{ fontSize: "1.3rem" }}>🎨</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={soloSkinsEnabled ? "text-white" : "text-white/50"}>
+                        MON SKIN SUR LES CARTES
+                      </div>
+                      <div style={FONT_FREDOKA} className="text-xs leading-none mt-0.5 text-white/30">
+                        Affiche votre skin actif sur vos cartes durant la partie
+                      </div>
+                    </div>
+                    <div
+                      className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+                      style={{ background: soloSkinsEnabled ? "#AF52DE" : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={soloSkinsEnabled ? "text-white" : "text-white/40"}>
+                        {soloSkinsEnabled ? "ACTIVÉ" : "DÉSACTIVÉ"}
+                      </span>
+                    </div>
+                  </motion.button>
+                )}
+
+                {/* Extensions dynamiques (solo) — chargées depuis la DB, évolutives */}
+                {isAuthenticated && hasAnyExpansionPack && (hostExpansionPacks ?? []).map(pack => (
+                  <motion.button
+                    key={pack.packId}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSoloSelectedPackIds(prev =>
+                      prev.includes(pack.packId)
+                        ? prev.filter(id => id !== pack.packId)
+                        : [...prev, pack.packId]
+                    )}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+                    style={{
+                      borderColor: soloSelectedPackIds.includes(pack.packId) ? (pack.color ?? "#FF9500") : "rgba(255,255,255,0.15)",
+                      background: soloSelectedPackIds.includes(pack.packId) ? `${pack.color ?? "#FF9500"}33` : "rgba(255,255,255,0.05)",
+                      boxShadow: soloSelectedPackIds.includes(pack.packId) ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: soloSelectedPackIds.includes(pack.packId) ? (pack.color ?? "#FF9500") : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={soloSelectedPackIds.includes(pack.packId) ? "text-white" : "text-white/50"}>
+                        {pack.name.toUpperCase()}
+                      </div>
+                      <div style={FONT_FREDOKA} className="text-xs leading-none mt-0.5 text-white/30">
+                        {pack.cardCount} cartes supplémentaires dans le deck
+                      </div>
+                    </div>
+                    <div
+                      className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+                      style={{ background: soloSelectedPackIds.includes(pack.packId) ? (pack.color ?? "#FF9500") : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={soloSelectedPackIds.includes(pack.packId) ? "text-white" : "text-white/40"}>
+                        {soloSelectedPackIds.includes(pack.packId) ? "INCLUS" : "EXCLU"}
+                      </span>
+                    </div>
+                  </motion.button>
+                ))}
+
                  {/* Extension Ticket Cricket Plus (solo) — visible seulement si le joueur possède le pack */}
                 {hasPlusPack && (
                   <motion.button
@@ -1219,6 +1336,85 @@ export function MultiplayerModal({ onClose }: Props) {
                     </span>
                   </div>
                 </motion.button>
+
+                {/* Option Skins des joueurs (multi) — le host peut activer pour tous */}
+                {isAuthenticated && (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setMpSkinsEnabled(!mpSkinsEnabled)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+                    style={{
+                      borderColor: mpSkinsEnabled ? "#AF52DE" : "rgba(255,255,255,0.15)",
+                      background: mpSkinsEnabled ? "rgba(175,82,222,0.2)" : "rgba(255,255,255,0.05)",
+                      boxShadow: mpSkinsEnabled ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: mpSkinsEnabled ? "#AF52DE" : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <span style={{ fontSize: "1.3rem" }}>🎨</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={mpSkinsEnabled ? "text-white" : "text-white/50"}>
+                        SKINS DES JOUEURS
+                      </div>
+                      <div style={FONT_FREDOKA} className="text-xs leading-none mt-0.5 text-white/30">
+                        Chaque joueur voit son skin actif sur ses cartes durant la pioche
+                      </div>
+                    </div>
+                    <div
+                      className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+                      style={{ background: mpSkinsEnabled ? "#AF52DE" : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={mpSkinsEnabled ? "text-white" : "text-white/40"}>
+                        {mpSkinsEnabled ? "ACTIVÉ" : "DÉSACTIVÉ"}
+                      </span>
+                    </div>
+                  </motion.button>
+                )}
+
+                {/* Extensions dynamiques (multi) — seules les extensions du host, chargées depuis la DB */}
+                {isAuthenticated && hasAnyExpansionPack && (hostExpansionPacks ?? []).map(pack => (
+                  <motion.button
+                    key={pack.packId}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setMpSelectedPackIds(prev =>
+                      prev.includes(pack.packId)
+                        ? prev.filter(id => id !== pack.packId)
+                        : [...prev, pack.packId]
+                    )}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+                    style={{
+                      borderColor: mpSelectedPackIds.includes(pack.packId) ? (pack.color ?? "#FF9500") : "rgba(255,255,255,0.15)",
+                      background: mpSelectedPackIds.includes(pack.packId) ? `${pack.color ?? "#FF9500"}33` : "rgba(255,255,255,0.05)",
+                      boxShadow: mpSelectedPackIds.includes(pack.packId) ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: mpSelectedPackIds.includes(pack.packId) ? (pack.color ?? "#FF9500") : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={mpSelectedPackIds.includes(pack.packId) ? "text-white" : "text-white/50"}>
+                        {pack.name.toUpperCase()}
+                      </div>
+                      <div style={FONT_FREDOKA} className="text-xs leading-none mt-0.5 text-white/30">
+                        {pack.cardCount} cartes supplémentaires (extensions du host uniquement)
+                      </div>
+                    </div>
+                    <div
+                      className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+                      style={{ background: mpSelectedPackIds.includes(pack.packId) ? (pack.color ?? "#FF9500") : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={mpSelectedPackIds.includes(pack.packId) ? "text-white" : "text-white/40"}>
+                        {mpSelectedPackIds.includes(pack.packId) ? "INCLUS" : "EXCLU"}
+                      </span>
+                    </div>
+                  </motion.button>
+                ))}
 
                 <DeckBreakdown disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} customCards={customCards} customEnabled={mpCustomEnabled && hasCustomCards} />
 

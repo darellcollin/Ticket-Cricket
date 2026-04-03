@@ -1594,6 +1594,41 @@ export function MultiplayerGameScreen() {
   const submitMiniGameResult = trpc.miniGame.submitResult.useMutation();
   const resolveMiniGame = trpc.miniGame.resolve.useMutation();
 
+  // ─ Options de session (skins + extensions) — chargées depuis la DB du host ─
+  const sessionOptionsQuery = trpc.sessionOptions.getOptions.useQuery(
+    { sessionCode: code ?? "" },
+    { enabled: !!(code), refetchOnWindowFocus: false, staleTime: 30_000 },
+  );
+  const sessionSkinsEnabled = sessionOptionsQuery.data?.skinsEnabled ?? false;
+
+  // Skin actif du joueur local (pour l'enregistrement)
+  const { data: myActiveSkinId } = trpc.skins.getActiveSkin.useQuery(undefined, {
+    enabled: sessionSkinsEnabled,
+    staleTime: 60_000,
+  });
+
+  // Mutation pour enregistrer le skin du joueur local dans la session
+  const registerPlayerSkinMutation = trpc.sessionOptions.registerPlayerSkin.useMutation();
+
+  // Enregistrer le skin du joueur local quand la session démarre et que skinsEnabled est actif
+  useEffect(() => {
+    if (!sessionSkinsEnabled || !code || !playerId || !myActiveSkinId) return;
+    registerPlayerSkinMutation.mutate({
+      sessionCode: code,
+      playerId,
+      skinId: myActiveSkinId as string,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionSkinsEnabled, code, playerId, myActiveSkinId]);
+
+  // Skins des joueurs : map playerId -> skinId (chargé depuis la DB)
+  const playerSkinsQuery = trpc.sessionOptions.getPlayerSkins.useQuery(
+    { sessionCode: code ?? "" },
+    { enabled: !!(code) && sessionSkinsEnabled, refetchOnWindowFocus: false, staleTime: 10_000 },
+  );
+  // Map playerId -> skinId pour l'affichage des cartes
+  const playerSkinMap: Record<string, string> = (playerSkinsQuery.data as Record<string, string>) ?? {};
+
   const pollRef                = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevTurnIdx            = useRef<number>(-1);
   const prevLastCard           = useRef<number | null>(null);
@@ -3274,7 +3309,7 @@ export function MultiplayerGameScreen() {
                 style={{ boxShadow: "8px 8px 0px #000", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
               >
                 {showCardFront && !cardHiddenByViewer && !isT3Spectator
-                  ? <div className="w-full h-full"><GeneratedCard card={getCardConfigMp(session.lastCard)} size="md" mefaitOverride={getMpCustomMefait(session.lastCard)} style={{ width: '100%', height: '100%' }} /></div>
+                  ? <div className="w-full h-full"><GeneratedCard card={getCardConfigMp(session.lastCard)} size="md" skinId={sessionSkinsEnabled ? (playerSkinMap[session.turnOrder[session.currentTurnIndex]] as any) : undefined} mefaitOverride={getMpCustomMefait(session.lastCard)} style={{ width: '100%', height: '100%' }} /></div>
                   : <div className="w-full h-full"><GeneratedCardBack size="md" style={{ width: '100%', height: '100%' }} /></div>
                 }
 
