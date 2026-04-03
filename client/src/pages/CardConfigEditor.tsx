@@ -152,9 +152,9 @@ export function CardConfigEditor() {
     3: { bg: "#7C3AED", border: "#4C1D95", text: "#fff" },
   };
   const typeLabels: Record<CardTypeNum, { icon: string; title: string; desc: string }> = {
-    1: { icon: "T1", title: "T1 — Ticket",    desc: "Ticket + frais optionnel → dette du piocheur" },
-    2: { icon: "T2", title: "T2 — Impôts",    desc: "Réduit la dette du piocheur" },
-    3: { icon: "T3", title: "T3 — Transfert", desc: "Ticket → joueur suivant | Taxe → réduit le piocheur" },
+    1: { icon: "🎫", title: "Ticket",    desc: "Ticket + frais optionnel → dette du piocheur" },
+    2: { icon: "💰", title: "Impôt",    desc: "Réduit la dette du piocheur" },
+    3: { icon: "➡️", title: "Transfert", desc: "Ticket → joueur suivant | Taxe → réduit le piocheur" },
   };
 
   // Nouvelle numérotation: 1-63 investisseurs, 64-116 contribuables, 117-324 contraventions
@@ -329,10 +329,10 @@ export function CardConfigEditor() {
                 >
                   <span className="text-xl">{lab.icon}</span>
                   <span className="text-white font-black text-sm leading-none" style={{ fontFamily: "'Bangers', cursive", letterSpacing: "0.04em" }}>
-                    {t === 1 ? "T1" : t === 2 ? "T2" : "T3"}
+                    {t === 1 ? "Ticket" : t === 2 ? "Impôt" : "Transfert"}
                   </span>
                   <span className="text-white/60 text-center leading-tight" style={{ fontFamily: "'Fredoka One', cursive", fontSize: "0.55rem" }}>
-                    {lab.title.split("—")[1]?.trim()}
+                    {lab.title}
                   </span>
                 </button>
               );

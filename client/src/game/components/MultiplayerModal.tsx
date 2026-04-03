@@ -370,10 +370,10 @@ function DeckBreakdown({
   const effectiveDisableT3 = isSolo ? true : (disableT3 ?? false);
 
   // Calculer les stats par catégorie
-  type CatStats = { t1: number; t2: number; t3: number; total: number; custom: number };
+  type CatStats = { total: number; custom: number };
   const stats: Record<string, CatStats> = {};
   for (const cat of CATEGORY_ORDER) {
-    stats[cat] = { t1: 0, t2: 0, t3: 0, total: 0, custom: 0 };
+    stats[cat] = { total: 0, custom: 0 };
   }
 
   // Cartes standards
@@ -383,9 +383,6 @@ function DeckBreakdown({
     if (effectiveDisableT3 && cfg.cardType === 3) continue;
     const s = stats[cfg.category];
     if (!s) continue;
-    if (cfg.cardType === 1) s.t1++;
-    else if (cfg.cardType === 2) s.t2++;
-    else if (cfg.cardType === 3) s.t3++;
     s.total++;
   }
 
@@ -428,10 +425,6 @@ function DeckBreakdown({
         {visibleCats.map((cat, idx) => {
           const s = stats[cat];
           const info = CATEGORY_INFO[cat];
-          const typeChips: { label: string; count: number; color: string }[] = [];
-          if (s.t1 > 0) typeChips.push({ label: "T1", count: s.t1, color: "#ef4444" });
-          if (s.t2 > 0) typeChips.push({ label: "T2", count: s.t2, color: "#22c55e" });
-          if (s.t3 > 0) typeChips.push({ label: "T3", count: s.t3, color: "#a855f7" });
           return (
             <div
               key={cat}
@@ -441,26 +434,15 @@ function DeckBreakdown({
               <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: info.color }} />
               {/* Nom catégorie */}
               <span style={FONT_FREDOKA} className="text-white/70 text-xs flex-1">{info.label}</span>
-              {/* Chips T1/T2/T3 */}
-              <div className="flex items-center gap-1 flex-wrap justify-end">
-                {typeChips.map(chip => (
-                  <span
-                    key={chip.label}
-                    className="px-1.5 py-0.5 rounded text-[0.6rem]"
-                    style={{ background: `${chip.color}22`, color: chip.color, border: `1px solid ${chip.color}44`, fontFamily: "'Bangers', cursive", letterSpacing: "0.04em" }}
-                  >
-                    {chip.label} {chip.count}
-                  </span>
-                ))}
-                {s.custom > 0 && (
-                  <span
-                    className="px-1.5 py-0.5 rounded text-[0.6rem]"
-                    style={{ background: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.3)", fontFamily: "'Bangers', cursive", letterSpacing: "0.04em" }}
-                  >
-                    +{s.custom} perso
-                  </span>
-                )}
-              </div>
+              {/* Badge perso si applicable */}
+              {s.custom > 0 && (
+                <span
+                  className="px-1.5 py-0.5 rounded text-[0.6rem]"
+                  style={{ background: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.3)", fontFamily: "'Bangers', cursive", letterSpacing: "0.04em" }}
+                >
+                  +{s.custom} perso
+                </span>
+              )}
               {/* Total catégorie */}
               <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className="text-white/40 flex-shrink-0 w-6 text-right">
                 {s.total}

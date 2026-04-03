@@ -265,11 +265,14 @@ export default function Home() {
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 py-4 gap-6">
 
           {/* ── ZONE LOGO + TITRE ── */}
-          <div className="flex flex-col items-center gap-2 w-full">
+          <div className="flex flex-col items-center w-full" style={{ gap: "clamp(0.5rem, 2vw, 1.2rem)" }}>
             {/* Logo ticket animé */}
             <motion.div
-              className="w-[100px] sm:w-[140px] md:w-[180px] lg:w-[200px]"
-              style={{ userSelect: "none", flexShrink: 0 }}
+              style={{
+                width: "clamp(90px, 22vw, 180px)",
+                userSelect: "none",
+                flexShrink: 0,
+              }}
               animate={{
                 y: [0, -10, 0],
                 rotate: [-7, 7, -7],
@@ -290,39 +293,24 @@ export default function Home() {
               animate={{ rotate: [-1.5, 1.5, -1.5] }}
               transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
             >
-              <div className="flex flex-col items-center" style={{ gap: 0 }}>
-                <span
-                  style={{
-                    fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(2rem, 8vw, 5.5rem)",
-                    letterSpacing: "0.06em",
-                    lineHeight: 1,
-                    display: "block",
-                    textAlign: "center",
-                    color: "#FFD700",
-                    fontWeight: 900,
-                    textShadow: "3px 3px 0px #000, 0px 0px 20px rgba(255,215,0,0.4)",
-                    transform: "skewX(-2deg)",
-                  }}
-                >
-                  TICKET
-                </span>
-                <span
-                  style={{
-                    fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(1.5rem, 6vw, 4.2rem)",
-                    letterSpacing: "0.1em",
-                    lineHeight: 1,
-                    display: "block",
-                    textAlign: "center",
-                    color: "#FFFFFF",
-                    fontWeight: 900,
-                    textShadow: "2px 2px 0px #000",
-                  }}
-                >
-                  CRICKET
-                </span>
-              </div>
+              <span
+                style={{
+                  fontFamily: "'Bangers', cursive",
+                  fontSize: "clamp(2.4rem, 10vw, 6rem)",
+                  letterSpacing: "0.08em",
+                  lineHeight: 1,
+                  display: "block",
+                  textAlign: "center",
+                  background: "linear-gradient(135deg, #FF3B30 0%, #FFD700 45%, #FFFFFF 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  filter: "drop-shadow(3px 3px 0px rgba(0,0,0,0.9)) drop-shadow(0px 0px 24px rgba(255,215,0,0.35))",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                TICKET CRICKET
+              </span>
             </motion.div>
           </div>
 

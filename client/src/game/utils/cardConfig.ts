@@ -472,17 +472,17 @@ export const TYPE_INFO: Record<CardTypeNum, {
   label: string; shortLabel: string; desc: string; emoji: string; color: string; border: string;
 }> = {
   1: {
-    label: "Type 1 – Ticket",    shortLabel: "T1",
+    label: "Type 1 – Ticket",    shortLabel: "Ticket",
     desc:  "Ticket + Frais → cumule la dette du joueur",
     emoji: "", color: "#DC2626", border: "#991B1B",
   },
   2: {
-    label: "Type 2 – Impôt",     shortLabel: "T2",
+    label: "Type 2 – Impôt",     shortLabel: "Impôt",
     desc:  "Réduit la dette du joueur (impôts)",
     emoji: "", color: "#16A34A", border: "#14532D",
   },
   3: {
-    label: "Type 3 – Transfert", shortLabel: "T3",
+    label: "Type 3 – Transfert", shortLabel: "Transfert",
     desc:  "Ticket → joueur suivant | Taxe → réduit le piocheur",
     emoji: "", color: "#7C3AED", border: "#4C1D95",
   },

@@ -225,3 +225,14 @@
 - [x] Filtre de tri par montant (gagné/perdu) dans les historiques de perquisition (multi + solo)
 - [x] DeckBreakdown : afficheur détaillé par catégorie (standard + perso, inclus/exclus) dans MultiplayerModal et GameScreen
 - [ ] Optimisation complète des interfaces : layout, animations, boutons, responsive PC/mobile, symétrie (en attente de retours utilisateur)
+
+## Modifications session 20 — Corrections visuelles T1/T2/T3 + accueil
+
+- [ ] Supprimer toutes les mentions visuelles T1/T2/T3 dans les interfaces (cartes, catalogues, règles, modals, DeckBreakdown)
+- [ ] Supprimer les mentions T1/T2/T3 dans les écrans de choix de mode de jeu (MultiplayerModal, options de deck, DeckBreakdown)
+- [ ] Refonte menu d'accueil PC + mobile : logo et titre plus grands, bien centrés, sans chevauchement, visuellement attractif
+
+## Modifications session 20
+
+- [x] DeckBreakdown : supprimer les sous-labels "Ticket"/"Impôt"/"Transfert" — afficher uniquement catégorie + total
+- [x] Menu d'accueil : corriger le layout logo + titre "TICKET CRICKET" (PC et mobile)

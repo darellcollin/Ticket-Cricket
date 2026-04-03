@@ -387,7 +387,7 @@ export default function CustomCardCreator() {
                             className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full border-2 border-black text-[0.5rem]"
                             style={{ background: catColor.bg, color: catColor.text, fontFamily: "'Bangers', cursive" }}
                           >
-                            {card.category === "contravention" ? "T1" : card.category === "contribuable" ? "T2" : "T3"}
+                            {card.category === "contravention" ? "Ticket" : card.category === "contribuable" ? "Impôt" : "Transfert"}
                           </div>
                         </div>
 
