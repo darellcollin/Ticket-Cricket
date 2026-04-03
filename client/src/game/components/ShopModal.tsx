@@ -658,69 +658,59 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                   {CARD_PACKS.map((p) => (
                     <div
                       key={p.id}
-                      className="rounded-2xl border-[3px] border-black overflow-hidden"
+                      className="rounded-2xl border-[3px] border-black"
                       style={{ background: p.color + "18", boxShadow: "3px 3px 0px #000" }}
                     >
-                      {/* ── HEADER : badge à gauche + prix à droite ── */}
+                      {/* ── HEADER : badge + prix ── */}
                       <div
-                        className="flex items-center justify-between px-3 py-2 border-b-[2px] border-black"
+                        className="flex items-center justify-between px-3 py-1.5 border-b-[2px] border-black rounded-t-xl"
                         style={{ background: p.color }}
                       >
-                        <span style={{ fontFamily: "'Bangers', cursive", fontSize: "0.8rem", letterSpacing: "0.1em", color: "#fff" }}>
+                        <span style={{ fontFamily: "'Bangers', cursive", fontSize: "0.78rem", letterSpacing: "0.1em", color: "#fff" }}>
                           {p.badge}
                         </span>
                         <span
-                          className="px-2.5 py-0.5 rounded-lg border-[2px] border-black/30"
-                          style={{ background: "rgba(0,0,0,0.25)", fontFamily: "'Bangers', cursive", fontSize: "1.05rem", color: "#fff", letterSpacing: "0.04em" }}
+                          className="px-2 py-0.5 rounded-lg border-[2px] border-black/30"
+                          style={{ background: "rgba(0,0,0,0.25)", fontFamily: "'Bangers', cursive", fontSize: "1rem", color: "#fff", letterSpacing: "0.04em" }}
                         >
                           {p.price}
                         </span>
                       </div>
 
-                      {/* ── CORPS : icône + nom + nombre de cartes + perks ── */}
-                      <div className="px-3 pt-3 pb-2">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div
-                            className="w-12 h-12 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
-                            style={{ background: p.color, boxShadow: "2px 2px 0px #000" }}
-                          >
-                            <Layers className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div style={{ ...FONT_BANGERS, fontSize: "1.15rem", lineHeight: 1 }} className="text-white">
-                              {p.name}
-                            </div>
-                            <div className="flex items-baseline gap-1.5 mt-0.5">
-                              <span style={{ ...FONT_BANGERS, fontSize: "1.6rem", lineHeight: 1, color: p.color }}>+{p.cards}</span>
-                              <span style={{ ...FONT_FREDOKA, fontSize: "0.82rem", color: "rgba(255,255,255,0.65)" }}>cartes personnalisables</span>
-                            </div>
-                            <div style={{ ...FONT_FREDOKA, fontSize: "0.68rem" }} className="text-white/50 mt-0.5">
-                              Total dans votre collection : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
-                            </div>
-                          </div>
+                      {/* ── CORPS compact : icône + nom + cartes + perks en ligne ── */}
+                      <div className="px-3 pt-2 pb-2 flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                          style={{ background: p.color, boxShadow: "2px 2px 0px #000" }}
+                        >
+                          <Layers className="w-5 h-5 text-white" />
                         </div>
-                        {/* Avantages du pack */}
-                        <div className="flex flex-col gap-1">
-                          {p.perks.map((perk, i) => (
-                            <div key={i} className="flex items-center gap-1.5">
-                              <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: p.color }}>
-                                <Check className="w-2 h-2 text-white" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-2">
+                            <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", lineHeight: 1 }} className="text-white">{p.name}</span>
+                            <span style={{ ...FONT_BANGERS, fontSize: "1.3rem", lineHeight: 1, color: p.color }}>+{p.cards} cartes</span>
+                          </div>
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                            {p.perks.map((perk, i) => (
+                              <div key={i} className="flex items-center gap-1">
+                                <div className="w-3 h-3 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: p.color }}>
+                                  <Check className="w-1.5 h-1.5 text-white" />
+                                </div>
+                                <span style={{ ...FONT_FREDOKA, fontSize: "0.68rem", color: "rgba(255,255,255,0.7)" }}>{perk}</span>
                               </div>
-                              <span style={{ ...FONT_FREDOKA, fontSize: "0.72rem", color: "rgba(255,255,255,0.7)" }}>{perk}</span>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
 
-                      {/* ── FOOTER : boutons panier + acheter ── */}
+                      {/* ── BOUTON ACHETER — toujours visible, pleine largeur ── */}
                       <div className="px-3 pb-3 flex items-center gap-2">
-                        {/* Bouton Ajouter/Retirer du panier */}
                         {cart.includes(p.id) ? (
                           <motion.button
                             whileTap={{ scale: 0.93 }}
                             onClick={() => removeFromCart(p.id)}
-                            className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 flex-shrink-0"
-                            style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
+                            className="px-3 py-2 rounded-xl border-[2px] border-black flex items-center gap-1 flex-shrink-0"
+                            style={{ background: "rgba(255,255,255,0.15)", fontFamily: "'Bangers', cursive", fontSize: "0.8rem", color: "#fff", boxShadow: "2px 2px 0px #000" }}
                           >
                             <Minus className="w-3 h-3" />
                           </motion.button>
@@ -731,13 +721,13 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                               if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
                               addToCart(p.id);
                             }}
-                            className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 flex-shrink-0"
-                            style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
+                            className="px-3 py-2 rounded-xl border-[2px] border-black flex items-center gap-1 flex-shrink-0"
+                            style={{ background: "rgba(255,255,255,0.15)", fontFamily: "'Bangers', cursive", fontSize: "0.8rem", color: "#fff", boxShadow: "2px 2px 0px #000" }}
                           >
                             <Plus className="w-3 h-3" />
                           </motion.button>
                         )}
-                        {/* Bouton Acheter direct — toujours actif, redirige vers connexion si non connecté */}
+                        {/* Bouton ACHETER principal — toujours actif */}
                         <motion.button
                           whileTap={{ scale: 0.96 }}
                           onClick={() => {
@@ -745,14 +735,14 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                             handleBuyPack(p.id);
                           }}
                           disabled={!!loadingId}
-                          className="flex-1 py-2.5 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
-                          style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.05rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px #000" }}
+                          className="flex-1 py-3 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                          style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.1rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px #000" }}
                         >
                           {loadingId === p.id
                             ? <Loader2 className="w-4 h-4 animate-spin" />
                             : isLoggedIn ? <ShoppingCart className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />
                           }
-                          {isLoggedIn ? `ACHETER — ${p.price}` : "SE CONNECTER"}
+                          {isLoggedIn ? `ACHETER — ${p.price}` : `SE CONNECTER POUR ACHETER`}
                         </motion.button>
                       </div>
                     </div>

@@ -583,3 +583,7 @@
 
 - [x] Corriger les boutons "ACHETER" des packs (Pack Starter, Pro, Ultimate) — grisés même quand connecté
 - [x] Rendre les boutons d'achat toujours visibles et cliquables pour les joueurs connectés
+
+## Session 60 — Boutons d'achat toujours visibles sur les packs
+
+- [x] Boutons ACHETER/SE CONNECTER toujours visibles sur Pack Starter, Pro, Ultimate (pas cachés par overflow)
