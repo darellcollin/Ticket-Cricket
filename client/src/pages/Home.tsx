@@ -297,7 +297,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(2.2rem, 9vw, 5.5rem)",
+                    fontSize: "clamp(3.5rem, 18vw, 7rem)",
                     letterSpacing: "0.06em",
                     lineHeight: 1,
                     display: "block",
@@ -313,7 +313,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(1.6rem, 7vw, 4.2rem)",
+                    fontSize: "clamp(2.6rem, 14vw, 5.2rem)",
                     letterSpacing: "0.1em",
                     lineHeight: 1,
                     display: "block",
