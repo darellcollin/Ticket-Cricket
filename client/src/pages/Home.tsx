@@ -269,7 +269,7 @@ export default function Home() {
             {/* Logo ticket animé */}
             <motion.div
               style={{
-                width: "clamp(90px, 22vw, 180px)",
+                width: "clamp(160px, 40vw, 320px)",
                 userSelect: "none",
                 flexShrink: 0,
               }}
