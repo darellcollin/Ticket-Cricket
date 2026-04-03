@@ -63,14 +63,10 @@ const COMING_SOON = [
   { icon: Star,     name: "Contenu saisonnier", desc: "Événements et cartes limitées",       color: "#FFD700" },
 ];
 
-// Carte de démo pour la preview des skins
-const DEMO_CARD: CardConfig = {
-  id: 150,
-  category: "contravention",
-  cardType: 1,
-  ticketPrice: 200,
-  frais: 30,
-};
+// Cartes de démo pour la preview des skins (une par catégorie)
+const DEMO_CONTRAVENTION: CardConfig = { id: 150, category: "contravention", cardType: 1, ticketPrice: 200, frais: 30 };
+const DEMO_CONTRIBUABLE: CardConfig = { id: 80, category: "contribuable", cardType: 2, ticketPrice: 0, impots: 40 };
+const DEMO_INVESTISSEUR: CardConfig = { id: 30, category: "investisseur", cardType: 3, ticketPrice: 500, taxe: 20 };
 
 const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   classique: Layers,
@@ -174,7 +170,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.85, y: 30, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
-            className="relative w-full max-w-md max-h-[88dvh] overflow-hidden rounded-3xl border-[4px] border-black flex flex-col"
+            className="relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[88dvh] overflow-hidden rounded-3xl border-[4px] border-black flex flex-col"
             style={{
               background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)",
               boxShadow: "8px 8px 0px #000",
@@ -443,118 +439,160 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.18 }}
-                  className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4"
-                  style={{ scrollbarWidth: "thin" }}
+                  className="flex-1 flex flex-col overflow-hidden"
                 >
-                  {/* Preview de la carte avec le skin sélectionné */}
-                  <div className="flex flex-col items-center gap-2">
-                    <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
-                      Aperçu — cliquez sur un skin pour le visualiser
-                    </p>
-                    <div className="flex justify-center py-2">
-                      <GeneratedCard
-                        card={DEMO_CARD}
-                        size="sm"
-                        skinId={previewSkin}
-                        mefaitOverride="Excès de vitesse dans une zone scolaire"
-                      />
-                    </div>
-                  </div>
+                  {/* ── Layout 2 colonnes sur PC, 1 colonne sur mobile ── */}
+                  <div className="flex-1 overflow-y-auto flex flex-col md:flex-row gap-0 min-h-0">
 
-                  {/* Grille des 5 skins achetables (Classique est gratuit/défaut) */}
-                  <div className="flex flex-col gap-2">
-                    {SKIN_CATALOG.filter((s) => s.id !== "classique").map((skin: SkinMeta) => {
-                      const Icon = SKIN_ICON_MAP[skin.id];
-                      const isOwned = skin.id === "classique" || ownedSkins.includes(skin.id);
-                      const isSelected = previewSkin === skin.id;
-                      return (
-                        <motion.div
-                          key={skin.id}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setPreviewSkin(skin.id)}
-                          className="rounded-2xl border-[3px] border-black overflow-hidden cursor-pointer transition-all"
-                          style={{
-                            background: isSelected ? skin.color + "22" : "rgba(255,255,255,0.04)",
-                            boxShadow: isSelected ? `3px 3px 0px ${skin.color}` : "2px 2px 0px #000",
-                            borderColor: isSelected ? skin.color : "#000",
-                          }}
-                        >
-                          <div className="flex items-center gap-3 px-3 py-2.5">
-                            {/* Icône */}
-                            <div
-                              className="w-10 h-10 rounded-xl border-[2px] border-black flex items-center justify-center flex-shrink-0"
-                              style={{ background: skin.color, boxShadow: "2px 2px 0px #000" }}
+                    {/* ── Colonne gauche : sélecteur de skin ── */}
+                    <div className="px-4 pt-4 pb-3 flex-shrink-0 md:w-44 md:border-r md:border-white/10 md:overflow-y-auto">
+                      <p style={FONT_FREDOKA} className="text-white/50 text-[0.65rem] text-center mb-2">
+                        Choisir un skin
+                      </p>
+                      <div className="grid grid-cols-5 md:grid-cols-1 gap-2">
+                        {SKIN_CATALOG.filter((s) => s.id !== "classique").map((skin: SkinMeta) => {
+                          const Icon = SKIN_ICON_MAP[skin.id];
+                          const isOwned = ownedSkins.includes(skin.id);
+                          const isSelected = previewSkin === skin.id;
+                          return (
+                            <motion.button
+                              key={skin.id}
+                              whileTap={{ scale: 0.92 }}
+                              onClick={() => setPreviewSkin(skin.id)}
+                              className="flex md:flex-row flex-col items-center gap-1 md:gap-2.5 py-2 px-1 md:px-3 rounded-xl border-[2px] transition-all"
+                              style={{
+                                background: isSelected ? skin.color + "33" : "rgba(255,255,255,0.06)",
+                                borderColor: isSelected ? skin.color : "rgba(255,255,255,0.15)",
+                                boxShadow: isSelected ? `0 0 8px ${skin.color}88` : "none",
+                              }}
                             >
-                              <Icon className="w-5 h-5 text-white" />
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center relative flex-shrink-0"
+                                style={{ background: skin.color }}
+                              >
+                                <Icon className="w-4 h-4 text-white" />
+                                {isOwned && (
+                                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-green-400 border border-black flex items-center justify-center">
+                                    <Check className="w-2 h-2 text-black" />
+                                  </div>
+                                )}
+                              </div>
+                              <span
+                                style={{ fontFamily: "'Fredoka One', cursive", fontSize: "0.7rem", lineHeight: 1.1, color: isSelected ? skin.color : "rgba(255,255,255,0.6)" }}
+                                className="text-center md:text-left leading-tight"
+                              >
+                                {skin.name}
+                              </span>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* ── Colonne droite : aperçu + achat ── */}
+                    <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3" style={{ scrollbarWidth: "thin" }}>
+                      {(() => {
+                        const activeSkin = SKIN_CATALOG.find((s) => s.id === previewSkin)!;
+                        const isOwned = ownedSkins.includes(previewSkin);
+                        return (
+                          <>
+                            {/* Titre du skin actif */}
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                              <div
+                                className="w-7 h-7 rounded-md flex items-center justify-center"
+                                style={{ background: activeSkin.color }}
+                              >
+                                {(() => { const Icon = SKIN_ICON_MAP[previewSkin]; return <Icon className="w-4 h-4 text-white" />; })()}
+                              </div>
+                              <span style={{ ...FONT_BANGERS, fontSize: "1.3rem", color: activeSkin.color }}>
+                                {activeSkin.name.toUpperCase()}
+                              </span>
+                              <span style={FONT_FREDOKA} className="text-white/40 text-xs hidden md:inline">
+                                — {activeSkin.description}
+                              </span>
                             </div>
 
-                            {/* Infos */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span style={{ ...FONT_BANGERS, fontSize: "1rem", color: "#fff", lineHeight: 1 }}>
-                                  {skin.name.toUpperCase()}
-                                </span>
-                                {isOwned && (
+                            {/* 3 cartes — plus grandes sur PC */}
+                            <div className="flex gap-3 justify-center items-start mb-4">
+                              <div className="flex flex-col items-center gap-1.5">
+                                <GeneratedCard card={DEMO_CONTRAVENTION} size="xs" skinId={previewSkin} mefaitOverride="Excès de vitesse en zone scolaire" style={{ width: 110, height: 154 }} />
+                                <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Contravention</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-1.5">
+                                <GeneratedCard card={DEMO_CONTRIBUABLE} size="xs" skinId={previewSkin} mefaitOverride="Remboursement d'impôt reçu" style={{ width: 110, height: 154 }} />
+                                <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Contribuable</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-1.5">
+                                <GeneratedCard card={DEMO_INVESTISSEUR} size="xs" skinId={previewSkin} mefaitOverride="Dividendes versés aux actionnaires" style={{ width: 110, height: 154 }} />
+                                <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Investisseur</span>
+                              </div>
+                            </div>
+
+                            {/* Panneau achat */}
+                            <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: "3px 3px 0px #000" }}>
+                              <div
+                                className="px-4 py-2.5 flex items-center justify-between"
+                                style={{ background: activeSkin.color + "33", borderBottom: `2px solid ${activeSkin.color}55` }}
+                              >
+                                <div className="flex flex-col">
+                                  <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", color: activeSkin.color }}>
+                                    {activeSkin.name.toUpperCase()}
+                                  </span>
+                                  <span style={FONT_FREDOKA} className="text-white/40 text-[0.65rem]">
+                                    {activeSkin.description}
+                                  </span>
+                                </div>
+                                {isOwned ? (
                                   <span
-                                    className="px-1.5 py-0.5 rounded-md border border-black text-[0.55rem]"
-                                    style={{ background: "#34C759", color: "#fff", fontFamily: "'Bangers', cursive", letterSpacing: "0.05em" }}
+                                    className="px-3 py-1 rounded-lg border-[2px] border-black text-sm flex-shrink-0"
+                                    style={{ background: "#34C759", fontFamily: "'Bangers', cursive", color: "#fff", letterSpacing: "0.05em" }}
                                   >
-                                    DÉBLOQUÉ
+                                    ✓ DÉBLOQUÉ
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="px-3 py-1 rounded-lg border-[2px] border-black flex-shrink-0"
+                                    style={{ background: activeSkin.color, fontFamily: "'Bangers', cursive", fontSize: "1.1rem", color: "#fff" }}
+                                  >
+                                    {activeSkin.price}
                                   </span>
                                 )}
                               </div>
-                              <div style={FONT_FREDOKA} className="text-white/45 text-[0.65rem] leading-tight mt-0.5">
-                                {skin.description}
+                              <div className="px-4 py-3 flex items-center justify-between" style={{ background: "rgba(0,0,0,0.3)" }}>
+                                <p style={FONT_FREDOKA} className="text-white/50 text-xs">
+                                  {isOwned ? "Skin déjà dans votre collection." : "Achat unique — disponible sur tous vos appareils."}
+                                </p>
+                                {!isOwned && (
+                                  <motion.button
+                                    whileTap={{ scale: 0.93 }}
+                                    onClick={() => handleBuySkin(activeSkin.productId)}
+                                    disabled={!isLoggedIn || !!loadingId}
+                                    className="ml-3 px-5 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5 flex-shrink-0"
+                                    style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                                  >
+                                    {loadingId === activeSkin.productId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
+                                    ACHETER
+                                  </motion.button>
+                                )}
                               </div>
                             </div>
 
-                            {/* Prix / Bouton */}
-                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                              {isOwned ? (
-                                <div
-                                  className="w-8 h-8 rounded-lg border-[2px] border-black flex items-center justify-center"
-                                  style={{ background: "#34C759", boxShadow: "1px 1px 0px #000" }}
-                                >
-                                  <Check className="w-4 h-4 text-white" />
-                                </div>
-                              ) : (
-                                <>
-                                  <div
-                                    className="px-2 py-0.5 rounded-lg border-[2px] border-black"
-                                    style={{ background: skin.color, fontFamily: "'Bangers', cursive", fontSize: "0.95rem", color: "#fff", boxShadow: "1px 1px 0px #000" }}
-                                  >
-                                    {skin.price}
-                                  </div>
-                                  <motion.button
-                                    whileTap={{ scale: 0.93 }}
-                                    onClick={(e) => { e.stopPropagation(); handleBuySkin(skin.productId); }}
-                                    disabled={!isLoggedIn || !!loadingId}
-                                    className="px-2.5 py-1 rounded-lg border-[2px] border-black text-black disabled:opacity-40 flex items-center gap-1"
-                                    style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.75rem", boxShadow: "1px 1px 0px #000" }}
-                                  >
-                                    {loadingId === skin.productId ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                                    ACHETER
-                                  </motion.button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+                            {!isLoggedIn && (
+                              <div className="mt-2 p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
+                                <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
+                                  Connectez-vous pour acheter un skin.
+                                </p>
+                              </div>
+                            )}
 
-                  {!isLoggedIn && (
-                    <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
-                      <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
-                        Connectez-vous pour acheter un skin.
-                      </p>
+                            <p style={FONT_FREDOKA} className="text-white/20 text-[10px] text-center mt-2 pb-1">
+                              Paiement sécurisé via Stripe — Achat permanent et non remboursable.
+                            </p>
+                          </>
+                        );
+                      })()}
                     </div>
-                  )}
-
-                  <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
-                    Paiement sécurisé via Stripe — Achat permanent et non remboursable.
-                  </p>
+                  </div>
                 </motion.div>
               )}
 

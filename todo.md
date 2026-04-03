@@ -340,28 +340,35 @@
 - [x] Corriger l'erreur TRPCClientError "Produit introuvable ou non disponible" lors d'un achat (IDs frontend pack_35 → card_pack_35)
 
 ## Session 36 — Système complet de skins de cartes
-- [ ] GeneratedCard : ajouter prop skinId + 6 tables de tokens visuels par catégorie (classique, néon, rétro, glace, feu, royal)
-- [ ] DB : table user_skins (id, profileId, skinId, unlockedAt) + table user_active_skin (profileId, skinId)
-- [ ] tRPC : endpoints listOwnedSkins, setActiveSkin, unlockSkin (appelé par webhook Stripe)
-- [ ] Webhook Stripe : débloquer le skin acheté en DB via checkout.session.completed
-- [ ] Boutique : section "Skins de cartes" avec les 6 skins achetables (preview + prix)
-- [ ] Personnalisation : sélecteur de skin actif avec preview des 3 catégories
-- [ ] Jeu solo : transmettre le skinId actif du joueur à GeneratedCard
-- [ ] Jeu multijoueur : host transmet son skinId, les autres joueurs voient leurs propres skins
-- [ ] Tests vitest pour les endpoints skins
+- [x] GeneratedCard : ajouter prop skinId + 6 tables de tokens visuels par catégorie (classique, néon, rétro, glace, feu, royal)
+- [x] DB : table user_skins (id, profileId, skinId, unlockedAt) + table user_active_skin (profileId, skinId)
+- [x] tRPC : endpoints listOwnedSkins, setActiveSkin, unlockSkin (appelé par webhook Stripe)
+- [x] Webhook Stripe : débloquer le skin acheté en DB via checkout.session.completed
+- [x] Boutique : section "Skins de cartes" avec les 6 skins achetables (preview + prix)
+- [x] Personnalisation : sélecteur de skin actif avec preview des 3 catégories
+- [x] Jeu solo : transmettre le skinId actif du joueur à GeneratedCard
+- [x] Jeu multijoueur : host transmet son skinId, les autres joueurs voient leurs propres skins
+- [x] Tests vitest pour les endpoints skins
 
 ## Session 36b — Boutique skins
-- [ ] Boutique : ajouter section "Skins de cartes" avec les 6 skins (preview + prix + bouton Acheter)
-- [ ] Boutique : retirer "Skins + Decks" de la section "Bientôt disponible"
+- [x] Boutique : ajouter section "Skins de cartes" avec les 6 skins (preview + prix + bouton Acheter)
+- [x] Boutique : retirer "Skins + Decks" de la section "Bientôt disponible"
 
 ## Corrections session 37 — Skins et UI
-- [ ] Boutique : retirer le skin "Classique" de la liste des skins achetables (c'est le skin par défaut gratuit)
-- [ ] Menu : texte "Règles" doit être en blanc dans le bouton
-- [ ] Skins : refaire les tokens visuels (Rétro = synthwave arcade, designs distincts par catégorie)
-- [ ] Sélecteur skins : optimiser la mise en page avec aperçu des 3 catégories
+- [x] Boutique : retirer le skin "Classique" de la liste des skins achetables (c'est le skin par défaut gratuit)
+- [x] Menu : texte "Règles" doit être en blanc dans le bouton
+- [x] Skins : refaire les tokens visuels (Rétro = synthwave arcade, designs distincts par catégorie)
+- [x] Sélecteur skins : optimiser la mise en page avec aperçu des 3 catégories
 
 ## Corrections session 38 — Skin Néon prix
 - [x] Skin Néon : corriger l'affichage du prix dans le carré (texte tronqué ou invisible)
 
 ## Corrections session 39 — Skin Néon prix illisible
 - [x] Skin Néon : prix total illisible — fond plus clair + texte blanc pur pour les 3 catégories
+
+## Corrections session 40 — Refonte vue skins boutique
+- [x] Boutique vue skins : refaire le layout (plus de chevauchement, intuitif, aperçu des 3 cartes par skin)
+
+## Corrections session 41 — Responsive PC/mobile
+- [x] Boutique skins : s'adapter au PC (plein écran, cartes plus grandes, layout adapté)
+- [x] Section Règles : prendre tout l'écran sur PC et mobile

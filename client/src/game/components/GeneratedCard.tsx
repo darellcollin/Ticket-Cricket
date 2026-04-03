@@ -18,7 +18,7 @@ export { SKIN_CATALOG };
 //  COMPOSANT PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface GeneratedCardProps {
+export interface GeneratedCardProps {
   card: CardConfig;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
