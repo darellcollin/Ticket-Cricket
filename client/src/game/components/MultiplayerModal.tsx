@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { createSession, joinSession, mpStorage } from "@/game/utils/sessionApi";
 import { useLocation } from "wouter";
-import { ALL_CARD_IDS, getCardConfig } from "@/game/utils/cardConfig";
+import { ALL_CARD_IDS, getCardConfig, CATEGORY_INFO, CATEGORY_ORDER } from "@/game/utils/cardConfig";
 import ticketImg from "@/game/utils/ticketImg";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
@@ -354,7 +354,7 @@ function CardFiltersSection({
 }
 
 // ── Résumé du deck filtré ──────────────────────────────────────────────────────────
-function DeckSummary({
+function DeckBreakdown({
   disableT2,
   disableT3,
   isSolo = false,
@@ -367,39 +367,108 @@ function DeckSummary({
   customCards?: Array<{ category: string }>;
   customEnabled?: boolean;
 }) {
-  // En solo, T3 n'existe jamais — on les exclut toujours
   const effectiveDisableT3 = isSolo ? true : (disableT3 ?? false);
 
-  // Cartes standards filtrées
-  const standardCount = ALL_CARD_IDS.filter((id) => {
+  // Calculer les stats par catégorie
+  type CatStats = { t1: number; t2: number; t3: number; total: number; custom: number };
+  const stats: Record<string, CatStats> = {};
+  for (const cat of CATEGORY_ORDER) {
+    stats[cat] = { t1: 0, t2: 0, t3: 0, total: 0, custom: 0 };
+  }
+
+  // Cartes standards
+  for (const id of ALL_CARD_IDS) {
     const cfg = getCardConfig(id);
-    if (disableT2 && cfg.cardType === 2) return false;
-    if (effectiveDisableT3 && cfg.cardType === 3) return false;
+    if (disableT2 && cfg.cardType === 2) continue;
+    if (effectiveDisableT3 && cfg.cardType === 3) continue;
+    const s = stats[cfg.category];
+    if (!s) continue;
+    if (cfg.cardType === 1) s.t1++;
+    else if (cfg.cardType === 2) s.t2++;
+    else if (cfg.cardType === 3) s.t3++;
+    s.total++;
+  }
+
+  // Cartes personnalisées
+  let totalCustom = 0;
+  if (customEnabled) {
+    for (const c of customCards) {
+      if (disableT2 && c.category === "contribuable") continue;
+      if (effectiveDisableT3 && c.category === "investisseur") continue;
+      const s = stats[c.category];
+      if (s) { s.custom++; s.total++; totalCustom++; }
+    }
+  }
+
+  const grandTotal = Object.values(stats).reduce((acc, s) => acc + s.total, 0);
+
+  // Catégories visibles (non vides)
+  const visibleCats = CATEGORY_ORDER.filter(cat => {
+    if (cat === "contribuable" && disableT2) return false;
+    if (cat === "investisseur" && effectiveDisableT3) return false;
     return true;
-  }).length;
-
-  // Cartes personnalisées filtrées (même logique de catégorie)
-  const customCount = customEnabled
-    ? customCards.filter((c) => {
-        if (disableT2 && c.category === "contribuable") return false;
-        if (effectiveDisableT3 && c.category === "investisseur") return false;
-        return true;
-      }).length
-    : 0;
-
-  const total = standardCount + customCount;
+  });
 
   return (
     <div
-      className="flex items-center justify-between px-4 py-2.5 rounded-xl border-[2px] border-black/30"
-      style={{ background: "rgba(255,255,255,0.06)" }}
+      className="rounded-xl border-[2px] border-black/30 overflow-hidden"
+      style={{ background: "rgba(255,255,255,0.04)" }}
     >
-      <span style={FONT_FREDOKA} className="text-white/50 text-xs">
-        Deck actuel{customEnabled && customCount > 0 ? ` (dont ${customCount} perso)` : ""}
-      </span>
-      <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }} className="text-yellow-400">
-        {total} cartes
-      </span>
+      {/* En-tête total */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-white/8">
+        <span style={FONT_FREDOKA} className="text-white/50 text-xs">
+          Deck actuel{totalCustom > 0 ? ` (dont ${totalCustom} perso)` : ""}
+        </span>
+        <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }} className="text-yellow-400">
+          {grandTotal} cartes
+        </span>
+      </div>
+      {/* Détail par catégorie */}
+      <div className="flex flex-col">
+        {visibleCats.map((cat, idx) => {
+          const s = stats[cat];
+          const info = CATEGORY_INFO[cat];
+          const typeChips: { label: string; count: number; color: string }[] = [];
+          if (s.t1 > 0) typeChips.push({ label: "T1", count: s.t1, color: "#ef4444" });
+          if (s.t2 > 0) typeChips.push({ label: "T2", count: s.t2, color: "#22c55e" });
+          if (s.t3 > 0) typeChips.push({ label: "T3", count: s.t3, color: "#a855f7" });
+          return (
+            <div
+              key={cat}
+              className={`flex items-center gap-3 px-4 py-2 ${idx < visibleCats.length - 1 ? "border-b border-white/5" : ""}`}
+            >
+              {/* Pastille couleur */}
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: info.color }} />
+              {/* Nom catégorie */}
+              <span style={FONT_FREDOKA} className="text-white/70 text-xs flex-1">{info.label}</span>
+              {/* Chips T1/T2/T3 */}
+              <div className="flex items-center gap-1 flex-wrap justify-end">
+                {typeChips.map(chip => (
+                  <span
+                    key={chip.label}
+                    className="px-1.5 py-0.5 rounded text-[0.6rem]"
+                    style={{ background: `${chip.color}22`, color: chip.color, border: `1px solid ${chip.color}44`, fontFamily: "'Bangers', cursive", letterSpacing: "0.04em" }}
+                  >
+                    {chip.label} {chip.count}
+                  </span>
+                ))}
+                {s.custom > 0 && (
+                  <span
+                    className="px-1.5 py-0.5 rounded text-[0.6rem]"
+                    style={{ background: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.3)", fontFamily: "'Bangers', cursive", letterSpacing: "0.04em" }}
+                  >
+                    +{s.custom} perso
+                  </span>
+                )}
+              </div>
+              {/* Total catégorie */}
+              <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className="text-white/40 flex-shrink-0 w-6 text-right">
+                {s.total}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -838,7 +907,7 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 </motion.button>
 
-                <DeckSummary disableT2={soloDisableT2} disableT3={false} isSolo={true} customCards={customCards} customEnabled={soloCustomEnabled && hasCustomCards} />
+                <DeckBreakdown disableT2={soloDisableT2} disableT3={false} isSolo={true} customCards={customCards} customEnabled={soloCustomEnabled && hasCustomCards} />
 
                 {/* ─ Configurations sauvegardées (solo) ─ */}
                 {isAuthenticated && (
@@ -1006,7 +1075,7 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 </motion.button>
 
-                <DeckSummary disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} customCards={customCards} customEnabled={mpCustomEnabled && hasCustomCards} />
+                <DeckBreakdown disableT2={mpDisableT2} disableT3={mpDisableT3} isSolo={false} customCards={customCards} customEnabled={mpCustomEnabled && hasCustomCards} />
 
                 {/* ─ Configurations sauvegardées (multi) ─ */}
                 {isAuthenticated && (

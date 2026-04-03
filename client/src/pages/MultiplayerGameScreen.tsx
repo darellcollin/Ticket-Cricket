@@ -730,6 +730,7 @@ function MyTicketsPanel({
   const [focusedCard, setFocusedCard]     = useState<number | null>(null);
   const [focusedIsReceived, setFocusedIsReceived] = useState(false);
   const [showHistory, setShowHistory]     = useState(false);
+  const [miniGameSortOrder, setMiniGameSortOrder] = useState<"chrono" | "asc" | "desc">("chrono");
 
   const myDrawerTotal    = computePlayerTotalMp(cards);
   const totalPrice       = myDrawerTotal + receivedDebt;
@@ -1087,8 +1088,32 @@ function MyTicketsPanel({
                   return null;
                 })}
 
-                {/* Entrées de perquisition */}
-                {miniGameHistory.map((mg, i) => (
+                {/* Entrées de perquisition — avec tri optionnel */}
+                {miniGameHistory.length > 0 && (
+                  <div className="flex items-center gap-2 mt-1 mb-0.5">
+                    <Search className="w-3 h-3 text-blue-400/50" />
+                    <span style={{ ...FONT_BANGERS, fontSize: "0.62rem", letterSpacing: "0.08em" }} className="text-blue-400/50 uppercase flex-1">
+                      Perquisitions
+                    </span>
+                    <button
+                      onClick={() => setMiniGameSortOrder(o => o === "chrono" ? "desc" : o === "desc" ? "asc" : "chrono")}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-lg border border-blue-400/20 hover:border-blue-400/50 transition-colors"
+                      style={{ background: "rgba(59,130,246,0.08)" }}
+                      title="Trier par montant"
+                    >
+                      <span style={{ ...FONT_FREDOKA, fontSize: "0.6rem" }} className="text-blue-400/60">
+                        {miniGameSortOrder === "chrono" ? "Chrono" : miniGameSortOrder === "desc" ? "Montant ↓" : "Montant ↑"}
+                      </span>
+                    </button>
+                  </div>
+                )}
+                {[...miniGameHistory]
+                  .sort((a, b) => {
+                    if (miniGameSortOrder === "asc") return a.amount - b.amount;
+                    if (miniGameSortOrder === "desc") return b.amount - a.amount;
+                    return 0;
+                  })
+                  .map((mg, i) => (
                   <motion.div
                     key={`mg-${i}`}
                     initial={{ opacity: 0, x: -8 }}

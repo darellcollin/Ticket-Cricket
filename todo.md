@@ -201,13 +201,13 @@
 
 ## Modifications session 18 — Mini-jeux perquisition refonte
 
-- [ ] Multi : déclenchement simultané de la perquisition pour TOUS les joueurs quand un joueur commence son tour et obtient un mini-jeu
-- [ ] Multi : le joueur actif ne pioche pas de ticket après une perquisition — il clique directement "terminer mon tour"
-- [ ] Multi : attendre que tous les joueurs confirment la fin du mini-jeu avant de débloquer "terminer mon tour" pour le joueur actif
-- [ ] Solo : résultats de perquisition (montants) dans l'historique personnel (bouton "mes tickets")
-- [ ] Multi : résultats de perquisition dans l'historique personnel ("mes tickets") et l'historique de groupe (header)
-- [ ] Supprimer les emojis dans les notifs de victoire/défaite de perquisition
-- [ ] Corriger "clique la bonne flèche" → "clique sur la bonne flèche" dans le texte cache-toi
+- [x] Multi : déclenchement simultané de la perquisition pour TOUS les joueurs quand un joueur commence son tour et obtient un mini-jeu
+- [x] Multi : le joueur actif ne pioche pas de ticket après une perquisition — il clique directement "terminer mon tour"
+- [x] Multi : attendre que tous les joueurs confirment la fin du mini-jeu avant de débloquer "terminer mon tour" pour le joueur actif
+- [x] Solo : résultats de perquisition (montants) dans l'historique personnel (bouton "mes tickets")
+- [x] Multi : résultats de perquisition dans l'historique personnel ("mes tickets") et l'historique de groupe (header)
+- [x] Supprimer les emojis dans les notifs de victoire/défaite de perquisition (aucun emoji présent)
+- [x] Corriger "clique la bonne flèche" → "clique sur la bonne flèche" dans le texte cache-toi (déjà correct)
 
 ## Modifications session 19 — Tâches en cours
 
@@ -221,7 +221,7 @@
 - [x] Historiques perquisition : résultats dans "Mes Tickets" (multi + solo) et historique groupe (multi)
 - [x] Accueil : logo et titre plus grands, bien centrés, sans chevauchement (PC + mobile)
 - [x] Bulle "Prêt à recevoir vos tickets ?" ne chevauche pas les boutons
-- [ ] Bug T3 investisseur : l'autre joueur reste bloqué en attente après confirmation de réception — corriger définitivement
-- [ ] Filtre de tri par montant (gagné/perdu) dans les historiques de perquisition (multi + solo)
-- [ ] DeckBreakdown : afficheur détaillé par catégorie (standard + perso, inclus/exclus) dans MultiplayerModal et GameScreen
-- [ ] Optimisation complète des interfaces : layout, animations, boutons, responsive PC/mobile, symétrie
+- [x] Bug T3 investisseur : l'autre joueur reste bloqué en attente après confirmation de réception — corriger définitivement
+- [x] Filtre de tri par montant (gagné/perdu) dans les historiques de perquisition (multi + solo)
+- [x] DeckBreakdown : afficheur détaillé par catégorie (standard + perso, inclus/exclus) dans MultiplayerModal et GameScreen
+- [ ] Optimisation complète des interfaces : layout, animations, boutons, responsive PC/mobile, symétrie (en attente de retours utilisateur)
