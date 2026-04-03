@@ -639,25 +639,38 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                         </span>
                       </div>
 
-                      {/* ── CORPS : icône + nom + nombre de cartes ── */}
-                      <div className="flex items-center gap-3 px-3 pt-3 pb-2">
-                        <div
-                          className="w-12 h-12 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
-                          style={{ background: p.color, boxShadow: "2px 2px 0px #000" }}
-                        >
-                          <Layers className="w-6 h-6 text-white" />
+                      {/* ── CORPS : icône + nom + nombre de cartes + perks ── */}
+                      <div className="px-3 pt-3 pb-2">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div
+                            className="w-12 h-12 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
+                            style={{ background: p.color, boxShadow: "2px 2px 0px #000" }}
+                          >
+                            <Layers className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div style={{ ...FONT_BANGERS, fontSize: "1.15rem", lineHeight: 1 }} className="text-white">
+                              {p.name}
+                            </div>
+                            <div className="flex items-baseline gap-1.5 mt-0.5">
+                              <span style={{ ...FONT_BANGERS, fontSize: "1.6rem", lineHeight: 1, color: p.color }}>+{p.cards}</span>
+                              <span style={{ ...FONT_FREDOKA, fontSize: "0.82rem", color: "rgba(255,255,255,0.65)" }}>cartes personnalisables</span>
+                            </div>
+                            <div style={{ ...FONT_FREDOKA, fontSize: "0.68rem" }} className="text-white/50 mt-0.5">
+                              Total dans votre collection : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div style={{ ...FONT_BANGERS, fontSize: "1.15rem", lineHeight: 1 }} className="text-white">
-                            {p.name}
-                          </div>
-                          <div className="flex items-baseline gap-1.5 mt-0.5">
-                            <span style={{ ...FONT_BANGERS, fontSize: "1.6rem", lineHeight: 1, color: p.color }}>+{p.cards}</span>
-                            <span style={{ ...FONT_FREDOKA, fontSize: "0.82rem", color: "rgba(255,255,255,0.65)" }}>cartes personnalisables</span>
-                          </div>
-                          <div style={{ ...FONT_FREDOKA, fontSize: "0.68rem" }} className="text-white/50 mt-0.5">
-                            Total dans votre collection : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
-                          </div>
+                        {/* Avantages du pack */}
+                        <div className="flex flex-col gap-1">
+                          {p.perks.map((perk, i) => (
+                            <div key={i} className="flex items-center gap-1.5">
+                              <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: p.color }}>
+                                <Check className="w-2 h-2 text-white" />
+                              </div>
+                              <span style={{ ...FONT_FREDOKA, fontSize: "0.72rem", color: "rgba(255,255,255,0.7)" }}>{perk}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
 
@@ -693,15 +706,21 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   transition={{ duration: 0.18 }}
                   className="flex-1 flex flex-col overflow-hidden"
                 >
-                  {/* ── Layout 2 colonnes sur PC, 1 colonne sur mobile ── */}
-                  <div className="flex-1 overflow-y-auto flex flex-col md:flex-row gap-0 min-h-0">
+                  {/* ── Layout : sélecteur horizontal scrollable + aperçu en dessous ── */}
+                  <div className="flex-1 flex flex-col overflow-hidden min-h-0">
 
-                    {/* ── Colonne gauche : sélecteur de skin ── */}
-                    <div className="px-4 pt-4 pb-3 flex-shrink-0 md:w-44 md:border-r md:border-white/10 md:overflow-y-auto">
-                      <p style={FONT_FREDOKA} className="text-white/50 text-[0.65rem] text-center mb-2">
-                        Choisir un skin
+                    {/* ── Sélecteur de skin : bande horizontale scrollable ── */}
+                    <div
+                      className="flex-shrink-0 px-3 pt-3 pb-2 border-b border-white/10"
+                      style={{ background: "rgba(0,0,0,0.2)" }}
+                    >
+                      <p style={FONT_FREDOKA} className="text-white/40 text-[0.6rem] text-center mb-2">
+                        Sélectionner un skin
                       </p>
-                      <div className="grid grid-cols-5 md:grid-cols-1 gap-2">
+                      <div
+                        className="flex gap-2 overflow-x-auto pb-1"
+                        style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+                      >
                         {SKIN_CATALOG.map((skin: SkinMeta) => {
                           const Icon = SKIN_ICON_MAP[skin.id];
                           const isOwned = ownedSkins.includes(skin.id);
@@ -711,27 +730,38 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                               key={skin.id}
                               whileTap={{ scale: 0.92 }}
                               onClick={() => setPreviewSkin(skin.id)}
-                              className="flex md:flex-row flex-col items-center gap-1 md:gap-2.5 py-2 px-1 md:px-3 rounded-xl border-[2px] transition-all"
+                              className="flex flex-col items-center gap-1.5 py-2 px-2.5 rounded-xl border-[2px] transition-all flex-shrink-0"
                               style={{
+                                minWidth: 64,
                                 background: isSelected ? skin.color + "33" : "rgba(255,255,255,0.06)",
-                                borderColor: isSelected ? skin.color : "rgba(255,255,255,0.15)",
-                                boxShadow: isSelected ? `0 0 8px ${skin.color}88` : "none",
+                                borderColor: isSelected ? skin.color : "rgba(255,255,255,0.12)",
+                                boxShadow: isSelected ? `0 0 10px ${skin.color}66` : "none",
                               }}
                             >
                               <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center relative flex-shrink-0"
-                                style={{ background: skin.color }}
+                                className="w-9 h-9 rounded-xl flex items-center justify-center relative flex-shrink-0"
+                                style={{
+                                  background: isSelected ? skin.color : skin.color + "55",
+                                  boxShadow: isSelected ? `0 2px 8px ${skin.color}88` : "none",
+                                }}
                               >
-                                <Icon className="w-4 h-4 text-white" />
+                                <Icon className="w-5 h-5 text-white" />
                                 {isOwned && (
-                                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-green-400 border border-black flex items-center justify-center">
-                                    <Check className="w-2 h-2 text-black" />
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-400 border-2 border-black flex items-center justify-center">
+                                    <Check className="w-2.5 h-2.5 text-black" />
                                   </div>
                                 )}
                               </div>
                               <span
-                                style={{ fontFamily: "'Fredoka One', cursive", fontSize: "0.7rem", lineHeight: 1.1, color: isSelected ? skin.color : "rgba(255,255,255,0.6)" }}
-                                className="text-center md:text-left leading-tight"
+                                style={{
+                                  fontFamily: "'Fredoka One', cursive",
+                                  fontSize: "0.65rem",
+                                  lineHeight: 1.1,
+                                  color: isSelected ? skin.color : "rgba(255,255,255,0.55)",
+                                  maxWidth: 60,
+                                  textAlign: "center",
+                                }}
+                                className="leading-tight"
                               >
                                 {skin.name}
                               </span>
@@ -741,7 +771,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                       </div>
                     </div>
 
-                    {/* ── Colonne droite : aperçu + achat ── */}
+                    {/* ── Aperçu + achat : pleine largeur en dessous ── */}
                     <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3" style={{ scrollbarWidth: "thin" }}>
                       {(() => {
                         const activeSkin = SKIN_CATALOG.find((s) => s.id === previewSkin)!;

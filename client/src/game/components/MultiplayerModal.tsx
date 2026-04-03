@@ -9,7 +9,7 @@ import {
   Check, AlertTriangle, FileText, User, TrendingUp, CloudUpload, Play,
 } from "lucide-react";
 import { createSession, joinSession, mpStorage } from "@/game/utils/sessionApi";
-import { MINI_GAME_LEVELS, type MiniGameLevel } from "@/game/utils/miniGameUtils";
+import { MINI_GAME_LEVELS, MINI_GAME_EXPLANATION, type MiniGameLevel } from "@/game/utils/miniGameUtils";
 import { useLocation } from "wouter";
 import { ALL_CARD_IDS, getCardConfig, CATEGORY_INFO, CATEGORY_ORDER } from "@/game/utils/cardConfig";
 import ticketImg from "@/game/utils/ticketImg";
@@ -27,7 +27,8 @@ export const SOLO_NO_INVESTISSEUR_KEY       = "ticket_cricket_no_investisseur";
 export const SOLO_CUSTOM_CARDS_ENABLED_KEY  = "ticket_cricket_custom_cards_enabled";
 export const SOLO_CUSTOM_CARDS_DATA_KEY     = "ticket_cricket_custom_cards_data";
 export const SOLO_MINI_GAME_LEVEL_KEY       = "ticket_cricket_mini_game_level";
-export const SOLO_PLUS_PACK_KEY        = "ticket_cricket_plus_pack";
+export const SOLO_PLUS_PACK_KEY             = "ticket_cricket_plus_pack";
+export const SOLO_EXTENSION_ENABLED_KEY    = "ticket_cricket_extension_enabled";
 
 // ── Niveaux de difficulté ──────────────────────────────────────
 export const DIFFICULTIES = [
@@ -160,6 +161,15 @@ function MiniGameLevelSelector({
       <label style={FONT_FREDOKA} className="text-white/70 text-sm">
         Taux de perquisition
       </label>
+      {/* Explication brève du taux de perquisition */}
+      <div
+        className="px-3 py-2 rounded-xl border-[1.5px] border-white/10"
+        style={{ background: "rgba(255,255,255,0.04)" }}
+      >
+        <div style={FONT_FREDOKA} className="text-white/45 text-xs leading-relaxed">
+          {MINI_GAME_EXPLANATION}
+        </div>
+      </div>
       <div className="grid grid-cols-5 gap-1.5">
         {MINI_GAME_LEVELS.map((lvl) => {
           const isActive = selected === lvl.level;
@@ -421,12 +431,14 @@ function DeckBreakdown({
   isSolo = false,
   customCards = [],
   customEnabled = false,
+  extensionEnabled = false,
 }: {
   disableT2: boolean;
   disableT3?: boolean;
   isSolo?: boolean;
   customCards?: Array<{ category: string }>;
   customEnabled?: boolean;
+  extensionEnabled?: boolean;
 }) {
   const effectiveDisableT3 = isSolo ? true : (disableT3 ?? false);
 
@@ -457,8 +469,23 @@ function DeckBreakdown({
       if (s) { s.custom++; s.total++; totalCustom++; }
     }
   }
-
-  const grandTotal = Object.values(stats).reduce((acc, s) => acc + s.total, 0);
+  // Cartes d'extension (Ticket Cricket Plus — IDs 325-352)
+  let totalExtension = 0;
+  if (extensionEnabled) {
+    // 28 cartes : 16 contraventions, 6 contribuables (si non désactivées), 6 investisseurs (si non désactivés)
+    const extByCategory: Record<string, number> = {
+      contravention: 16,
+      contribuable: disableT2 ? 0 : 6,
+      investisseur: effectiveDisableT3 ? 0 : 6,
+    };
+    for (const [cat, count] of Object.entries(extByCategory)) {
+      if (stats[cat] !== undefined) {
+        stats[cat].total += count;
+        totalExtension += count;
+      }
+    }
+  }
+  const grandTotal = Object.values(stats).reduce((acc, s) => acc + s.total, 0);;
 
   // Catégories visibles (non vides)
   const visibleCats = CATEGORY_ORDER.filter(cat => {
@@ -475,7 +502,7 @@ function DeckBreakdown({
       {/* En-tête total */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-white/8">
         <span style={FONT_FREDOKA} className="text-white/50 text-xs">
-          Deck actuel{totalCustom > 0 ? ` (dont ${totalCustom} perso)` : ""}
+          Deck actuel{totalCustom > 0 ? ` (dont ${totalCustom} perso)` : ""}{totalExtension > 0 ? ` (+${totalExtension} extension)` : ""}
         </span>
         <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.06em" }} className="text-yellow-400">
           {grandTotal} cartes
@@ -539,10 +566,12 @@ export function MultiplayerModal({ onClose }: Props) {
   // Filtres solo
   const [soloDisableT2, setSoloDisableT2] = useState(false);
   const [soloCustomEnabled, setSoloCustomEnabled] = useState(false);
+  const [soloExtensionEnabled, setSoloExtensionEnabled] = useState(true); // activé par défaut si pack possédé
   // Filtres multi (création)
   const [mpDisableT2, setMpDisableT2] = useState(false);
   const [mpDisableT3, setMpDisableT3] = useState(false);
   const [mpCustomEnabled, setMpCustomEnabled] = useState(false);
+  const [mpExtensionEnabled, setMpExtensionEnabled] = useState(true); // activé par défaut si pack possédé
 
   const resetError = () => setError("");
 
@@ -561,6 +590,12 @@ export function MultiplayerModal({ onClose }: Props) {
   });
   const customCards = customCardsData ?? [];
   const hasCustomCards = customCards.length > 0;
+  // Extensions possédées
+  const { data: ownedExpansionPacks } = trpc.shop.listExpansionPacks.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const hasPlusPack = (ownedExpansionPacks ?? []).includes("plus");
   const { data: saveData } = trpc.savedGames.loadGame.useQuery(undefined, {
     enabled: isAuthenticated,
     retry: false,
@@ -714,6 +749,8 @@ export function MultiplayerModal({ onClose }: Props) {
       localStorage.setItem(SOLO_NO_CONTRIBUABLE_KEY, soloDisableT2 ? "1" : "0");
       localStorage.setItem(SOLO_CUSTOM_CARDS_ENABLED_KEY, soloCustomEnabled ? "1" : "0");
       localStorage.setItem(SOLO_MINI_GAME_LEVEL_KEY, String(miniGameLevel));
+      // Toggle extension Ticket Cricket Plus
+      localStorage.setItem(SOLO_EXTENSION_ENABLED_KEY, (hasPlusPack && soloExtensionEnabled) ? "1" : "0");
       if (soloCustomEnabled && customCards.length > 0) {
         localStorage.setItem(SOLO_CUSTOM_CARDS_DATA_KEY, JSON.stringify(customCards));
       } else {
@@ -960,8 +997,46 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 </motion.button>
 
-                <DeckBreakdown disableT2={soloDisableT2} disableT3={false} isSolo={true} customCards={customCards} customEnabled={soloCustomEnabled && hasCustomCards} />
-
+                 {/* Extension Ticket Cricket Plus (solo) — visible seulement si le joueur possède le pack */}
+                {hasPlusPack && (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSoloExtensionEnabled(!soloExtensionEnabled)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-[3px] text-left transition-colors"
+                    style={{
+                      borderColor: soloExtensionEnabled ? "#FF9500" : "rgba(255,255,255,0.15)",
+                      background: soloExtensionEnabled ? "rgba(255,149,0,0.2)" : "rgba(255,255,255,0.05)",
+                      boxShadow: soloExtensionEnabled ? "3px 3px 0px #000" : "2px 2px 0px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                      style={{ background: soloExtensionEnabled ? "#FF9500" : "rgba(255,255,255,0.08)", boxShadow: "2px 2px 0px #000" }}
+                    >
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em" }} className={soloExtensionEnabled ? "text-white" : "text-white/50"}>
+                        TICKET CRICKET PLUS
+                      </div>
+                      <div style={FONT_FREDOKA} className="text-xs leading-none mt-0.5 text-white/30">
+                        28 cartes supplémentaires incluses dans le deck
+                      </div>
+                    </div>
+                    <div
+                      className="flex-shrink-0 px-2.5 py-1 rounded-lg border-[2px] border-black"
+                      style={{
+                        background: soloExtensionEnabled ? "#FF9500" : "rgba(255,255,255,0.08)",
+                        boxShadow: "2px 2px 0px #000",
+                      }}
+                    >
+                      <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.04em" }} className={soloExtensionEnabled ? "text-white" : "text-white/40"}>
+                        {soloExtensionEnabled ? "INCLUSES" : "EXCLUES"}
+                      </span>
+                    </div>
+                  </motion.button>
+                )}
+                <DeckBreakdown disableT2={soloDisableT2} disableT3={false} isSolo={true} customCards={customCards} customEnabled={soloCustomEnabled && hasCustomCards} extensionEnabled={hasPlusPack && soloExtensionEnabled} />
                 {/* ─ Configurations sauvegardées (solo) ─ */}
                 {isAuthenticated && (
                   <div className="flex flex-col gap-2">

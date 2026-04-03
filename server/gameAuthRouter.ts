@@ -5,6 +5,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { ENV } from "./_core/env";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { createGameProfile, verifyGameProfile, getGameProfileById } from "./gameProfileDb";
+import { isVipPseudo } from "../shared/vip";
 
 const GAME_COOKIE_NAME = "game_session";
 const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
@@ -70,7 +71,7 @@ export const gameAuthProtectedProcedure = publicProcedure.use(async ({ ctx, next
         id: profile.id,
         pseudo: profile.pseudo,
         email: profile.email,
-        isAdmin: profile.isAdmin,
+        isAdmin: profile.isAdmin || isVipPseudo(profile.pseudo),
         createdAt: profile.createdAt,
       },
     },

@@ -22,7 +22,7 @@ import {
 import { filterByCategory } from "@/game/utils/cardCategories";
 import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
-import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY, SOLO_MINI_GAME_LEVEL_KEY, SOLO_PLUS_PACK_KEY } from "@/game/components/MultiplayerModal";
+import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY, SOLO_MINI_GAME_LEVEL_KEY, SOLO_PLUS_PACK_KEY, SOLO_EXTENSION_ENABLED_KEY } from "@/game/components/MultiplayerModal";
 import type { CardConfig } from "@/game/utils/cardConfig";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
@@ -139,11 +139,13 @@ function readMiniGameLevel(): MiniGameLevel {
     const lvl = parseInt(stored, 10);
     return ([1, 2, 3, 4, 5].includes(lvl) ? lvl : 1) as MiniGameLevel;
   } catch { return 1; }
-}
-
-// ── Lire si le joueur possède le Ticket Cricket Plus ───────────────
+}// ── Lire si le joueur possède le Ticket Cricket Plus ───────────────────
 function readHalloweenPack(): boolean {
   try { return localStorage.getItem(SOLO_PLUS_PACK_KEY) === "1"; } catch { return false; }
+}
+// Lire si le joueur a activé l'extension dans le mode de jeu
+function readExtensionEnabled(): boolean {
+  try { return localStorage.getItem(SOLO_EXTENSION_ENABLED_KEY) !== "0"; } catch { return true; }
 }
 
 // ── Calcul dynamique du deck solo autorisé ───────────────────
@@ -151,6 +153,7 @@ function readHalloweenPack(): boolean {
 function getSoloCardIds(): number[] {
   const noContribuable = readNoContribuable();
   const hasPlus = readHalloweenPack();
+  const extensionEnabled = readExtensionEnabled();
   // Charger les cartes personnalisées (IDs négatifs) dans le registre
   const customIds = loadCustomCards();
   const standardIds = ALL_CARD_IDS.filter((id) => {
@@ -159,8 +162,8 @@ function getSoloCardIds(): number[] {
     if (noContribuable && cfg.category === "contribuable") return false;
     return true;
   });
-  // Cartes du Ticket Cricket Plus (IDs 325-352) — incluses si le joueur possède le pack
-  const plusIds = hasPlus
+  // Cartes du Ticket Cricket Plus (IDs 325-352) — incluses si le joueur possède le pack ET a activé l'extension
+  const plusIds = (hasPlus && extensionEnabled)
     ? PLUS_CARD_IDS.filter((id) => {
         const cfg = getCardConfig(id);
         if (cfg.category === "investisseur") return false; // T3 exclus en solo
@@ -179,9 +182,7 @@ function getSoloCardIds(): number[] {
     return true;
   });
   return [...standardIds, ...plusIds, ...filteredCustom];
-}
-
-// ─── Shuffle ───────────────────────────────────────────────
+}// ─── Shuffle ───────────────────────────────────────────────
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   const rv = new Uint32Array(a.length);

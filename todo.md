@@ -507,24 +507,39 @@
 
 ## Session 54 — Corrections boutique + 4 nouveaux skins
 
-- [ ] Boutique : supprimer "infractions québécoises" et "thème québécois humoristique" des textes
-- [ ] Boutique extensions : supprimer le mot "standard" de la description
-- [ ] Boutique packs personnalisables : corriger le layout (bulles mal cadrées, éléments illisibles)
-- [ ] Améliorer les descriptions de tous les skins existants (en lien avec leur design)
-- [ ] Nouveau skin "Négatif" : blanc/bleuté, effet négatif photo, rayons X
-- [ ] Nouveau skin "Bonbon" : multicolore, thème confiserie, sucre
-- [ ] Nouveau skin "Glitch" : effet glitch coloré, pixelisé, numérique
-- [ ] Nouveau skin "Pastel" : couleurs pastel, effet mat, couleurs complémentaires, gras
-- [ ] Intégrer les 4 nouveaux skins dans products.ts (1,99 $ chacun)
-- [ ] Intégrer les 4 nouveaux skins dans le bundle "Tous les skins"
-- [ ] Intégrer les 4 nouveaux skins dans ShopModal (icônes, SKIN_ICON_MAP)
-- [ ] Intégrer les 4 nouveaux skins dans GeneratedCard (rendu visuel)
-- [ ] Tests vitest + checkpoint
+- [x] Boutique : supprimer "infractions québécoises" et "thème québécois humoristique" des textes
+- [x] Boutique extensions : supprimer le mot "standard" de la description
+- [x] Boutique packs personnalisables : corriger le layout (bulles mal cadrées, éléments illisibles)
+- [x] Améliorer les descriptions de tous les skins existants (en lien avec leur design)
+- [x] Nouveau skin "Négatif" : blanc/bleué, effet négatif photo, rayons X
+- [x] Nouveau skin "Bonbon" : multicolore, thème confiserie, sucre
+- [x] Nouveau skin "Glitch" : effet glitch coloré, pixelisé, numérique
+- [x] Nouveau skin "Pastel" : couleurs pastel, effet mat, couleurs complémentaires, gras
+- [x] Intégrer les 4 nouveaux skins dans products.ts (1,99 $ chacun)
+- [x] Intégrer les 4 nouveaux skins dans le bundle "Tous les skins"
+- [x] Intégrer les 4 nouveaux skins dans ShopModal (icônes, SKIN_ICON_MAP)
+- [x] Intégrer les 4 nouveaux skins dans GeneratedCard (rendu visuel via SKIN_STYLES)
+- [x] Tests vitest : 110 tests passent
 - [x] Boutique accueil : retirer "1 skin gratuit inclus - 10 designs exclusifs" de la bulle Skins
 - [x] Boutique accueil : retirer "15 cartes personnalisables gratuites incluses" de la bulle Packs
 - [x] Boutique accueil : icône "Skins de cartes" → carte avec étoile SVG personnalisée
 - [x] Bug /custom-cards : "Element type is invalid" dans CustomCardCreator — import d'icône undefined
 
 ## Session 55 — Corrections boutique textes + layout packs
-- [ ] Boutique : corriger les textes/phrases dans les options (descriptions des catégories)
-- [ ] Boutique vue "Packs personnalisables" : refondre le layout des bulles (éléments illisibles, chevauchements)
+- [x] Boutique : corriger les textes/phrases dans les options (descriptions des catégories)
+- [x] Boutique vue "Packs personnalisables" : refondre le layout des bulles (éléments illisibles, chevauchements)
+
+## Session 56 — Améliorations multiples
+
+- [x] VIP Sandot1245 : accès permanent à tous les skins, packs et extensions (même les futurs)
+- [x] Mode de jeu solo : toggle "Inclure les extensions" (comme les cartes personnalisables)
+- [x] Mode de jeu multi : toggle "Inclure les extensions" (host seulement)
+- [x] Moteur de jeu : calcul du deck selon le toggle extensions (ajouter/retirer cartes 325-352)
+- [x] Boutique packs : corriger l'overflow des bulles (tout le contenu visible, pas d'éléments cachés) + perks affichés
+- [x] Boutique skins : refondre la vue pour qu'elle soit plus intuitive (sélecteur horizontal scrollable)
+- [x] Taux de perquisition solo : couleurs vert(1) bleu(2) violet(3) orange(4) rouge(5)
+- [x] Taux de perquisition multi : couleurs vert(1) bleu(2) violet(3) orange(4) rouge(5)
+- [x] Taux de perquisition : brève explication de ce que représente chaque niveau
+- [x] Responsive mobile : boutique skins refondre (sélecteur horizontal scrollable, aperçu pleine largeur)
+- [ ] Responsive mobile : optimiser DifficultyModal (solo) pour mobile
+- [ ] Responsive mobile : optimiser LobbyScreen (multi) pour mobile
