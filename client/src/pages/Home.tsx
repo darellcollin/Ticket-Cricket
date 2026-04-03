@@ -128,6 +128,105 @@ function SpeechBubble() {
   );
 }
 
+// ── Logo orbital : demi-orbite ARRIÈRE (passe derrière le titre) ──
+// Le ticket fait une orbite elliptique autour du titre.
+// On simule "devant/derrière" avec deux composants : Back (z<titre) et Front (z>titre).
+// Chaque composant anime une demi-orbite : Back = moitié gauche→droite en bas (z-index 2)
+//                                          Front = moitié droite→gauche en haut (z-index 8)
+// L'ellipse est centrée sur le titre, rayon X ~ 55vw, rayon Y ~ 40% de la hauteur du bloc titre.
+
+const ORBIT_DURATION = 4; // secondes pour un tour complet
+const TICKET_SIZE = "clamp(36px, 7vw, 64px)";
+
+// Demi-orbite arrière : le ticket passe DERRIÈRE le titre (z-index 2)
+// Trajectoire : part du centre-droit, descend en bas, arrive au centre-gauche
+function OrbitalTicketBack({ ticketImg }: { ticketImg: string }) {
+  return (
+    <motion.div
+      style={{
+        position: "absolute",
+        zIndex: 2,
+        pointerEvents: "none",
+        width: TICKET_SIZE,
+        aspectRatio: "2/1",
+      }}
+      animate={{
+        // Orbite elliptique — demi-arrière : de droite (0°) à gauche (180°) en passant par le bas
+        // On utilise offsetX/offsetY pour simuler l'ellipse
+        x: [
+          "clamp(120px, 28vw, 260px)",   // 0° : droite
+          "clamp(60px, 14vw, 130px)",    // 45°
+          "0px",                          // 90° : bas
+          "clamp(-60px, -14vw, -130px)", // 135°
+          "clamp(-120px, -28vw, -260px)",// 180° : gauche
+        ],
+        y: [
+          "0px",                         // 0° : milieu
+          "clamp(30px, 8vw, 70px)",      // 45° : descend
+          "clamp(50px, 12vw, 110px)",    // 90° : bas max
+          "clamp(30px, 8vw, 70px)",      // 135° : remonte
+          "0px",                         // 180° : milieu
+        ],
+        rotate: [0, 90, 180, 270, 360],
+        opacity: [1, 0.85, 0.7, 0.85, 1],
+        scale: [1, 0.85, 0.75, 0.85, 1],
+      }}
+      transition={{
+        duration: ORBIT_DURATION,
+        repeat: Infinity,
+        ease: "linear",
+        times: [0, 0.25, 0.5, 0.75, 1],
+      }}
+    >
+      <img src={ticketImg} alt="" style={{ width: "100%", display: "block", filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.6))" }} />
+    </motion.div>
+  );
+}
+
+// Demi-orbite avant : le ticket passe DEVANT le titre (z-index 8)
+// Trajectoire : part du centre-gauche, monte en haut, arrive au centre-droit
+function OrbitalTicketFront({ ticketImg }: { ticketImg: string }) {
+  return (
+    <motion.div
+      style={{
+        position: "absolute",
+        zIndex: 8,
+        pointerEvents: "none",
+        width: TICKET_SIZE,
+        aspectRatio: "2/1",
+      }}
+      animate={{
+        // Demi-avant : de gauche (180°) à droite (360°) en passant par le haut
+        x: [
+          "clamp(-120px, -28vw, -260px)",// 180° : gauche
+          "clamp(-60px, -14vw, -130px)", // 225°
+          "0px",                          // 270° : haut
+          "clamp(60px, 14vw, 130px)",    // 315°
+          "clamp(120px, 28vw, 260px)",   // 360° : droite
+        ],
+        y: [
+          "0px",                          // 180° : milieu
+          "clamp(-30px, -8vw, -70px)",   // 225° : monte
+          "clamp(-50px, -12vw, -110px)", // 270° : haut max
+          "clamp(-30px, -8vw, -70px)",   // 315° : redescend
+          "0px",                          // 360° : milieu
+        ],
+        rotate: [180, 270, 360, 450, 540],
+        opacity: [1, 1, 1, 1, 1],
+        scale: [1, 1.1, 1.2, 1.1, 1],
+      }}
+      transition={{
+        duration: ORBIT_DURATION,
+        repeat: Infinity,
+        ease: "linear",
+        times: [0, 0.25, 0.5, 0.75, 1],
+      }}
+    >
+      <img src={ticketImg} alt="" style={{ width: "100%", display: "block", filter: "drop-shadow(2px 2px 6px rgba(255,215,0,0.5))" }} />
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const [, navigate] = useLocation();
   const [rulesAnimating, setRulesAnimating] = useState(false);
@@ -264,69 +363,53 @@ export default function Home() {
         {/* ── MAIN CONTENT ── */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 pt-3 pb-3" style={{ gap: "clamp(1rem, 3vh, 2.5rem)" }}>
 
-          {/* ── ZONE LOGO + TITRE ── */}
-          <div className="flex flex-col items-center flex-shrink-0" style={{ gap: "clamp(0.2rem, 1vw, 0.6rem)" }}>
-            {/* Logo ticket animé */}
-            <motion.div
-              style={{
-                width: "clamp(140px, 32vw, 280px)",
-                userSelect: "none",
-                flexShrink: 0,
-              }}
-              animate={{
-                y: [0, -10, 0],
-                rotate: [-7, 7, -7],
-                filter: [
-                  "drop-shadow(0 6px 0px rgba(0,0,0,0.5))",
-                  "drop-shadow(0 12px 0px rgba(0,0,0,0.35))",
-                  "drop-shadow(0 6px 0px rgba(0,0,0,0.5))",
-                ],
-              }}
-              transition={{ duration: 3.0, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <img src={ticketImg} alt="Ticket" style={{ width: "100%", display: "block" }} />
-            </motion.div>
+          {/* ── TITRE GÉANT + LOGO ORBITAL ── */}
+          <div className="flex-shrink-0 relative flex items-center justify-center" style={{ width: "100%" }}>
 
-            {/* Titre TICKET CRICKET */}
+            {/* ── Couche ARRIÈRE du logo orbital (z-index bas) ── */}
+            <OrbitalTicketBack ticketImg={ticketImg} />
+
+            {/* ── Titre TICKET CRICKET (couche milieu) ── */}
             <motion.div
-              style={{ zIndex: 2, position: "relative" }}
+              style={{ position: "relative", zIndex: 5, textAlign: "center" }}
               animate={{ rotate: [-1.5, 1.5, -1.5] }}
               transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
             >
-              <div className="flex flex-col items-center" style={{ gap: 0 }}>
-                <span
+              <div style={{ lineHeight: 0.9 }}>
+                <div
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(2rem, 7vw, 4rem)",
+                    fontSize: "clamp(4rem, 16vw, 9rem)",
                     letterSpacing: "0.06em",
-                    lineHeight: 1,
-                    display: "block",
-                    textAlign: "center",
+                    lineHeight: 0.9,
                     color: "#FFD700",
                     fontWeight: 900,
-                    textShadow: "3px 3px 0px #000, 0px 0px 20px rgba(255,215,0,0.4)",
+                    textShadow: "4px 4px 0px #000, 0px 0px 30px rgba(255,215,0,0.5)",
                     transform: "skewX(-2deg)",
+                    display: "block",
                   }}
                 >
                   TICKET
-                </span>
-                <span
+                </div>
+                <div
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(1.5rem, 5.5vw, 3rem)",
+                    fontSize: "clamp(3rem, 12vw, 7rem)",
                     letterSpacing: "0.1em",
-                    lineHeight: 1,
-                    display: "block",
-                    textAlign: "center",
+                    lineHeight: 0.9,
                     color: "#FFFFFF",
                     fontWeight: 900,
-                    textShadow: "2px 2px 0px #000",
+                    textShadow: "3px 3px 0px #000",
+                    display: "block",
                   }}
                 >
                   CRICKET
-                </span>
+                </div>
               </div>
             </motion.div>
+
+            {/* ── Couche AVANT du logo orbital (z-index haut) ── */}
+            <OrbitalTicketFront ticketImg={ticketImg} />
           </div>
 
           {/* ── ZONE BOUTONS ── */}
