@@ -8,6 +8,7 @@ import { miniGameRouter } from "./miniGameRouter";
 import { customCardsRouter } from "./customCardsRouter";
 import { sessionCustomCardsRouter } from "./sessionCustomCardsRouter";
 import { gameConfigsRouter } from "./gameConfigsRouter";
+import { shopRouter } from "./shopRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -39,6 +40,9 @@ export const appRouter = router({
 
   /** Configurations de partie sauvegardées */
   gameConfigs: gameConfigsRouter,
+
+  /** Boutique Ticket Cricket — produits et paiements Stripe */
+  shop: shopRouter,
 });
 
 export type AppRouter = typeof appRouter;

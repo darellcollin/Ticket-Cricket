@@ -284,3 +284,10 @@
 ## Modifications session 27 — Bouton partage lien du jeu
 - [x] Accueil : bouton partage lien du jeu en bas au centre (icône partage)
 - [x] Partage : Web Share API sur mobile, fallback X/Facebook/WhatsApp/SMS/copie sur PC
+
+## Modifications session 28 — Bouton partage + Stripe
+- [x] Accueil : déplacer le bouton partage sous le bouton Boutique (au centre, pas dans la barre du bas)
+- [x] Accueil : supprimer le bouton partage de la barre du bas
+- [x] Stripe : intégrer le système de paiement dans la boutique (skins, decks, dons)
+- [x] Boutique : déverrouiller les produits avec Stripe Checkout (paiement réel)
+- [x] Boutique : page de confirmation après paiement réussi — toast + redirection Stripe natif

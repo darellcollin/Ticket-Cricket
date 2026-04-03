@@ -525,6 +525,28 @@ export default function Home() {
                 BOUTIQUE
               </motion.button>
             </div>
+
+            {/* Ligne 3 : PARTAGER LE JEU — centré sous Boutique */}
+            <div className="flex items-center justify-center w-full">
+              <motion.button
+                className="flex items-center justify-center gap-2 px-6 py-2 rounded-2xl border-[3px] border-white/30 text-white/80 relative overflow-hidden"
+                style={{
+                  ...FONT_FREDOKA,
+                  fontSize: '1rem',
+                  letterSpacing: '0.08em',
+                  background: 'rgba(255,255,255,0.08)',
+                  boxShadow: '3px 3px 0px rgba(0,0,0,0.4)',
+                  backdropFilter: 'blur(4px)',
+                }}
+                whileHover={{ scale: 1.05, borderColor: 'rgba(255,215,0,0.5)', color: '#FFD700' } as any}
+                whileTap={{ scale: 0.95 } as any}
+                onClick={() => setShowShareModal(true)}
+              >
+                <Share2 size={16} />
+                PARTAGER LE JEU
+              </motion.button>
+            </div>
+
             </div>
           </div>
         </div>
@@ -532,22 +554,11 @@ export default function Home() {
 
       <PoliceTape />
 
-      {/* Bottom bar : copyright + bouton partage */}
-      <div className="w-full bg-[#111] py-1 flex-shrink-0 flex items-center justify-center relative" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
+      {/* Bottom bar : copyright uniquement */}
+      <div className="w-full bg-[#111] py-1 flex-shrink-0 flex items-center justify-center" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
         <span style={FONT_FREDOKA} className="text-yellow-400/60 text-xs tracking-widest">
           © TICKET CRICKET 2026
         </span>
-        {/* Bouton partage centré en bas */}
-        <motion.button
-          className="absolute right-3 bottom-1 w-9 h-9 rounded-full bg-white/10 border-[2px] border-white/25 flex items-center justify-center"
-          style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.4)' }}
-          whileHover={{ scale: 1.12, borderColor: 'rgba(255,215,0,0.6)' } as any}
-          whileTap={{ scale: 0.9 } as any}
-          onClick={() => setShowShareModal(true)}
-          title="Partager le jeu"
-        >
-          <Share2 size={16} color="white" />
-        </motion.button>
       </div>
 
       {/* ── Modal Multijoueur ── */}

@@ -30,6 +30,45 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // ── Stripe webhook — DOIT être avant express.json() pour la vérification de signature ──
+  app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+    const sigRaw = req.headers["stripe-signature"];
+    const sig = Array.isArray(sigRaw) ? sigRaw[0] : sigRaw;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!sig || !webhookSecret) {
+      res.status(400).send("Missing signature or webhook secret");
+      return;
+    }
+    let event: import("stripe").Stripe.Event;
+    try {
+      const { default: Stripe } = await import("stripe");
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-03-31.basil" });
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err: any) {
+      console.error("[Stripe Webhook] Signature verification failed:", err.message);
+      res.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+    // Détecter les événements de test
+    if (event.id.startsWith("evt_test_")) {
+      console.log("[Stripe Webhook] Test event detected, returning verification response");
+      res.json({ verified: true });
+      return;
+    }
+    // Traitement des événements réels
+    console.log(`[Stripe Webhook] Event: ${event.type} | ID: ${event.id}`);
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as import("stripe").Stripe.Checkout.Session;
+      const productId = session.metadata?.product_id;
+      const userId = session.metadata?.user_id;
+      const productName = session.metadata?.product_name;
+      console.log(`[Stripe Webhook] Paiement complet — user=${userId}, product=${productId} (${productName})`);
+      // TODO: Enregistrer l'achat en DB si nécessaire (skins, decks, etc.)
+    }
+    res.json({ received: true });
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
