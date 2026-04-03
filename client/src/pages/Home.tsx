@@ -262,14 +262,14 @@ export default function Home() {
         <BackgroundParticles />
 
         {/* ── MAIN CONTENT ── */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 py-4 gap-4">
+        <div className="relative z-10 flex flex-col items-center justify-between h-full px-6 pt-3 pb-3">
 
           {/* ── ZONE LOGO + TITRE ── */}
-          <div className="flex flex-col items-center w-full" style={{ gap: "clamp(0.3rem, 1.5vw, 0.8rem)" }}>
+          <div className="flex-1 flex flex-col items-center justify-center w-full" style={{ gap: "clamp(0.2rem, 1vw, 0.6rem)" }}>
             {/* Logo ticket animé */}
             <motion.div
               style={{
-                width: "clamp(120px, 28vw, 240px)",
+                width: "clamp(110px, 26vw, 220px)",
                 userSelect: "none",
                 flexShrink: 0,
               }}
@@ -297,7 +297,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(2.8rem, 12vw, 5.5rem)",
+                    fontSize: "clamp(2.4rem, 10vw, 5rem)",
                     letterSpacing: "0.06em",
                     lineHeight: 1,
                     display: "block",
@@ -313,7 +313,7 @@ export default function Home() {
                 <span
                   style={{
                     fontFamily: "'Bangers', cursive",
-                    fontSize: "clamp(2rem, 9vw, 4rem)",
+                    fontSize: "clamp(1.8rem, 7.5vw, 3.8rem)",
                     letterSpacing: "0.1em",
                     lineHeight: 1,
                     display: "block",
@@ -330,7 +330,7 @@ export default function Home() {
           </div>
 
           {/* ── ZONE BOUTONS ── */}
-          <div className="flex flex-col items-center gap-2.5 w-full">
+          <div className="flex flex-col items-center gap-2 w-full pb-1">
             {/* Bulle de texte au-dessus des boutons */}
             <div style={{ zIndex: 2, position: "relative" }}>
               <SpeechBubble />
