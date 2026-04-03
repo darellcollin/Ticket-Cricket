@@ -415,6 +415,11 @@ export default function Home() {
           {/* ── ZONE BOUTONS ── */}
           <div className="flex flex-col items-center gap-2 w-full flex-shrink-0">
 
+            {/* Bulle slogan au-dessus du bouton JOUER */}
+            <div style={{ zIndex: 2, position: "relative" }}>
+              <SpeechBubble />
+            </div>
+
             {/* Ligne 1 : JOUER + RÈGLES côte à côte sur PC, en colonne sur mobile */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
               {/* ── JOUER BUTTON ── */}

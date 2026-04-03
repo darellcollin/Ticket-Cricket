@@ -239,6 +239,6 @@
 
 ## Modifications session 21 — Titre géant + logo orbital
 
-- [ ] Accueil : supprimer le grand logo fixe
-- [ ] Accueil : titre TICKET CRICKET très grand en haut de la page
-- [ ] Accueil : petit logo ticket qui orbite autour du titre (passant devant et derrière)
+- [x] Accueil : supprimer le grand logo fixe
+- [x] Accueil : titre TICKET CRICKET très grand en haut de la page
+- [x] Accueil : petit logo ticket qui orbite autour du titre (passant devant et derrière)
