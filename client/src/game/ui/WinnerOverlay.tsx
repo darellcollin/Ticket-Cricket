@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Trophy, Shuffle, Home, Star, X } from "lucide-react";
+import { ShareScore } from "@/game/components/ShareScore";
 
 const FONT_BANGERS: React.CSSProperties  = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties  = { fontFamily: "'Fredoka One', cursive" };
@@ -245,6 +246,14 @@ export function WinnerOverlay({
             </motion.button>
           </div>
         )}
+        {/* Partage réseaux sociaux */}
+        <ShareScore
+          playerName={winnerName}
+          totalDebt={totalDebt}
+          mode={mode}
+          isWinner={isMe}
+        />
+
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowConfirmMenu(true)}

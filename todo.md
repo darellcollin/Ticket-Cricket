@@ -265,3 +265,8 @@
 - [x] Accueil : bouton RÈGLES en jaune
 - [x] MultiplayerModal : bouton Jouer plus beau (meilleure typo, design amélioré)
 - [x] Solo modal : bouton Jouer plus beau (meilleure typo, design amélioré)
+
+## Modifications session 25 — Partage réseaux sociaux
+- [x] Créer composant ShareScore.tsx avec boutons X, Facebook, WhatsApp et copie de lien
+- [x] Intégrer ShareScore dans WinnerOverlay (fin de partie multi)
+- [x] Intégrer ShareScore dans GameScreen (fin de partie solo) — via WinnerOverlay déjà utilisé
