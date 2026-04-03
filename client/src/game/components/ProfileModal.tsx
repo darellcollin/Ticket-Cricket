@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Layers, Heart, ShoppingBag, ExternalLink, Sparkles, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, Globe, Wand2, Ghost, Star } from "lucide-react";
+import { Layers, Heart, ShoppingBag, ExternalLink, Sparkles, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, Globe, Wand2, Ghost, Star, Lightbulb } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SKIN_CATALOG } from "@/game/utils/skinConfig";
 import type { CardSkinId } from "@/game/utils/skinConfig";
@@ -8,7 +8,7 @@ import type { CardSkinId } from "@/game/utils/skinConfig";
 // Map des icônes par skin
 const SKIN_ICON_MAP: Record<CardSkinId, React.ComponentType<{ className?: string }>> = {
   classique: Star,
-  neon: Zap,
+  neon: Lightbulb,
   retro: Cog,
   glace: Snowflake,
   feu: Flame,

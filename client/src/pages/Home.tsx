@@ -541,31 +541,37 @@ export default function Home() {
         </div>
       </div>
 
-      <PoliceTape />
-
-      {/* Bottom bar : copyright + boutons Partager/Politiques */}
-      <div className="w-full bg-[#111] py-1.5 flex-shrink-0 flex items-center justify-center gap-3" style={{ paddingBottom: "calc(0.375rem + env(safe-area-inset-bottom, 0px))" }}>
+      {/* Boutons Partager + Politiques — juste au-dessus du footer */}
+      <div className="w-full flex items-center justify-center gap-4 py-2 flex-shrink-0">
         <motion.button
-          className="w-8 h-8 rounded-full border-[2px] border-white/20 bg-white/8 flex items-center justify-center"
-          whileHover={{ scale: 1.12, borderColor: 'rgba(255,215,0,0.6)' } as any}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[2px] border-white/25 bg-white/10"
+          whileHover={{ scale: 1.08, borderColor: 'rgba(255,215,0,0.6)' } as any}
           whileTap={{ scale: 0.9 } as any}
           onClick={() => setShowShareModal(true)}
           title="Partager le jeu"
         >
-          <Share2 size={14} color="rgba(255,255,255,0.6)" />
+          <Share2 size={13} color="rgba(255,255,255,0.7)" />
+          <span style={{ ...FONT_FREDOKA, fontSize: '0.7rem' }} className="text-white/70">Partager</span>
         </motion.button>
-        <span style={FONT_FREDOKA} className="text-yellow-400/60 text-xs tracking-widest">
-          © TICKET CRICKET 2026
-        </span>
         <motion.button
-          className="w-8 h-8 rounded-full border-[2px] border-white/20 bg-white/8 flex items-center justify-center"
-          whileHover={{ scale: 1.12, borderColor: 'rgba(100,200,255,0.6)' } as any}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[2px] border-white/25 bg-white/10"
+          whileHover={{ scale: 1.08, borderColor: 'rgba(100,200,255,0.6)' } as any}
           whileTap={{ scale: 0.9 } as any}
           onClick={() => setShowPoliciesModal(true)}
           title="Politiques du jeu"
         >
-          <FileText size={14} color="rgba(255,255,255,0.6)" />
+          <FileText size={13} color="rgba(255,255,255,0.7)" />
+          <span style={{ ...FONT_FREDOKA, fontSize: '0.7rem' }} className="text-white/70">Politiques</span>
         </motion.button>
+      </div>
+
+      <PoliceTape />
+
+      {/* Bottom bar : copyright */}
+      <div className="w-full bg-[#111] py-1 flex-shrink-0 flex items-center justify-center" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
+        <span style={FONT_FREDOKA} className="text-yellow-400/60 text-xs tracking-widest">
+          © TICKET CRICKET 2026
+        </span>
       </div>
 
       {/* ── Modal Multijoueur ── */}

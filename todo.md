@@ -608,3 +608,8 @@
 - [x] Boutons Partager/Politiques dans le footer bas sur mobile (Home.tsx)
 - [x] Retirer "— économisez plus de 50%" du forfait skins (ShopModal.tsx)
 - [x] Supprimer la section "Bientôt disponible" dans la boutique (ShopModal.tsx)
+
+## Session 64 — Corrections UI
+
+- [x] Boutons Partager/Politiques visibles juste au-dessus du footer sur mobile
+- [x] Symbole skin Néons → Lightbulb (ampoule) partout dans l'app (ShopModal, ProfileModal, CustomCardCreator)

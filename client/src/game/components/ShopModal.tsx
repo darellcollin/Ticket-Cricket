@@ -5,7 +5,7 @@
  */
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus, Globe, Wand2, Package, Ghost } from "lucide-react";
+import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus, Globe, Wand2, Package, Ghost, Lightbulb } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { GeneratedCard } from "@/game/components/GeneratedCard";
@@ -71,7 +71,7 @@ const DEMO_INVESTISSEUR: CardConfig = { id: 30, category: "investisseur", cardTy
 
 const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   classique: Layers,
-  neon: Sparkles,
+  neon: Lightbulb,
   retro: Star,
   glace: Snowflake,
   feu: Flame,

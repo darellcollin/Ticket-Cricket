@@ -10,7 +10,7 @@ import {
   Plus, Trash2, ArrowLeft, ChevronRight,
   Lock, CheckCircle2, AlertCircle, Sparkles,
   Layers, Flame, Snowflake, Crown, Star, Check,
-  Trees, Cog, Gem, Globe, Wand2, Zap, Gift,
+  Trees, Cog, Gem, Globe, Wand2, Zap, Gift, Lightbulb,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
@@ -42,7 +42,7 @@ const MAX_CARDS_FREE = 15;
 
 const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   classique: Layers,
-  neon: Sparkles,
+  neon: Lightbulb,
   retro: Star,
   glace: Snowflake,
   feu: Flame,
