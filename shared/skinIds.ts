@@ -9,6 +9,8 @@ export const SKIN_IDS = [
   "glace",
   "feu",
   "royal",
+  "cosmic",
+  "magique",
   "foret",
   "metal",
   "prestige",

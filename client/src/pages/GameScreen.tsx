@@ -22,13 +22,13 @@ import {
 import { filterByCategory } from "@/game/utils/cardCategories";
 import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
-import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY } from "@/game/components/MultiplayerModal";
+import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY, SOLO_MINI_GAME_LEVEL_KEY } from "@/game/components/MultiplayerModal";
 import type { CardConfig } from "@/game/utils/cardConfig";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
 import type { CardSkinId } from "@/game/components/GeneratedCard";
 import { MiniGame } from "@/game/components/MiniGame";
-import { rollMiniGame } from "@/game/utils/miniGameUtils";
+import { rollMiniGame, type MiniGameLevel } from "@/game/utils/miniGameUtils";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -129,6 +129,16 @@ function readEliminationThreshold(): number {
 // ── Lire le filtre "sans contribuables" ─────────────────────
 function readNoContribuable(): boolean {
   try { return localStorage.getItem(SOLO_NO_CONTRIBUABLE_KEY) === "1"; } catch { return false; }
+}
+
+// ── Lire le niveau de perquisition depuis localStorage ───────────
+function readMiniGameLevel(): MiniGameLevel {
+  try {
+    const stored = localStorage.getItem(SOLO_MINI_GAME_LEVEL_KEY);
+    if (!stored) return 1;
+    const lvl = parseInt(stored, 10);
+    return ([1, 2, 3, 4, 5].includes(lvl) ? lvl : 1) as MiniGameLevel;
+  } catch { return 1; }
 }
 
 // ── Calcul dynamique du deck solo autorisé ───────────────────
@@ -1085,7 +1095,8 @@ export function GameScreen() {
   // ─ Perquisition ─
   const [miniGameMode, setMiniGameMode] = useState<"run" | "hide" | null>(null);
   const [miniGameBonus, setMiniGameBonus] = useState(0); // Bonus/pénalité cumulé des mini-jeux
-  const [soloMiniGameHistory, setSoloMiniGameHistory] = useState<Array<{ success: boolean; amount: number; turnLabel: string }>>([]);
+  const [soloMiniGameHistory, setSoloMiniGameHistory] = useState<Array<{ success: boolean; amount: number; turnLabel: string }>>([]); 
+  const [soloMiniGameLevel] = useState<MiniGameLevel>(() => readMiniGameLevel());
 
   // ─ Skin actif ─
   const { data: activeSkinId } = trpc.skins.getActiveSkin.useQuery(undefined, {
@@ -1156,8 +1167,8 @@ export function GameScreen() {
   const handleDraw = useCallback(() => {
     if (deck.length === 0 || isFlipping || isShuffling || isEliminated) return;
 
-    // Vérifier si le mini-jeu se déclenche (8% de chance)
-    const { triggered, mode } = rollMiniGame();
+    // Vérifier si le mini-jeu se déclenche selon le niveau de perquisition choisi
+    const { triggered, mode } = rollMiniGame(soloMiniGameLevel);
     if (triggered) {
       setMiniGameMode(mode);
       return; // Le mini-jeu s'affiche, la pioche se fera après

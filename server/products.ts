@@ -6,6 +6,7 @@
  *  - "card_pack" : packs de cartes personnalisables (disponibles)
  *  - "don"       : don à montant libre (disponible)
  *  - "skin"      : skins de cartes (disponibles)
+ *  - "bundle"    : forfait groupé (tous les skins)
  *  - "deck"      : decks exclusifs (bientôt)
  *  - "pack"      : packs de personnalisation (bientôt)
  */
@@ -16,7 +17,7 @@ export interface ShopProduct {
   description: string;
   price: number; // en cents CAD
   currency: string;
-  category: "card_pack" | "skin" | "deck" | "pack" | "don";
+  category: "card_pack" | "skin" | "deck" | "pack" | "don" | "bundle";
   icon: string;
   color: string;
   available: boolean;
@@ -24,9 +25,17 @@ export interface ShopProduct {
   extraCards?: number;
   /** ID du skin à débloquer (pour skin uniquement) */
   skinId?: string;
-  /** Skin premium (coûte plus cher) */
+  /** IDs des skins inclus dans le forfait (pour bundle uniquement) */
+  bundleSkinIds?: string[];
+  /** Skin premium */
   premium?: boolean;
 }
+
+// Tous les IDs de skins payants (hors classique qui est gratuit)
+export const ALL_PAID_SKIN_IDS = [
+  "neon", "retro", "glace", "feu", "royal",
+  "cosmic", "magique", "foret", "metal", "prestige",
+];
 
 export const SHOP_PRODUCTS: ShopProduct[] = [
   // ── PACKS DE CARTES PERSONNALISABLES (disponibles) ──
@@ -80,12 +89,26 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     available: true,
   },
 
-  // ── SKINS DE CARTES STANDARDS (disponibles) ──
+  // ── FORFAIT TOUS LES SKINS (15,99 $) ──
+  {
+    id: "bundle_all_skins",
+    name: "Forfait Tous les Skins",
+    description: "Débloquez les 10 skins en une seule fois. Économisez plus de 4 $.",
+    price: 1599, // 15.99 CAD
+    currency: "cad",
+    category: "bundle",
+    icon: "package",
+    color: "#F59E0B",
+    available: true,
+    bundleSkinIds: ALL_PAID_SKIN_IDS,
+  },
+
+  // ── SKINS DE CARTES STANDARDS (1,99 $ chacun) ──
   {
     id: "skin_neon",
     name: "Skin Néon",
     description: "Cyberpunk sombre avec lueurs néon vives. Cartes lumineuses sur fond noir.",
-    price: 299,
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "sparkles",
@@ -97,7 +120,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     id: "skin_retro",
     name: "Skin Rétro",
     description: "Dégradés pastel et typographie années 80. Nostalgie garantie.",
-    price: 299,
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "star",
@@ -109,7 +132,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     id: "skin_glace",
     name: "Skin Glace",
     description: "Tons bleus glacés et effet cristal. Froid comme la banquise.",
-    price: 299,
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "snowflake",
@@ -121,7 +144,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     id: "skin_feu",
     name: "Skin Feu",
     description: "Flammes et lave — rouge et orange intenses. Pour les joueurs qui brûlent.",
-    price: 299,
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "flame",
@@ -133,7 +156,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     id: "skin_royal",
     name: "Skin Royal",
     description: "Fond sombre, dorures et marbre luxueux. Pour les joueurs de prestige.",
-    price: 299,
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "crown",
@@ -142,12 +165,38 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     skinId: "royal",
   },
 
-  // ── SKINS PREMIUM (4,99 $ — 2 $ de plus que les standards) ──
+  // ── SKINS PREMIUM (1,99 $ — même prix que les standards) ──
+  {
+    id: "skin_cosmic",
+    name: "Skin Cosmic",
+    description: "Espace profond — étoiles, planètes et nébuleuses scintillantes.",
+    price: 199, // 1.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "globe",
+    color: "#7C3AED",
+    available: true,
+    skinId: "cosmic",
+    premium: true,
+  },
+  {
+    id: "skin_magique",
+    name: "Skin Magique",
+    description: "Holographique scintillant — reflets arc-en-ciel et effet magique.",
+    price: 199, // 1.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "wand2",
+    color: "#EC4899",
+    available: true,
+    skinId: "magique",
+    premium: true,
+  },
   {
     id: "skin_foret",
     name: "Skin Forêt",
     description: "Textures bois et mousse — vert forêt, brun et ocre. Nature sauvage.",
-    price: 499, // 4.99 CAD
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "trees",
@@ -160,7 +209,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     id: "skin_metal",
     name: "Skin Métal",
     description: "Acier brossé et chrome industriel. Texture métallique froide et précise.",
-    price: 499, // 4.99 CAD
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "cog",
@@ -173,7 +222,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     id: "skin_prestige",
     name: "Skin Prestige",
     description: "Diamant glossy et reflets arc-en-ciel. Le summum du luxe absolu.",
-    price: 499, // 4.99 CAD
+    price: 199, // 1.99 CAD
     currency: "cad",
     category: "skin",
     icon: "gem",

@@ -46,6 +46,8 @@ export interface Session {
   createdAt: number;
   /** Dernier joueur ayant quitté/été expulsé (pour notif temps réel). */
   recentLeave?: { playerName: string; timestamp: number; kickedBy: string | null } | null;
+  /** Niveau de taux de perquisition (1-5). Défaut : 1 (2%). */
+  miniGameLevel?: number;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -75,8 +77,9 @@ export async function createSession(
   eliminationThreshold = 10_000,
   allowedCardIds?: number[],
   disabledCardTypes?: number[],
+  miniGameLevel?: number,
 ): Promise<{ code: string; playerId: string; session: Session }> {
-  return post("/session/create", { hostName, eliminationThreshold, allowedCardIds, disabledCardTypes });
+  return post("/session/create", { hostName, eliminationThreshold, allowedCardIds, disabledCardTypes, miniGameLevel });
 }
 
 export async function getSession(code: string): Promise<{ session: Session }> {

@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { SHOP_PRODUCTS, AVAILABLE_PRODUCTS } from "./products";
+import { SHOP_PRODUCTS, AVAILABLE_PRODUCTS, ALL_PAID_SKIN_IDS } from "./products";
 import { gameAuthProtectedProcedure } from "./gameAuthRouter";
 import { getDb } from "./db";
 import { purchases } from "../drizzle/schema";
@@ -55,10 +55,15 @@ export const shopRouter = router({
         client_reference_id: ctx.user.id.toString(),
         metadata: {
           user_id: ctx.user.id.toString(),
+          profile_id: ctx.user.id.toString(),
           product_id: product.id,
           product_name: product.name,
           product_category: product.category,
           extra_cards: product.extraCards?.toString() ?? "0",
+          // Pour les bundles : liste des skins à débloquer
+          bundle_skin_ids: product.category === "bundle"
+            ? (product.bundleSkinIds ?? ALL_PAID_SKIN_IDS).join(",")
+            : "",
           customer_email: ctx.user.email ?? "",
           customer_name: ctx.user.name ?? "",
         },

@@ -9,6 +9,7 @@ import {
   Check, AlertTriangle, FileText, User, TrendingUp, CloudUpload, Play,
 } from "lucide-react";
 import { createSession, joinSession, mpStorage } from "@/game/utils/sessionApi";
+import { MINI_GAME_LEVELS, type MiniGameLevel } from "@/game/utils/miniGameUtils";
 import { useLocation } from "wouter";
 import { ALL_CARD_IDS, getCardConfig, CATEGORY_INFO, CATEGORY_ORDER } from "@/game/utils/cardConfig";
 import ticketImg from "@/game/utils/ticketImg";
@@ -25,6 +26,7 @@ export const SOLO_NO_CONTRIBUABLE_KEY       = "ticket_cricket_no_contribuable";
 export const SOLO_NO_INVESTISSEUR_KEY       = "ticket_cricket_no_investisseur";
 export const SOLO_CUSTOM_CARDS_ENABLED_KEY  = "ticket_cricket_custom_cards_enabled";
 export const SOLO_CUSTOM_CARDS_DATA_KEY     = "ticket_cricket_custom_cards_data";
+export const SOLO_MINI_GAME_LEVEL_KEY       = "ticket_cricket_mini_game_level";
 
 // ── Niveaux de difficulté ──────────────────────────────────────
 export const DIFFICULTIES = [
@@ -140,6 +142,64 @@ function DifficultySelector({
           </motion.button>
         );
       })}
+    </div>
+  );
+}
+
+// ── MiniGameLevelSelector — sélecteur de taux de perquisition ──
+function MiniGameLevelSelector({
+  selected,
+  onChange,
+}: {
+  selected: MiniGameLevel;
+  onChange: (l: MiniGameLevel) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label style={FONT_FREDOKA} className="text-white/70 text-sm">
+        Taux de perquisition
+      </label>
+      <div className="grid grid-cols-5 gap-1.5">
+        {MINI_GAME_LEVELS.map((lvl) => {
+          const isActive = selected === lvl.level;
+          return (
+            <motion.button
+              key={lvl.level}
+              whileTap={{ scale: 0.94 }}
+              onClick={() => onChange(lvl.level as MiniGameLevel)}
+              className="flex flex-col items-center gap-1 py-2 rounded-xl border-[2.5px] transition-colors"
+              style={{
+                borderColor: isActive ? lvl.color : "rgba(255,255,255,0.15)",
+                background: isActive ? lvl.color + "22" : "rgba(255,255,255,0.04)",
+                boxShadow: isActive ? `2px 2px 0px #000` : "1px 1px 0px rgba(0,0,0,0.3)",
+              }}
+            >
+              <span
+                style={{ ...FONT_BANGERS, fontSize: "1.4rem", lineHeight: 1, color: isActive ? lvl.color : "rgba(255,255,255,0.35)" }}
+              >
+                {lvl.level}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+      {/* Description du niveau sélectionné */}
+      {(() => {
+        const lvl = MINI_GAME_LEVELS.find(l => l.level === selected)!;
+        return (
+          <div
+            className="px-3 py-2 rounded-xl border-[2px]"
+            style={{ borderColor: lvl.color + "55", background: lvl.color + "11" }}
+          >
+            <div style={{ ...FONT_BANGERS, fontSize: "0.95rem", color: lvl.color, letterSpacing: "0.04em" }}>
+              {lvl.desc}
+            </div>
+            <div style={FONT_FREDOKA} className="text-white/50 text-xs mt-0.5 italic">
+              « {lvl.flavor} »
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -474,11 +534,10 @@ export function MultiplayerModal({ onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [difficulty, setDifficulty] = useState<DifficultyKey>("delinquant");
-
+  const [miniGameLevel, setMiniGameLevel] = useState<MiniGameLevel>(1);
   // Filtres solo
   const [soloDisableT2, setSoloDisableT2] = useState(false);
   const [soloCustomEnabled, setSoloCustomEnabled] = useState(false);
-
   // Filtres multi (création)
   const [mpDisableT2, setMpDisableT2] = useState(false);
   const [mpDisableT3, setMpDisableT3] = useState(false);
@@ -597,6 +656,7 @@ export function MultiplayerModal({ onClose }: Props) {
         selectedDiff.threshold,
         allowedCardIds,
         disabledCardTypes,
+        miniGameLevel,
       );
       mpStorage.save(sessionCode, playerId, name.trim(), true);
 
@@ -646,12 +706,13 @@ export function MultiplayerModal({ onClose }: Props) {
     }
   };
 
-  // ── SOLO : sauvegarder les préfs et naviguer ─────────────────
+  //  // ── SOLO : sauvegarder les préfs et naviguer ─────────────
   const handlePlaySolo = () => {
     try {
       localStorage.setItem(SOLO_DIFFICULTY_KEY, String(selectedDiff.threshold));
       localStorage.setItem(SOLO_NO_CONTRIBUABLE_KEY, soloDisableT2 ? "1" : "0");
       localStorage.setItem(SOLO_CUSTOM_CARDS_ENABLED_KEY, soloCustomEnabled ? "1" : "0");
+      localStorage.setItem(SOLO_MINI_GAME_LEVEL_KEY, String(miniGameLevel));
       if (soloCustomEnabled && customCards.length > 0) {
         localStorage.setItem(SOLO_CUSTOM_CARDS_DATA_KEY, JSON.stringify(customCards));
       } else {
@@ -833,6 +894,15 @@ export function MultiplayerModal({ onClose }: Props) {
                 {/* Séparateur */}
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-white/15" />
+                  <span style={FONT_FREDOKA} className="text-white/40 text-xs">Perquisitions</span>
+                  <div className="h-px flex-1 bg-white/15" />
+                </div>
+
+                <MiniGameLevelSelector selected={miniGameLevel} onChange={setMiniGameLevel} />
+
+                {/* Séparateur */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/15" />
                   <span style={FONT_FREDOKA} className="text-white/40 text-xs">Types de cartes</span>
                   <div className="h-px flex-1 bg-white/15" />
                 </div>
@@ -1003,6 +1073,15 @@ export function MultiplayerModal({ onClose }: Props) {
 
                 {/* Difficulté */}
                 <DifficultySelector selected={difficulty} onChange={setDifficulty} />
+
+                {/* Séparateur */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/15" />
+                  <span style={FONT_FREDOKA} className="text-white/40 text-xs">Perquisitions</span>
+                  <div className="h-px flex-1 bg-white/15" />
+                </div>
+
+                <MiniGameLevelSelector selected={miniGameLevel} onChange={setMiniGameLevel} />
 
                 {/* Séparateur */}
                 <div className="flex items-center gap-3">

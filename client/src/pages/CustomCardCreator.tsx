@@ -3,14 +3,14 @@
  * Accessible depuis le catalogue des cartes (bouton "Mes cartes").
  * Requiert un compte de jeu connecté.
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
 import {
   Plus, Trash2, ArrowLeft, ChevronRight,
   Lock, CheckCircle2, AlertCircle, Sparkles,
   Layers, Flame, Snowflake, Crown, Star, Check,
-  Trees, Cog, Gem,
+  Trees, Cog, Gem, Globe, Wand2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
@@ -47,6 +47,8 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   glace: Snowflake,
   feu: Flame,
   royal: Crown,
+  cosmic: Globe,
+  magique: Wand2,
   foret: Trees,
   metal: Cog,
   prestige: Gem,
@@ -154,11 +156,15 @@ export default function CustomCardCreator() {
   });
   const { data: savedActiveSkin } = trpc.skins.getActiveSkin.useQuery(undefined, {
     enabled: isAuthenticated,
-    onSuccess: (skin: CardSkinId) => setActiveSkin(skin),
-  } as any);
+  });
+  // Synchroniser le skin actif depuis le serveur dès que la donnée arrive
+  useEffect(() => {
+    if (savedActiveSkin) setActiveSkin(savedActiveSkin as CardSkinId);
+  }, [savedActiveSkin]);
   const setActiveSkinMutation = trpc.skins.setActiveSkin.useMutation({
     onSuccess: ({ skinId }) => {
       setActiveSkin(skinId as CardSkinId);
+      utils.skins.getActiveSkin.invalidate();
       toast.success(`Skin "${skinId}" activé !`);
     },
     onError: (err) => toast.error(err.message),
@@ -229,8 +235,7 @@ export default function CustomCardCreator() {
   const effectiveMax = isAdminVip ? 999999 : MAX_CARDS_FREE;
   const atLimit = !isAdminVip && cardCount >= MAX_CARDS_FREE;
 
-  // Synchroniser le skin actif depuis le serveur
-  const currentSkin: CardSkinId = (savedActiveSkin as CardSkinId | undefined) ?? activeSkin;
+  // activeSkin = skin actif (synchronisé via useEffect depuis le serveur)
 
   // ── Mur d'authentification ──
   if (!isAuthenticated) {
@@ -347,7 +352,7 @@ export default function CustomCardCreator() {
             {SKIN_CATALOG.map((skin: SkinMeta) => {
               const Icon = SKIN_ICON_MAP[skin.id];
               const isOwned = skin.id === "classique" || ownedSkins.includes(skin.id);
-              const isActive = currentSkin === skin.id;
+              const isActive = activeSkin === skin.id;
               return (
                 <motion.div
                   key={skin.id}
@@ -530,7 +535,7 @@ export default function CustomCardCreator() {
                         className="flex flex-col items-center gap-2"
                       >
                         <div className="relative">
-                          <GeneratedCard card={config} size="sm" />
+                          <GeneratedCard card={config} size="sm" skinId={activeSkin} />
                           {/* Overlay méfait */}
                           {(card.category === "contravention" || card.category === "contribuable") && card.mefait && (
                             <div
@@ -865,7 +870,7 @@ export default function CustomCardCreator() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <PreviewCard cardConfig={previewCard} mefait={mefait} skinId={currentSkin} />
+                <PreviewCard cardConfig={previewCard} mefait={mefait} skinId={activeSkin} />
               </motion.div>
               <div style={FONT_FREDOKA} className="text-white/30 text-xs text-center max-w-[200px]">
                 La carte apparaîtra dans ton deck avec ce design

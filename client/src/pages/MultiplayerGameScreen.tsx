@@ -32,7 +32,7 @@ import ticketImg from "@/game/utils/ticketImg";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
 import { MiniGame } from "@/game/components/MiniGame";
-import { rollMiniGame } from "@/game/utils/miniGameUtils";
+import { rollMiniGame, type MiniGameLevel } from "@/game/utils/miniGameUtils";
 import { trpc } from "@/lib/trpc";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
@@ -2264,7 +2264,8 @@ export function MultiplayerGameScreen() {
               // Déclencher le mini-jeu au moment où le joueur clique "JE COMMENCE"
               // Le joueur crée l'événement en DB — le polling le détectera pour TOUS (y compris lui)
               if (myTurn && session && !(session.eliminatedPlayers ?? []).includes(playerId)) {
-                const { triggered, mode } = rollMiniGame();
+                const sessionMiniGameLevel = ((session?.miniGameLevel ?? 1) as MiniGameLevel);
+                const { triggered, mode } = rollMiniGame(sessionMiniGameLevel);
                 if (triggered) {
                   setMiniGameSkippedDraw(true); // Ce joueur ne piochera pas ce tour
                   try {

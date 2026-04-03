@@ -186,14 +186,17 @@ describe("deduplicatePurchases", () => {
 // ── Helpers panier ────────────────────────────────────────────────────────────
 
 const SKIN_PRODUCTS = [
-  { id: "skin_neon", skinId: "neon", price: 299, category: "skin" },
-  { id: "skin_retro", skinId: "retro", price: 299, category: "skin" },
-  { id: "skin_glace", skinId: "glace", price: 299, category: "skin" },
-  { id: "skin_feu", skinId: "feu", price: 299, category: "skin" },
-  { id: "skin_royal", skinId: "royal", price: 299, category: "skin" },
-  { id: "skin_foret", skinId: "foret", price: 499, category: "skin", premium: true },
-  { id: "skin_metal", skinId: "metal", price: 499, category: "skin", premium: true },
-  { id: "skin_prestige", skinId: "prestige", price: 499, category: "skin", premium: true },
+  { id: "skin_neon",     skinId: "neon",     price: 199, category: "skin" },
+  { id: "skin_retro",   skinId: "retro",   price: 199, category: "skin" },
+  { id: "skin_glace",   skinId: "glace",   price: 199, category: "skin" },
+  { id: "skin_feu",     skinId: "feu",     price: 199, category: "skin" },
+  { id: "skin_royal",   skinId: "royal",   price: 199, category: "skin" },
+  { id: "skin_cosmic",  skinId: "cosmic",  price: 199, category: "skin" },
+  { id: "skin_magique", skinId: "magique", price: 199, category: "skin" },
+  { id: "skin_foret",   skinId: "foret",   price: 199, category: "skin" },
+  { id: "skin_metal",   skinId: "metal",   price: 199, category: "skin" },
+  { id: "skin_prestige",skinId: "prestige",price: 199, category: "skin" },
+  { id: "bundle_all_skins", skinId: undefined, price: 1599, category: "bundle" },
 ];
 
 function calculateCartTotal(productIds: string[]): number {
@@ -219,24 +222,32 @@ function extractSkinIdsFromCart(productIds: string[]): string[] {
 }
 
 describe("calculateCartTotal", () => {
-  it("calcule le total d'un panier avec 1 skin standard", () => {
-    expect(calculateCartTotal(["skin_neon"])).toBe(299);
+  it("calcule le total d'un panier avec 1 skin à 1,99$", () => {
+    expect(calculateCartTotal(["skin_neon"])).toBe(199);
   });
 
-  it("calcule le total d'un panier avec 1 skin premium", () => {
-    expect(calculateCartTotal(["skin_foret"])).toBe(499);
+  it("calcule le total d'un panier avec skin_foret à 1,99$", () => {
+    expect(calculateCartTotal(["skin_foret"])).toBe(199);
   });
 
-  it("calcule le total d'un panier mixé standard + premium", () => {
-    expect(calculateCartTotal(["skin_neon", "skin_foret"])).toBe(798);
+  it("calcule le total d'un panier de 2 skins à 1,99$ chacun", () => {
+    expect(calculateCartTotal(["skin_neon", "skin_foret"])).toBe(398);
   });
 
   it("retourne 0 pour un panier vide", () => {
     expect(calculateCartTotal([])).toBe(0);
   });
 
-  it("calcule le total de 3 skins premium", () => {
-    expect(calculateCartTotal(["skin_foret", "skin_metal", "skin_prestige"])).toBe(1497);
+  it("calcule le total de 3 skins à 1,99$ chacun", () => {
+    expect(calculateCartTotal(["skin_foret", "skin_metal", "skin_prestige"])).toBe(597);
+  });
+
+  it("calcule le total du forfait tous les skins à 15,99$", () => {
+    expect(calculateCartTotal(["bundle_all_skins"])).toBe(1599);
+  });
+
+  it("calcule le total avec les nouveaux skins cosmic et magique", () => {
+    expect(calculateCartTotal(["skin_cosmic", "skin_magique"])).toBe(398);
   });
 });
 
@@ -275,10 +286,22 @@ describe("extractSkinIdsFromCart", () => {
     expect(extractSkinIdsFromCart([])).toEqual([]);
   });
 
-  it("inclut les skins premium dans l'extraction", () => {
+  it("inclut les skins foret, metal, prestige dans l'extraction", () => {
     const result = extractSkinIdsFromCart(["skin_foret", "skin_metal", "skin_prestige"]);
     expect(result).toContain("foret");
     expect(result).toContain("metal");
     expect(result).toContain("prestige");
+  });
+
+  it("extrait les nouveaux skins cosmic et magique", () => {
+    const result = extractSkinIdsFromCart(["skin_cosmic", "skin_magique"]);
+    expect(result).toContain("cosmic");
+    expect(result).toContain("magique");
+  });
+
+  it("ignore le bundle_all_skins (skinId undefined) dans l'extraction", () => {
+    const result = extractSkinIdsFromCart(["bundle_all_skins", "skin_neon"]);
+    expect(result).not.toContain(undefined);
+    expect(result).toContain("neon");
   });
 });

@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus, Globe, Wand2, Package } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { GeneratedCard } from "@/game/components/GeneratedCard";
@@ -75,6 +75,8 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   glace: Snowflake,
   feu: Flame,
   royal: Crown,
+  cosmic: Globe,
+  magique: Wand2,
   foret: Trees,
   metal: Cog,
   prestige: Gem,
@@ -343,10 +345,44 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                           SKINS DE CARTES
                         </div>
                         <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          9 designs exclusifs — standards (2,99 $) et premium (4,99 $)
+                          11 designs exclusifs — chacun à 1,99 $
                         </div>
                       </div>
                       <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
+                    </div>
+                  </motion.button>
+
+                  {/* Bouton Forfait Tous les Skins */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      if (!isLoggedIn) { toast.error("Connectez-vous pour acheter."); return; }
+                      setLoadingId("bundle_all_skins");
+                      checkoutMutation.mutate({ productId: "bundle_all_skins", origin: window.location.origin });
+                    }}
+                    disabled={loadingId === "bundle_all_skins"}
+                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden disabled:opacity-70"
+                    style={{ boxShadow: "4px 4px 0px #000" }}
+                  >
+                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#F59E0B", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#000" }}>
+                      ÉCONOMISEZ PLUS DE 4 $
+                    </div>
+                    <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(245,158,11,0.12)" }}>
+                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#F59E0B", boxShadow: "3px 3px 0px #000" }}>
+                        {loadingId === "bundle_all_skins" ? <Loader2 className="w-7 h-7 text-white animate-spin" /> : <Package className="w-7 h-7 text-white" />}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem" }} className="text-white leading-none">
+                          FORFAIT TOUS LES SKINS
+                        </div>
+                        <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
+                          Les 10 skins payants débloqués — 15,99 $ (au lieu de 19,90 $)
+                        </div>
+                      </div>
+                      <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", color: "#F59E0B" }} className="flex-shrink-0">
+                        15,99 $
+                      </div>
                     </div>
                   </motion.button>
 
@@ -520,7 +556,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                         Choisir un skin
                       </p>
                       <div className="grid grid-cols-5 md:grid-cols-1 gap-2">
-                        {SKIN_CATALOG.filter((s) => s.id !== "classique").map((skin: SkinMeta) => {
+                        {SKIN_CATALOG.map((skin: SkinMeta) => {
                           const Icon = SKIN_ICON_MAP[skin.id];
                           const isOwned = ownedSkins.includes(skin.id);
                           const isSelected = previewSkin === skin.id;
@@ -630,7 +666,14 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                                     {activeSkin.description}
                                   </span>
                                 </div>
-                                {isOwned ? (
+                                {previewSkin === "classique" ? (
+                                  <span
+                                    className="px-3 py-1 rounded-lg border-[2px] border-black text-sm flex-shrink-0"
+                                    style={{ background: "#34C759", fontFamily: "'Bangers', cursive", color: "#fff", letterSpacing: "0.05em" }}
+                                  >
+                                    ✓ GRATUIT
+                                  </span>
+                                ) : isOwned ? (
                                   <span
                                     className="px-3 py-1 rounded-lg border-[2px] border-black text-sm flex-shrink-0"
                                     style={{ background: "#34C759", fontFamily: "'Bangers', cursive", color: "#fff", letterSpacing: "0.05em" }}
@@ -648,14 +691,37 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                               </div>
                               <div className="px-4 py-3 flex items-center justify-between" style={{ background: "rgba(0,0,0,0.3)" }}>
                                 <p style={FONT_FREDOKA} className="text-white/50 text-xs">
-                                  {isOwned
-                                    ? activeSkinId === previewSkin
-                                      ? "Skin actuellement actif."
-                                      : "Skin déjà dans votre collection."
-                                    : "Achat unique — disponible sur tous vos appareils."}
+                                  {previewSkin === "classique"
+                                    ? "Skin de base — inclus gratuitement pour tous."
+                                    : isOwned
+                                      ? activeSkinId === previewSkin
+                                        ? "Skin actuellement actif."
+                                        : "Skin déjà dans votre collection."
+                                      : "Achat unique — disponible sur tous vos appareils."}
                                 </p>
                                 <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                                  {isOwned && activeSkinId !== previewSkin && (
+                                  {/* Classique : toujours disponible, juste bouton Activer */}
+                                  {previewSkin === "classique" && activeSkinId !== "classique" && isLoggedIn && (
+                                    <motion.button
+                                      whileTap={{ scale: 0.93 }}
+                                      onClick={() => setActiveSkinMutation.mutate({ skinId: "classique" })}
+                                      disabled={setActiveSkinMutation.isPending}
+                                      className="px-4 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5"
+                                      style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                                    >
+                                      {setActiveSkinMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                      ACTIVER
+                                    </motion.button>
+                                  )}
+                                  {previewSkin === "classique" && activeSkinId === "classique" && (
+                                    <span
+                                      className="px-4 py-2 rounded-xl border-[3px] border-black flex items-center gap-1.5"
+                                      style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "1rem", color: "#fff", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                                    >
+                                      <Zap className="w-3.5 h-3.5" /> ACTIF
+                                    </span>
+                                  )}
+                                  {previewSkin !== "classique" && isOwned && activeSkinId !== previewSkin && (
                                     <motion.button
                                       whileTap={{ scale: 0.93 }}
                                       onClick={() => setActiveSkinMutation.mutate({ skinId: previewSkin })}
@@ -667,7 +733,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                                       ACTIVER
                                     </motion.button>
                                   )}
-                                  {isOwned && activeSkinId === previewSkin && (
+                                  {previewSkin !== "classique" && isOwned && activeSkinId === previewSkin && (
                                     <span
                                       className="px-4 py-2 rounded-xl border-[3px] border-black flex items-center gap-1.5"
                                       style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "1rem", color: "#fff", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
@@ -675,7 +741,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                                       <Zap className="w-3.5 h-3.5" /> ACTIF
                                     </span>
                                   )}
-                                  {!isOwned && (
+                                  {previewSkin !== "classique" && !isOwned && (
                                     <div className="flex items-center gap-1.5">
                                       {/* Bouton Ajouter au panier */}
                                       {cart.includes(activeSkin.productId) ? (

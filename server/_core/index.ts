@@ -60,43 +60,74 @@ async function startServer() {
     console.log(`[Stripe Webhook] Event: ${event.type} | ID: ${event.id}`);
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as import("stripe").Stripe.Checkout.Session;
-      const productId = session.metadata?.product_id;
-      const profileId = session.metadata?.user_id ? parseInt(session.metadata.user_id) : null;
-      const productName = session.metadata?.product_name ?? "Achat";
-      const extraCards = session.metadata?.extra_cards ? parseInt(session.metadata.extra_cards) : 0;
+      const productCategory = session.metadata?.product_category;
+      const isCart = productCategory === "cart";
       const amountTotal = session.amount_total ?? 0;
       const currency = session.currency ?? "cad";
-      console.log(`[Stripe Webhook] Paiement complet — profile=${profileId}, product=${productId} (${productName})`);
-      if (profileId && productId && session.id) {
+      // Support panier (cart) et achat individuel
+      const rawProductIds = isCart
+        ? (session.metadata?.product_ids ?? "").split(",").filter(Boolean)
+        : session.metadata?.product_id ? [session.metadata.product_id] : [];
+      // Identifier le profileId (panier utilise profile_id, achat individuel utilise user_id)
+      const profileIdRaw = session.metadata?.profile_id ?? session.metadata?.user_id;
+      const profileId = profileIdRaw ? parseInt(profileIdRaw) : null;
+      console.log(`[Stripe Webhook] Paiement complet — profile=${profileId}, products=${rawProductIds.join(",")}`);
+      if (profileId && rawProductIds.length > 0 && session.id) {
         try {
           const { getDb } = await import("../db");
           const { purchases, userSkins } = await import("../../drizzle/schema");
-          const { SHOP_PRODUCTS } = await import("../products");
+          const { SHOP_PRODUCTS, ALL_PAID_SKIN_IDS } = await import("../products");
           const { and, eq } = await import("drizzle-orm");
           const db = await getDb();
           if (db) {
+            // Enregistrer l'achat en DB
+            const productName = isCart
+              ? `Panier (${rawProductIds.length} article${rawProductIds.length > 1 ? "s" : ""})`
+              : (session.metadata?.product_name ?? "Achat");
+            const extraCards = session.metadata?.extra_cards ? parseInt(session.metadata.extra_cards) : 0;
+            const mainProductId = isCart ? `cart_${session.id.slice(-8)}` : rawProductIds[0];
             await db.insert(purchases).values({
               profileId,
-              productId,
+              productId: mainProductId,
               productName,
               amountCents: amountTotal,
               currency,
               stripeSessionId: session.id,
               cardsUnlocked: extraCards,
-            }).onDuplicateKeyUpdate({ set: { productId } }); // déduplication
-            console.log(`[Stripe Webhook] Achat enregistré en DB — profile=${profileId}, ${extraCards} cartes débloquées`);
-
-            // Débloquer le skin si c'est un achat de skin
-            const product = SHOP_PRODUCTS.find(p => p.id === productId);
-            if (product?.category === "skin" && product.skinId) {
-              const existing = await db
-                .select()
-                .from(userSkins)
-                .where(and(eq(userSkins.profileId, profileId), eq(userSkins.skinId, product.skinId)))
-                .then(r => r[0]);
-              if (!existing) {
-                await db.insert(userSkins).values({ profileId, skinId: product.skinId });
-                console.log(`[Stripe Webhook] Skin "${product.skinId}" débloqué pour profile=${profileId}`);
+            }).onDuplicateKeyUpdate({ set: { productId: mainProductId } });
+            console.log(`[Stripe Webhook] Achat enregistré en DB — profile=${profileId}`);
+            // Débloquer les skins pour chaque produit
+            for (const pid of rawProductIds) {
+              const product = SHOP_PRODUCTS.find(p => p.id === pid);
+              if (!product) continue;
+              // Skin individuel
+              if (product.category === "skin" && product.skinId) {
+                const existing = await db
+                  .select()
+                  .from(userSkins)
+                  .where(and(eq(userSkins.profileId, profileId), eq(userSkins.skinId, product.skinId)))
+                  .then(r => r[0]);
+                if (!existing) {
+                  await db.insert(userSkins).values({ profileId, skinId: product.skinId });
+                  console.log(`[Stripe Webhook] Skin "${product.skinId}" débloqué pour profile=${profileId}`);
+                }
+              }
+              // Forfait bundle (tous les skins)
+              if (product.category === "bundle") {
+                const skinIdsToUnlock = (product.bundleSkinIds && product.bundleSkinIds.length > 0)
+                  ? product.bundleSkinIds
+                  : ALL_PAID_SKIN_IDS;
+                for (const skinId of skinIdsToUnlock) {
+                  const existing = await db
+                    .select()
+                    .from(userSkins)
+                    .where(and(eq(userSkins.profileId, profileId), eq(userSkins.skinId, skinId)))
+                    .then(r => r[0]);
+                  if (!existing) {
+                    await db.insert(userSkins).values({ profileId, skinId });
+                    console.log(`[Stripe Webhook] Skin bundle "${skinId}" débloqué pour profile=${profileId}`);
+                  }
+                }
               }
             }
           }

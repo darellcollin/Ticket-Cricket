@@ -456,3 +456,18 @@
 - [ ] Compte joueur : simplifier ProfileModal (uniquement liste achats + skins débloqués)
 - [x] Skin activé : bouton Activer/Activé dans la boutique
 - [x] Skin activé : s'applique aux 324 cartes + cartes personnalisées pendant le jeu
+
+## Session 51 — Skins, boutique, forfait, perquisitions
+
+- [x] Corriger le bouton "Activer" dans la section Personnalisation (CustomCardCreator)
+- [x] Ajouter le skin "Classique" en prévisualisation dans la boutique (hors liste achetable, badge GRATUIT)
+- [x] Créer le skin "Cosmic" (espace, étoiles, planètes, lumineux, scintillant)
+- [x] Créer le skin "Magique" (holographique, scintillant, effet magique)
+- [x] Mettre le prix de tous les skins à 1,99 $ (199 cents)
+- [x] Créer le forfait "Tous les skins" à 15,99 $ (produit Stripe + logique d'activation)
+- [x] Intégrer le forfait dans la boutique (bouton visible dans la vue accueil)
+- [x] Webhook Stripe : débloquer tous les skins lors d'un achat du forfait
+- [x] Ajouter le sélecteur de taux de perquisition (niveaux 1-5) dans MultiplayerModal (solo + multi)
+- [x] Transmettre le taux choisi au moteur de jeu (GameScreen solo + MultiplayerGameScreen)
+- [x] Tests vitest pour les nouvelles fonctionnalités (110 tests passent)
+- [x] "Mes cartes" : afficher les cartes créées avec le skin actif du joueur (skinId transmis à GeneratedCard)
