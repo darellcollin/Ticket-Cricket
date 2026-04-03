@@ -206,33 +206,35 @@ export function LobbyScreen() {
             {code}
           </div>
 
-          {/* Boutons Copier + QR Code */}
-          <div className="mt-1.5 flex items-center justify-center gap-2">
+          {/* QR Code inline + bouton Copier */}
+          <div className="mt-2 flex flex-col items-center gap-2">
+            {/* QR Code toujours visible */}
+            <div className="bg-white rounded-xl p-2 border-[3px] border-black" style={{ boxShadow: "3px 3px 0px #000" }}>
+              <QRCodeSVG
+                value={`${window.location.origin}/?join=${code}`}
+                size={120}
+                bgColor="#ffffff"
+                fgColor="#000000"
+                level="M"
+              />
+            </div>
+            <div style={FONT_FREDOKA} className="text-black/50 text-xs">
+              Scanner pour rejoindre
+            </div>
+            {/* Bouton Copier */}
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={copyCode}
-              className="flex items-center gap-1.5 bg-black/10 rounded-lg px-3 py-1 border border-black/20"
+              className="flex items-center gap-1.5 bg-black/15 rounded-lg px-4 py-1.5 border border-black/20"
             >
               {copied
                 ? <Check className="w-4 h-4 text-black" />
                 : <Copy className="w-4 h-4 text-black" />
               }
               <span style={FONT_FREDOKA} className="text-black text-sm">
-                {copied ? "Copié !" : "Copier"}
+                {copied ? "Copié !" : "Copier le code"}
               </span>
             </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowQR(true)}
-              className="flex items-center gap-1.5 bg-black/10 rounded-lg px-3 py-1 border border-black/20"
-            >
-              <QrCode className="w-4 h-4 text-black" />
-              <span style={FONT_FREDOKA} className="text-black text-sm">QR Code</span>
-            </motion.button>
-          </div>
-
-          <div style={FONT_FREDOKA} className="text-black/50 text-xs mt-1">
-            Partage ce code à tes amis
           </div>
         </motion.div>
 

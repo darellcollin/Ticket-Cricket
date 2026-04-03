@@ -49,7 +49,7 @@ export function SirenLight({ delay = 0 }: { delay?: number }) {
             "radial-gradient(circle, rgba(255,59,48,0.48) 0%, rgba(255,59,48,0.14) 32%, transparent 62%)",
           ],
         }}
-        transition={{ duration: 1.05, repeat: Infinity, ease: "linear", delay }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay }}
       />
 
       {/* ── Tige métallique ── */}
@@ -98,7 +98,7 @@ export function SirenLight({ delay = 0 }: { delay?: number }) {
             "0 0 16px 6px rgba(255,59,48,0.92), 0 0 38px 12px rgba(255,59,48,0.28), inset 0 2px 12px rgba(255,210,210,0.38)",
           ],
         }}
-        transition={{ duration: 1.05, repeat: Infinity, ease: "linear", delay }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay }}
       >
         {/* Reflet principal */}
         <div

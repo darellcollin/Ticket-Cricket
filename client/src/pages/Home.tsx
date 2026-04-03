@@ -1,11 +1,14 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 import { MultiplayerModal } from "@/game/components/MultiplayerModal";
 import { AccountModal } from "@/game/components/AccountModal";
+import { GameInfoModal } from "@/game/components/GameInfoModal";
+import { ShopModal } from "@/game/components/ShopModal";
 import { useGameAuth } from "@/hooks/useGameAuth";
+import { Info } from "lucide-react";
 
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 
@@ -128,102 +131,82 @@ function SpeechBubble() {
   );
 }
 
-// ── Logo orbital : demi-orbite ARRIÈRE (passe derrière le titre) ──
-// Le ticket fait une orbite elliptique autour du titre.
-// On simule "devant/derrière" avec deux composants : Back (z<titre) et Front (z>titre).
-// Chaque composant anime une demi-orbite : Back = moitié gauche→droite en bas (z-index 2)
-//                                          Front = moitié droite→gauche en haut (z-index 8)
-// L'ellipse est centrée sur le titre, rayon X ~ 55vw, rayon Y ~ 40% de la hauteur du bloc titre.
+// ── Logo orbital : orbite elliptique fluide avec requestAnimationFrame ──
+// Un seul composant anime le ticket sur une ellipse complète.
+// L'effet "devant/derrière" est géré dynamiquement via le z-index selon la position angulaire.
 
-const ORBIT_DURATION = 4; // secondes pour un tour complet
-const TICKET_SIZE = "clamp(36px, 7vw, 64px)";
+const ORBIT_DURATION_MS = 5000; // 5 secondes par tour — plus lent = plus fluide
+const TICKET_SIZE = "clamp(44px, 9vw, 76px)";
 
-// Demi-orbite arrière : le ticket passe DERRIÈRE le titre (z-index 2)
-// Trajectoire : part du centre-droit, descend en bas, arrive au centre-gauche
-function OrbitalTicketBack({ ticketImg }: { ticketImg: string }) {
-  return (
-    <motion.div
-      style={{
-        position: "absolute",
-        zIndex: 2,
-        pointerEvents: "none",
-        width: TICKET_SIZE,
-        aspectRatio: "2/1",
-      }}
-      animate={{
-        // Orbite elliptique — demi-arrière : de droite (0°) à gauche (180°) en passant par le bas
-        // On utilise offsetX/offsetY pour simuler l'ellipse
-        x: [
-          "clamp(120px, 28vw, 260px)",   // 0° : droite
-          "clamp(60px, 14vw, 130px)",    // 45°
-          "0px",                          // 90° : bas
-          "clamp(-60px, -14vw, -130px)", // 135°
-          "clamp(-120px, -28vw, -260px)",// 180° : gauche
-        ],
-        y: [
-          "0px",                         // 0° : milieu
-          "clamp(30px, 8vw, 70px)",      // 45° : descend
-          "clamp(50px, 12vw, 110px)",    // 90° : bas max
-          "clamp(30px, 8vw, 70px)",      // 135° : remonte
-          "0px",                         // 180° : milieu
-        ],
-        rotate: [0, 90, 180, 270, 360],
-        opacity: [1, 0.85, 0.7, 0.85, 1],
-        scale: [1, 0.85, 0.75, 0.85, 1],
-      }}
-      transition={{
-        duration: ORBIT_DURATION,
-        repeat: Infinity,
-        ease: "linear",
-        times: [0, 0.25, 0.5, 0.75, 1],
-      }}
-    >
-      <img src={ticketImg} alt="" style={{ width: "100%", display: "block", filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.6))" }} />
-    </motion.div>
-  );
+function OrbitalTicketBack({ ticketImg: _ticketImg }: { ticketImg: string }) {
+  return null; // remplacé par OrbitalTicket
+}
+function OrbitalTicketFront({ ticketImg: _ticketImg }: { ticketImg: string }) {
+  return null; // remplacé par OrbitalTicket
 }
 
-// Demi-orbite avant : le ticket passe DEVANT le titre (z-index 8)
-// Trajectoire : part du centre-gauche, monte en haut, arrive au centre-droit
-function OrbitalTicketFront({ ticketImg }: { ticketImg: string }) {
+function OrbitalTicket({ ticketImg }: { ticketImg: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const startRef = useRef<number | null>(null);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    const animate = (ts: number) => {
+      if (!ref.current) { rafRef.current = requestAnimationFrame(animate); return; }
+      if (startRef.current === null) startRef.current = ts;
+      const elapsed = ts - startRef.current;
+      const t = (elapsed % ORBIT_DURATION_MS) / ORBIT_DURATION_MS; // 0..1
+      const angle = t * 2 * Math.PI; // 0..2π
+
+      // Rayon de l'ellipse en px (responsive via vw)
+      // Limité pour ne jamais déborder de l'écran
+      const vw = window.innerWidth;
+      const titleW = Math.min(vw * 0.85, 600); // largeur approximative du titre
+      const rx = Math.min(titleW * 0.52, vw * 0.38, 240);
+      const ry = Math.min(rx * 0.32, 80);
+
+      const x = rx * Math.cos(angle);
+      const y = ry * Math.sin(angle);
+
+      // Devant (sin > 0 = demi-bas) ou derrière (sin < 0 = demi-haut)
+      const zIndex = Math.sin(angle) > 0 ? 2 : 8;
+      // Légère variation de scale pour effet de profondeur
+      const scale = 0.80 + 0.25 * (Math.sin(angle) + 1) / 2;
+      // Rotation du ticket lui-même — sens inverse de l'orbite pour effet naturel
+      const rotateDeg = -(t * 360);
+
+      ref.current.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${rotateDeg}deg) scale(${scale})`;
+      ref.current.style.zIndex = String(zIndex);
+      ref.current.style.opacity = String(0.7 + 0.3 * scale);
+
+      rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
   return (
-    <motion.div
+    <div
+      ref={ref}
       style={{
         position: "absolute",
-        zIndex: 8,
-        pointerEvents: "none",
+        top: "50%",
+        left: "50%",
         width: TICKET_SIZE,
-        aspectRatio: "2/1",
-      }}
-      animate={{
-        // Demi-avant : de gauche (180°) à droite (360°) en passant par le haut
-        x: [
-          "clamp(-120px, -28vw, -260px)",// 180° : gauche
-          "clamp(-60px, -14vw, -130px)", // 225°
-          "0px",                          // 270° : haut
-          "clamp(60px, 14vw, 130px)",    // 315°
-          "clamp(120px, 28vw, 260px)",   // 360° : droite
-        ],
-        y: [
-          "0px",                          // 180° : milieu
-          "clamp(-30px, -8vw, -70px)",   // 225° : monte
-          "clamp(-50px, -12vw, -110px)", // 270° : haut max
-          "clamp(-30px, -8vw, -70px)",   // 315° : redescend
-          "0px",                          // 360° : milieu
-        ],
-        rotate: [180, 270, 360, 450, 540],
-        opacity: [1, 1, 1, 1, 1],
-        scale: [1, 1.1, 1.2, 1.1, 1],
-      }}
-      transition={{
-        duration: ORBIT_DURATION,
-        repeat: Infinity,
-        ease: "linear",
-        times: [0, 0.25, 0.5, 0.75, 1],
+        pointerEvents: "none",
+        willChange: "transform",
       }}
     >
-      <img src={ticketImg} alt="" style={{ width: "100%", display: "block", filter: "drop-shadow(2px 2px 6px rgba(255,215,0,0.5))" }} />
-    </motion.div>
+      <img
+        src={ticketImg}
+        alt=""
+        style={{
+          width: "100%",
+          display: "block",
+          filter: "drop-shadow(2px 2px 6px rgba(255,215,0,0.5))",
+        }}
+      />
+    </div>
   );
 }
 
@@ -237,6 +220,8 @@ export default function Home() {
     } catch { return false; }
   });
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showShopModal, setShowShopModal] = useState(false);
   const { profile, isAuthenticated, logout } = useGameAuth();
 
   const handleRulesClick = () => {
@@ -255,7 +240,21 @@ export default function Home() {
     >
       <PoliceTape />
 
-      {/* ── ICÔNE COMPTE — haut à droite ── */}
+      {/* ── ICONE INFOS — haut à gauche ── */}
+      <div className="absolute top-[22px] left-3 z-50">
+        <motion.button
+          className="w-10 h-10 rounded-full bg-white/15 border-[2px] border-white/30 flex items-center justify-center backdrop-blur-sm"
+          style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.3)', marginTop: '9px' }}
+          whileHover={{ scale: 1.1, borderColor: 'rgba(255,215,0,0.6)' } as any}
+          whileTap={{ scale: 0.9 } as any}
+          onClick={() => setShowInfoModal(true)}
+          title="Infos sur le jeu"
+        >
+          <Info className="w-5 h-5 text-white" />
+        </motion.button>
+      </div>
+
+      {/* ── ICONE COMPTE — haut à droite ── */}
       <div className="absolute top-[22px] right-3 z-50">
         {isAuthenticated ? (
           <div className="flex items-center gap-2">
@@ -366,8 +365,8 @@ export default function Home() {
           {/* ── TITRE GÉANT + LOGO ORBITAL ── */}
           <div className="flex-shrink-0 relative flex items-center justify-center" style={{ width: "100%" }}>
 
-            {/* ── Couche ARRIÈRE du logo orbital (z-index bas) ── */}
-            <OrbitalTicketBack ticketImg={ticketImg} />
+            {/* ── Logo orbital fluide (devant/derrière géré dynamiquement) ── */}
+            <OrbitalTicket ticketImg={ticketImg} />
 
             {/* ── Titre TICKET CRICKET (couche milieu) ── */}
             <motion.div
@@ -408,8 +407,6 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* ── Couche AVANT du logo orbital (z-index haut) ── */}
-            <OrbitalTicketFront ticketImg={ticketImg} />
           </div>
 
           {/* ── ZONE BOUTONS ── */}
@@ -479,9 +476,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Ligne 2 : PERSONNALISATION pleine largeur (max 460px sur PC) */}
+            {/* Ligne 2 : PERSONNALISATION + BOUTIQUE */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
             {/* ── PERSONNALISATION BUTTON ── */}
-            <div className="relative w-full max-w-[220px] sm:max-w-[460px]">
+            <div className="relative w-full max-w-[220px]">
               <motion.button
                 className="w-full py-2 bg-[#FF4081] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                 style={{
@@ -502,6 +500,30 @@ export default function Home() {
                 PERSONNALISATION
               </motion.button>
             </div>
+
+            {/* ── BOUTIQUE BUTTON ── */}
+            <div className="relative w-full max-w-[220px]">
+              <motion.button
+                className="w-full py-2 bg-[#7C3AED] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                style={{
+                  ...FONT_FREDOKA,
+                  letterSpacing: "0.08em",
+                  fontSize: "1.1rem",
+                  boxShadow: "5px 5px 0px #000",
+                }}
+                whileHover={{ scale: 1.05, y: -2, boxShadow: "7px 7px 0px #000" } as any}
+                whileTap={{ scale: 0.94, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                onClick={() => setShowShopModal(true)}
+              >
+                <motion.div
+                  className="absolute inset-0 w-1/3 bg-white/15 skew-x-[-20deg]"
+                  animate={{ x: ["-100%", "400%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+                />
+                BOUTIQUE
+              </motion.button>
+            </div>
+            </div>
           </div>
         </div>
       </div>
@@ -519,6 +541,12 @@ export default function Home() {
       <AnimatePresence>
         {showMpModal && <MultiplayerModal onClose={() => setShowMpModal(false)} />}
       </AnimatePresence>
+
+      {/* ── Modal Infos sur le jeu ── */}
+      <GameInfoModal open={showInfoModal} onClose={() => setShowInfoModal(false)} />
+
+      {/* ── Modal Boutique ── */}
+      <ShopModal open={showShopModal} onClose={() => setShowShopModal(false)} isLoggedIn={isAuthenticated} />
 
       {/* ── Modal Compte ── */}
       <AnimatePresence>

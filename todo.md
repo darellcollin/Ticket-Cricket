@@ -242,3 +242,19 @@
 - [x] Accueil : supprimer le grand logo fixe
 - [x] Accueil : titre TICKET CRICKET très grand en haut de la page
 - [x] Accueil : petit logo ticket qui orbite autour du titre (passant devant et derrière)
+
+## Modifications session 22 — QR code, prix cartes, optimisation globale
+
+- [ ] Lobby multijoueur : afficher un QR code scannable du code de partie à côté du code texte
+- [ ] Cartes contravention + contribuable : prix en police blanche (comme investisseur)
+- [ ] Orbital accueil : rotation fluide et continue sans pause, bien cadré sans débordement
+- [ ] Interfaces : layout symétrique, boutons uniformes, animations fluides sans latence
+- [ ] Responsive : optimiser mobile en priorité (touch targets, tailles, espacement)
+- [ ] Notifications et overlays : centrage et symétrie sur PC et mobile
+
+## Modifications session 23 — Infos jeu, Boutique, Présentation mini-jeux
+- [x] Accueil : bouton "Infos" en haut à gauche (icône info) → modal avec l'histoire du jeu
+- [x] Accueil : bouton "Boutique" sous "Personnalisation" → modal "Bientôt disponible"
+- [x] Créer composant GameInfoModal.tsx avec l'histoire du jeu complète
+- [x] Créer composant ShopModal.tsx avec présentation boutique verrouillée
+- [x] Créer page MiniGamePresentationModal.tsx avec présentation des fonctionnalités mini-jeux
