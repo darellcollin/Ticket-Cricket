@@ -129,22 +129,22 @@
 
 ## Modifications session 10 — Cartes personnalisées
 
-- [ ] DB: table custom_cards (id, userId, category, mefait, ticketPrice, frais, impots, taxe, createdAt)
-- [ ] tRPC: endpoint createCustomCard (protectedProcedure, max 100 cartes par joueur)
-- [ ] tRPC: endpoint listCustomCards (protectedProcedure)
-- [ ] tRPC: endpoint deleteCustomCard (protectedProcedure)
-- [ ] Page CustomCardCreator: formulaire par catégorie avec prévisualisation GeneratedCard en temps réel
-- [ ] Page CustomCardCreator: contravention (méfait 150 chars, frais 0/10/20/30/40/50$, ticket 10-4000$)
-- [ ] Page CustomCardCreator: contribuable (impôts 0/10/20/30/40/50$, ticket toujours 0$)
-- [ ] Page CustomCardCreator: investisseur (ticket 10-4000$, taxe 0/10/20/30/40/50$, méfait fixe)
-- [ ] Page CustomCardCreator: liste des cartes créées avec option de suppression (max 100)
-- [ ] Bouton "Personnaliser" visible dans le header du catalogue des cartes
-- [ ] Route /custom-cards dans App.tsx
-- [ ] Sélecteur de deck: option "Cartes personnalisées" dans DifficultyModal (solo)
-- [ ] Sélecteur de deck: option "Cartes personnalisées" dans LobbyScreen (host seulement)
-- [ ] Moteur de jeu: GameScreen gère les cartes personnalisées dans le deck
-- [ ] Moteur de jeu: MultiplayerGameScreen partage les cartes du host avec les autres joueurs
-- [ ] Tests vitest pour createCustomCard, listCustomCards, deleteCustomCard
+- [x] DB: table custom_cards (id, userId, category, mefait, ticketPrice, frais, impots, taxe, createdAt)
+- [x] tRPC: endpoint createCustomCard (protectedProcedure, max 100 cartes par joueur)
+- [x] tRPC: endpoint listCustomCards (protectedProcedure)
+- [x] tRPC: endpoint deleteCustomCard (protectedProcedure)
+- [x] Page CustomCardCreator: formulaire par catégorie avec prévisualisation GeneratedCard en temps réel
+- [x] Page CustomCardCreator: contravention (méfait 150 chars, frais 0/10/20/30/40/50$, ticket 10-4000$)
+- [x] Page CustomCardCreator: contribuable (impôts 0/10/20/30/40/50$, ticket toujours 0$)
+- [x] Page CustomCardCreator: investisseur (ticket 10-4000$, taxe 0/10/20/30/40/50$, méfait fixe)
+- [x] Page CustomCardCreator: liste des cartes créées avec option de suppression (max 100)
+- [x] Bouton "Personnaliser" visible dans le header du catalogue des cartes
+- [x] Route /custom-cards dans App.tsx
+- [x] Sélecteur de deck: option "Cartes personnalisées" dans DifficultyModal (solo)
+- [x] Sélecteur de deck: option "Cartes personnalisées" dans LobbyScreen (host seulement)
+- [x] Moteur de jeu: GameScreen gère les cartes personnalisées dans le deck
+- [x] Moteur de jeu: MultiplayerGameScreen partage les cartes du host avec les autres joueurs
+- [x] Tests vitest pour createCustomCard, listCustomCards, deleteCustomCard
 
 ## Modifications session 11 — Navigation personnalisation
 
@@ -306,6 +306,9 @@
 - [x] Profil : section "Mes Achats" avec liste des packs débloqués et dons effectués
 - [x] Profil : afficher le quota total de cartes personnalisables (15 gratuits + cartes achetées)
 
+## Corrections session 32 — Layout boutique
+- [x] Boutique : pastilles "Populaire"/"Meilleure valeur"/"Maximum" ne doivent pas cacher les prix
+
 ## Corrections session 31 — Boutique + Stripe + Serveur
 - [x] Redémarrer le serveur de développement
 - [x] Corriger erreur TS : import `getDb` au lieu de `db` dans shopRouter.ts
@@ -313,3 +316,6 @@
 - [x] Boutique : supprimer "Packs personnalisables" de la section "Bientôt disponible"
 - [x] Vérifier la connexion Stripe (clés configurées)
 - [x] Webhook Stripe : enregistrer l'achat en DB lors de checkout.session.completed
+
+## Corrections session 33 — Boutique navigation packs
+- [x] Boutique : remplacer la liste directe des packs par un bouton "Packs de cartes" qui ouvre une vue dédiée
