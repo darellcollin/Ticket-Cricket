@@ -602,3 +602,9 @@
 - [x] Compteur de cartes du deck déjà dynamique (solo + multi) — vérifié
 - [x] Corriger le symbole de la catégorie "Skins de cartes" dans la boutique
 - [x] Texte descriptif skins : "Changez l'apparence de toutes vos cartes — 1,99 $ chacun"
+
+## Session 63 — Corrections UI
+
+- [x] Boutons Partager/Politiques dans le footer bas sur mobile (Home.tsx)
+- [x] Retirer "— économisez plus de 50%" du forfait skins (ShopModal.tsx)
+- [x] Supprimer la section "Bientôt disponible" dans la boutique (ShopModal.tsx)

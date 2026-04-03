@@ -536,40 +536,36 @@ export default function Home() {
 
             </div>
 
-            {/* Ligne 3 : boutons Partager + Politiques centrés */}
-            <div className="flex items-center justify-center gap-3 w-full">
-              <motion.button
-                className="w-10 h-10 rounded-full border-[2.5px] border-white/30 bg-white/10 flex items-center justify-center"
-                style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
-                whileHover={{ scale: 1.12, borderColor: 'rgba(255,215,0,0.6)', backgroundColor: 'rgba(255,255,255,0.18)' } as any}
-                whileTap={{ scale: 0.9 } as any}
-                onClick={() => setShowShareModal(true)}
-                title="Partager le jeu"
-              >
-                <Share2 size={18} color="white" />
-              </motion.button>
-              <motion.button
-                className="w-10 h-10 rounded-full border-[2.5px] border-white/30 bg-white/10 flex items-center justify-center"
-                style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
-                whileHover={{ scale: 1.12, borderColor: 'rgba(100,200,255,0.6)', backgroundColor: 'rgba(255,255,255,0.18)' } as any}
-                whileTap={{ scale: 0.9 } as any}
-                onClick={() => setShowPoliciesModal(true)}
-                title="Politiques du jeu"
-              >
-                <FileText size={18} color="white" />
-              </motion.button>
-            </div>
+
           </div>
         </div>
       </div>
 
       <PoliceTape />
 
-      {/* Bottom bar : copyright uniquement */}
-      <div className="w-full bg-[#111] py-1 flex-shrink-0 flex items-center justify-center" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
+      {/* Bottom bar : copyright + boutons Partager/Politiques */}
+      <div className="w-full bg-[#111] py-1.5 flex-shrink-0 flex items-center justify-center gap-3" style={{ paddingBottom: "calc(0.375rem + env(safe-area-inset-bottom, 0px))" }}>
+        <motion.button
+          className="w-8 h-8 rounded-full border-[2px] border-white/20 bg-white/8 flex items-center justify-center"
+          whileHover={{ scale: 1.12, borderColor: 'rgba(255,215,0,0.6)' } as any}
+          whileTap={{ scale: 0.9 } as any}
+          onClick={() => setShowShareModal(true)}
+          title="Partager le jeu"
+        >
+          <Share2 size={14} color="rgba(255,255,255,0.6)" />
+        </motion.button>
         <span style={FONT_FREDOKA} className="text-yellow-400/60 text-xs tracking-widest">
           © TICKET CRICKET 2026
         </span>
+        <motion.button
+          className="w-8 h-8 rounded-full border-[2px] border-white/20 bg-white/8 flex items-center justify-center"
+          whileHover={{ scale: 1.12, borderColor: 'rgba(100,200,255,0.6)' } as any}
+          whileTap={{ scale: 0.9 } as any}
+          onClick={() => setShowPoliciesModal(true)}
+          title="Politiques du jeu"
+        >
+          <FileText size={14} color="rgba(255,255,255,0.6)" />
+        </motion.button>
       </div>
 
       {/* ── Modal Multijoueur ── */}

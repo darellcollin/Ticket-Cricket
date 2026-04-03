@@ -504,39 +504,7 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                     </div>
                   </motion.button>
 
-                  {/* Séparateur */}
-                  <div className="border-t-[2px] border-white/10 pt-1" />
 
-                  {/* Bientôt disponible */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Lock className="w-4 h-4 text-yellow-400" />
-                      <span style={{ ...FONT_BANGERS, fontSize: "1.1rem" }} className="text-yellow-400">
-                        BIENTÔT DISPONIBLE
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {COMING_SOON.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <div
-                            key={item.name}
-                            className="p-3 rounded-xl border-[2px] border-white/10 flex items-center gap-2 opacity-45"
-                            style={{ background: "rgba(255,255,255,0.03)" }}
-                          >
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: item.color + "30" }}>
-                              <Icon className="w-4 h-4" style={{ color: item.color }} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div style={{ ...FONT_BANGERS, fontSize: "0.78rem" }} className="text-white/70 leading-none">{item.name}</div>
-                              <div style={FONT_FREDOKA} className="text-white/40 text-[0.58rem] leading-tight mt-0.5">{item.desc}</div>
-                            </div>
-                            <Lock className="w-3 h-3 text-white/25 flex-shrink-0" />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
                   <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
                     Ticket Cricket 2026
                   </p>
@@ -1091,7 +1059,7 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                               <div className="px-4 py-3 flex items-center justify-between gap-3">
                                 <div>
                                   <p style={FONT_FREDOKA} className="text-white text-xs">
-                                    Tous les skins débloqués d’un seul coup — économisez plus de 50 %.
+                                    Tous les skins débloqués d'un seul coup.
                                   </p>
                                   <p style={FONT_FREDOKA} className="text-white/40 text-[0.65rem] mt-0.5">
                                     {SKIN_CATALOG.filter(s => s.id !== "classique").length} skins inclus
