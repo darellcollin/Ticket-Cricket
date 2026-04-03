@@ -182,3 +182,103 @@ describe("deduplicatePurchases", () => {
     expect(result[0].productId).toBe("pack_35");
   });
 });
+
+// ── Helpers panier ────────────────────────────────────────────────────────────
+
+const SKIN_PRODUCTS = [
+  { id: "skin_neon", skinId: "neon", price: 299, category: "skin" },
+  { id: "skin_retro", skinId: "retro", price: 299, category: "skin" },
+  { id: "skin_glace", skinId: "glace", price: 299, category: "skin" },
+  { id: "skin_feu", skinId: "feu", price: 299, category: "skin" },
+  { id: "skin_royal", skinId: "royal", price: 299, category: "skin" },
+  { id: "skin_foret", skinId: "foret", price: 499, category: "skin", premium: true },
+  { id: "skin_metal", skinId: "metal", price: 499, category: "skin", premium: true },
+  { id: "skin_prestige", skinId: "prestige", price: 499, category: "skin", premium: true },
+];
+
+function calculateCartTotal(productIds: string[]): number {
+  return productIds.reduce((sum, id) => {
+    const product = SKIN_PRODUCTS.find(p => p.id === id);
+    return sum + (product?.price ?? 0);
+  }, 0);
+}
+
+function validateCart(productIds: string[], availableIds: string[]): string | null {
+  if (productIds.length === 0) return "Le panier est vide";
+  if (productIds.length > 10) return "Maximum 10 articles par commande";
+  for (const id of productIds) {
+    if (!availableIds.includes(id)) return `Produit introuvable : ${id}`;
+  }
+  return null;
+}
+
+function extractSkinIdsFromCart(productIds: string[]): string[] {
+  return productIds
+    .map(id => SKIN_PRODUCTS.find(p => p.id === id)?.skinId)
+    .filter((s): s is string => !!s);
+}
+
+describe("calculateCartTotal", () => {
+  it("calcule le total d'un panier avec 1 skin standard", () => {
+    expect(calculateCartTotal(["skin_neon"])).toBe(299);
+  });
+
+  it("calcule le total d'un panier avec 1 skin premium", () => {
+    expect(calculateCartTotal(["skin_foret"])).toBe(499);
+  });
+
+  it("calcule le total d'un panier mixé standard + premium", () => {
+    expect(calculateCartTotal(["skin_neon", "skin_foret"])).toBe(798);
+  });
+
+  it("retourne 0 pour un panier vide", () => {
+    expect(calculateCartTotal([])).toBe(0);
+  });
+
+  it("calcule le total de 3 skins premium", () => {
+    expect(calculateCartTotal(["skin_foret", "skin_metal", "skin_prestige"])).toBe(1497);
+  });
+});
+
+describe("validateCart", () => {
+  const AVAILABLE = SKIN_PRODUCTS.map(p => p.id);
+
+  it("accepte un panier valide d'un seul skin", () => {
+    expect(validateCart(["skin_neon"], AVAILABLE)).toBeNull();
+  });
+
+  it("accepte un panier de 3 skins", () => {
+    expect(validateCart(["skin_neon", "skin_foret", "skin_prestige"], AVAILABLE)).toBeNull();
+  });
+
+  it("rejette un panier vide", () => {
+    expect(validateCart([], AVAILABLE)).toBe("Le panier est vide");
+  });
+
+  it("rejette un panier de plus de 10 articles", () => {
+    const tooMany = Array(11).fill("skin_neon");
+    expect(validateCart(tooMany, AVAILABLE)).toBe("Maximum 10 articles par commande");
+  });
+
+  it("rejette un produit inconnu", () => {
+    expect(validateCart(["skin_inconnu"], AVAILABLE)).toContain("Produit introuvable");
+  });
+});
+
+describe("extractSkinIdsFromCart", () => {
+  it("extrait les skinIds d'un panier de skins", () => {
+    const result = extractSkinIdsFromCart(["skin_neon", "skin_foret"]);
+    expect(result).toEqual(["neon", "foret"]);
+  });
+
+  it("retourne un tableau vide pour un panier vide", () => {
+    expect(extractSkinIdsFromCart([])).toEqual([]);
+  });
+
+  it("inclut les skins premium dans l'extraction", () => {
+    const result = extractSkinIdsFromCart(["skin_foret", "skin_metal", "skin_prestige"]);
+    expect(result).toContain("foret");
+    expect(result).toContain("metal");
+    expect(result).toContain("prestige");
+  });
+});

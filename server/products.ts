@@ -5,7 +5,7 @@
  * Catégories :
  *  - "card_pack" : packs de cartes personnalisables (disponibles)
  *  - "don"       : don à montant libre (disponible)
- *  - "skin"      : skins de cartes (bientôt)
+ *  - "skin"      : skins de cartes (disponibles)
  *  - "deck"      : decks exclusifs (bientôt)
  *  - "pack"      : packs de personnalisation (bientôt)
  */
@@ -24,6 +24,8 @@ export interface ShopProduct {
   extraCards?: number;
   /** ID du skin à débloquer (pour skin uniquement) */
   skinId?: string;
+  /** Skin premium (coûte plus cher) */
+  premium?: boolean;
 }
 
 export const SHOP_PRODUCTS: ShopProduct[] = [
@@ -78,7 +80,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     available: true,
   },
 
-  // ── SKINS DE CARTES (disponibles) ──
+  // ── SKINS DE CARTES STANDARDS (disponibles) ──
   {
     id: "skin_neon",
     name: "Skin Néon",
@@ -138,6 +140,47 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     color: "#C9A84C",
     available: true,
     skinId: "royal",
+  },
+
+  // ── SKINS PREMIUM (4,99 $ — 2 $ de plus que les standards) ──
+  {
+    id: "skin_foret",
+    name: "Skin Forêt",
+    description: "Textures bois et mousse — vert forêt, brun et ocre. Nature sauvage.",
+    price: 499, // 4.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "trees",
+    color: "#4A7C59",
+    available: true,
+    skinId: "foret",
+    premium: true,
+  },
+  {
+    id: "skin_metal",
+    name: "Skin Métal",
+    description: "Acier brossé et chrome industriel. Texture métallique froide et précise.",
+    price: 499, // 4.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "cog",
+    color: "#8B9DB5",
+    available: true,
+    skinId: "metal",
+    premium: true,
+  },
+  {
+    id: "skin_prestige",
+    name: "Skin Prestige",
+    description: "Diamant glossy et reflets arc-en-ciel. Le summum du luxe absolu.",
+    price: 499, // 4.99 CAD
+    currency: "cad",
+    category: "skin",
+    icon: "gem",
+    color: "#B388FF",
+    available: true,
+    skinId: "prestige",
+    premium: true,
   },
 
   // ── DECKS EXCLUSIFS (bientôt) ──

@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown } from "lucide-react";
+import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { GeneratedCard } from "@/game/components/GeneratedCard";
@@ -75,9 +75,12 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   glace: Snowflake,
   feu: Flame,
   royal: Crown,
+  foret: Trees,
+  metal: Cog,
+  prestige: Gem,
 };
 
-type View = "home" | "packs" | "don" | "skins";
+type View = "home" | "packs" | "don" | "skins" | "cart";
 
 export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   const [view, setView] = useState<View>("home");
@@ -85,11 +88,60 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   const [donAmount, setDonAmount] = useState<string>("5");
   const [donError, setDonError] = useState<string | null>(null);
   const [previewSkin, setPreviewSkin] = useState<CardSkinId>("classique");
+  const [cart, setCart] = useState<string[]>([]); // productIds dans le panier
 
   // Skins débloqués par le joueur
-  const { data: ownedSkins = [] } = trpc.skins.listOwnedSkins.useQuery(undefined, {
+  const { data: ownedSkins = [], refetch: refetchOwnedSkins } = trpc.skins.listOwnedSkins.useQuery(undefined, {
     enabled: isLoggedIn,
   });
+
+  // Skin actif du joueur
+  const { data: activeSkinId, refetch: refetchActiveSkin } = trpc.skins.getActiveSkin.useQuery(undefined, {
+    enabled: isLoggedIn,
+  });
+
+  // Mutation pour activer un skin
+  const setActiveSkinMutation = trpc.skins.setActiveSkin.useMutation({
+    onSuccess: ({ skinId }) => {
+      refetchActiveSkin();
+      refetchOwnedSkins();
+      toast.success(`Skin ${skinId} activé !`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Erreur lors de l'activation.");
+    },
+  });
+
+  // Mutation pour le panier groupé
+  const cartCheckoutMutation = trpc.shop.createCartCheckout.useMutation({
+    onSuccess: ({ url }) => {
+      setLoadingId(null);
+      if (url) {
+        toast.success("Redirection vers le paiement...");
+        window.open(url, "_blank");
+      }
+    },
+    onError: (err) => {
+      setLoadingId(null);
+      toast.error(err.message || "Erreur lors du paiement.");
+    },
+  });
+
+  function handleCartCheckout() {
+    if (!isLoggedIn) { toast.error("Connectez-vous pour acheter."); return; }
+    if (cart.length === 0) { toast.error("Votre panier est vide."); return; }
+    setLoadingId("cart");
+    cartCheckoutMutation.mutate({ productIds: cart, origin: window.location.origin });
+  }
+
+  function addToCart(productId: string) {
+    setCart(prev => prev.includes(productId) ? prev : [...prev, productId]);
+    toast.success("Ajouté au panier !");
+  }
+
+  function removeFromCart(productId: string) {
+    setCart(prev => prev.filter(id => id !== productId));
+  }
 
   const checkoutMutation = trpc.shop.createCheckout.useMutation({
     onSuccess: ({ url }) => {
@@ -152,6 +204,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
     packs: "PACKS DE CARTES",
     don: "SOUTENIR LE PROJET",
     skins: "SKINS DE CARTES",
+    cart: "MON PANIER",
   }[view];
 
   return (
@@ -196,12 +249,29 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   {headerTitle}
                 </span>
               </div>
-              <button
-                onClick={handleClose}
-                className="w-9 h-9 rounded-xl border-[3px] border-white/30 bg-white/10 flex items-center justify-center active:scale-95 transition-transform"
-              >
-                <X className="w-5 h-5 text-white" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Bouton panier avec badge */}
+                <button
+                  onClick={() => setView("cart")}
+                  className="relative w-9 h-9 rounded-xl border-[3px] border-white/30 bg-white/10 flex items-center justify-center active:scale-95 transition-transform"
+                >
+                  <ShoppingCart className="w-5 h-5 text-white" />
+                  {cart.length > 0 && (
+                    <span
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border-[2px] border-black flex items-center justify-center"
+                      style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.6rem", color: "#000" }}
+                    >
+                      {cart.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="w-9 h-9 rounded-xl border-[3px] border-white/30 bg-white/10 flex items-center justify-center active:scale-95 transition-transform"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+              </div>
             </div>
 
             {/* ── Contenu ── */}
@@ -273,7 +343,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                           SKINS DE CARTES
                         </div>
                         <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          6 designs exclusifs — Néon, Rétro, Glace, Feu, Royal — 2,99 $ chacun
+                          9 designs exclusifs — standards (2,99 $) et premium (4,99 $)
                         </div>
                       </div>
                       <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
@@ -512,35 +582,38 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                               </span>
                             </div>
 
-                            {/* 3 cartes — taille adaptée selon l'écran */}
+                            {/* 3 cartes avec zoom au clic */}
                             <div className="flex gap-2 md:gap-4 justify-center items-start mb-4">
-                              <div className="flex flex-col items-center gap-1.5">
-                                <div className="hidden md:block">
-                                  <GeneratedCard card={DEMO_CONTRAVENTION} size="sm" skinId={previewSkin} mefaitOverride="Excès de vitesse en zone scolaire" />
+                              {[
+                                { card: DEMO_CONTRAVENTION, label: "Contravention", mefait: "Excès de vitesse en zone scolaire" },
+                                { card: DEMO_CONTRIBUABLE, label: "Contribuable", mefait: "Remboursement d'impôt reçu" },
+                                { card: DEMO_INVESTISSEUR, label: "Investisseur", mefait: "Dividendes versés aux actionnaires" },
+                              ].map(({ card, label, mefait }) => (
+                                <div key={label} className="flex flex-col items-center gap-1.5 group">
+                                  {/* Desktop : sm */}
+                                  <div className="hidden md:block relative cursor-zoom-in">
+                                    <motion.div
+                                      whileHover={{ scale: 1.08, zIndex: 10 }}
+                                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                      style={{ position: "relative", zIndex: 1 }}
+                                    >
+                                      <GeneratedCard card={card} size="sm" skinId={previewSkin} mefaitOverride={mefait} />
+                                    </motion.div>
+                                  </div>
+                                  {/* Mobile : xs */}
+                                  <div className="md:hidden relative cursor-zoom-in">
+                                    <motion.div
+                                      whileHover={{ scale: 1.12, zIndex: 10 }}
+                                      whileTap={{ scale: 1.15 }}
+                                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                      style={{ position: "relative", zIndex: 1 }}
+                                    >
+                                      <GeneratedCard card={card} size="xs" skinId={previewSkin} mefaitOverride={mefait} style={{ width: 90, height: 126 }} />
+                                    </motion.div>
+                                  </div>
+                                  <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">{label}</span>
                                 </div>
-                                <div className="md:hidden">
-                                  <GeneratedCard card={DEMO_CONTRAVENTION} size="xs" skinId={previewSkin} mefaitOverride="Excès de vitesse en zone scolaire" style={{ width: 90, height: 126 }} />
-                                </div>
-                                <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Contravention</span>
-                              </div>
-                              <div className="flex flex-col items-center gap-1.5">
-                                <div className="hidden md:block">
-                                  <GeneratedCard card={DEMO_CONTRIBUABLE} size="sm" skinId={previewSkin} mefaitOverride="Remboursement d'impôt reçu" />
-                                </div>
-                                <div className="md:hidden">
-                                  <GeneratedCard card={DEMO_CONTRIBUABLE} size="xs" skinId={previewSkin} mefaitOverride="Remboursement d'impôt reçu" style={{ width: 90, height: 126 }} />
-                                </div>
-                                <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Contribuable</span>
-                              </div>
-                              <div className="flex flex-col items-center gap-1.5">
-                                <div className="hidden md:block">
-                                  <GeneratedCard card={DEMO_INVESTISSEUR} size="sm" skinId={previewSkin} mefaitOverride="Dividendes versés aux actionnaires" />
-                                </div>
-                                <div className="md:hidden">
-                                  <GeneratedCard card={DEMO_INVESTISSEUR} size="xs" skinId={previewSkin} mefaitOverride="Dividendes versés aux actionnaires" style={{ width: 90, height: 126 }} />
-                                </div>
-                                <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Investisseur</span>
-                              </div>
+                              ))}
                             </div>
 
                             {/* Panneau achat */}
@@ -575,20 +648,70 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                               </div>
                               <div className="px-4 py-3 flex items-center justify-between" style={{ background: "rgba(0,0,0,0.3)" }}>
                                 <p style={FONT_FREDOKA} className="text-white/50 text-xs">
-                                  {isOwned ? "Skin déjà dans votre collection." : "Achat unique — disponible sur tous vos appareils."}
+                                  {isOwned
+                                    ? activeSkinId === previewSkin
+                                      ? "Skin actuellement actif."
+                                      : "Skin déjà dans votre collection."
+                                    : "Achat unique — disponible sur tous vos appareils."}
                                 </p>
-                                {!isOwned && (
-                                  <motion.button
-                                    whileTap={{ scale: 0.93 }}
-                                    onClick={() => handleBuySkin(activeSkin.productId)}
-                                    disabled={!isLoggedIn || !!loadingId}
-                                    className="ml-3 px-5 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5 flex-shrink-0"
-                                    style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
-                                  >
-                                    {loadingId === activeSkin.productId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
-                                    ACHETER
-                                  </motion.button>
-                                )}
+                                <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                                  {isOwned && activeSkinId !== previewSkin && (
+                                    <motion.button
+                                      whileTap={{ scale: 0.93 }}
+                                      onClick={() => setActiveSkinMutation.mutate({ skinId: previewSkin })}
+                                      disabled={setActiveSkinMutation.isPending}
+                                      className="px-4 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5"
+                                      style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                                    >
+                                      {setActiveSkinMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                      ACTIVER
+                                    </motion.button>
+                                  )}
+                                  {isOwned && activeSkinId === previewSkin && (
+                                    <span
+                                      className="px-4 py-2 rounded-xl border-[3px] border-black flex items-center gap-1.5"
+                                      style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "1rem", color: "#fff", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                                    >
+                                      <Zap className="w-3.5 h-3.5" /> ACTIF
+                                    </span>
+                                  )}
+                                  {!isOwned && (
+                                    <div className="flex items-center gap-1.5">
+                                      {/* Bouton Ajouter au panier */}
+                                      {cart.includes(activeSkin.productId) ? (
+                                        <motion.button
+                                          whileTap={{ scale: 0.93 }}
+                                          onClick={() => removeFromCart(activeSkin.productId)}
+                                          className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1"
+                                          style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
+                                        >
+                                          <Minus className="w-3 h-3" />
+                                        </motion.button>
+                                      ) : (
+                                        <motion.button
+                                          whileTap={{ scale: 0.93 }}
+                                          onClick={() => addToCart(activeSkin.productId)}
+                                          disabled={!isLoggedIn}
+                                          className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 disabled:opacity-40"
+                                          style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
+                                        >
+                                          <Plus className="w-3 h-3" />
+                                        </motion.button>
+                                      )}
+                                      {/* Bouton Acheter direct */}
+                                      <motion.button
+                                        whileTap={{ scale: 0.93 }}
+                                        onClick={() => handleBuySkin(activeSkin.productId)}
+                                        disabled={!isLoggedIn || !!loadingId}
+                                        className="px-4 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5"
+                                        style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                                      >
+                                        {loadingId === activeSkin.productId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
+                                        ACHETER
+                                      </motion.button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
@@ -686,6 +809,113 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   <p style={FONT_FREDOKA} className="text-white/30 text-[10px] text-center">
                     Paiement sécurisé via Stripe. Aucun remboursement sur les dons.
                   </p>
+                </motion.div>
+              )}
+
+              {/* ── VUE PANIER ── */}
+              {view === "cart" && (
+                <motion.div
+                  key="cart"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.18 }}
+                  className="overflow-y-auto flex-1 px-5 py-5 space-y-3"
+                  style={{ scrollbarWidth: "thin" }}
+                >
+                  {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-4 py-12">
+                      <div className="w-16 h-16 rounded-2xl border-[3px] border-white/20 flex items-center justify-center" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <ShoppingCart className="w-8 h-8 text-white/30" />
+                      </div>
+                      <p style={FONT_FREDOKA} className="text-white/40 text-sm text-center">
+                        Votre panier est vide.<br />Ajoutez des skins depuis la boutique.
+                      </p>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setView("skins")}
+                        className="px-5 py-2 rounded-xl border-[3px] border-black text-black"
+                        style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.1rem", boxShadow: "2px 2px 0px #000" }}
+                      >
+                        VOIR LES SKINS
+                      </motion.button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Liste des articles */}
+                      {cart.map((productId) => {
+                        const skin = SKIN_CATALOG.find(s => `skin_${s.id}` === productId || s.id === productId.replace("skin_", ""));
+                        const Icon = skin ? SKIN_ICON_MAP[skin.id] : ShoppingCart;
+                        const priceCents: number = skin?.priceCents ?? 299;
+                        const priceLabel = (priceCents / 100).toFixed(2).replace(".", ",") + " $";
+                        return (
+                          <div
+                            key={productId}
+                            className="flex items-center gap-3 p-3 rounded-2xl border-[2px] border-white/15"
+                            style={{ background: "rgba(255,255,255,0.06)" }}
+                          >
+                            <div
+                              className="w-10 h-10 rounded-xl border-[2px] border-black flex items-center justify-center flex-shrink-0"
+                              style={{ background: skin?.color ?? "#666" }}
+                            >
+                              <Icon className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div style={{ ...FONT_BANGERS, fontSize: "1rem", color: skin?.color ?? "#fff" }}>
+                                {skin?.name ?? productId}
+                              </div>
+                              <div style={FONT_FREDOKA} className="text-white/40 text-xs">
+                                {skin?.description ?? ""}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span style={{ ...FONT_BANGERS, fontSize: "1rem", color: "#FFD700" }}>{priceLabel}</span>
+                              <button
+                                onClick={() => removeFromCart(productId)}
+                                className="w-7 h-7 rounded-lg border-[2px] border-white/20 flex items-center justify-center hover:bg-red-500/20 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-white/50" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Total */}
+                      <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: "3px 3px 0px #000" }}>
+                        <div className="px-4 py-3 flex items-center justify-between" style={{ background: "rgba(255,215,0,0.12)", borderBottom: "2px solid rgba(255,215,0,0.3)" }}>
+                          <span style={FONT_FREDOKA} className="text-white/70 text-sm">Total ({cart.length} article{cart.length > 1 ? "s" : ""})</span>
+                          <span style={{ ...FONT_BANGERS, fontSize: "1.4rem", color: "#FFD700" }}>
+                            {(cart.reduce((sum, id) => {
+                              const skin = SKIN_CATALOG.find(s => `skin_${s.id}` === id || s.id === id.replace("skin_", ""));
+                              return sum + (skin?.priceCents ?? 299);
+                            }, 0) / 100).toFixed(2).replace(".", ",")} $
+                          </span>
+                        </div>
+                        <div className="px-4 py-3 flex items-center justify-between" style={{ background: "rgba(0,0,0,0.3)" }}>
+                          <p style={FONT_FREDOKA} className="text-white/40 text-xs">Paiement unique et permanent via Stripe.</p>
+                          <motion.button
+                            whileTap={{ scale: 0.93 }}
+                            onClick={handleCartCheckout}
+                            disabled={!isLoggedIn || loadingId === "cart"}
+                            className="ml-3 px-5 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5 flex-shrink-0"
+                            style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                          >
+                            {loadingId === "cart" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
+                            PAYER
+                          </motion.button>
+                        </div>
+                      </div>
+
+                      {!isLoggedIn && (
+                        <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
+                          <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
+                            Connectez-vous pour finaliser votre achat.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </motion.div>
               )}
 

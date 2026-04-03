@@ -82,6 +82,58 @@ export const shopRouter = router({
     return rows;
   }),
 
+  /** Créer une session Stripe Checkout pour un panier de skins (achat groupé) */
+  createCartCheckout: gameAuthProtectedProcedure
+    .input(
+      z.object({
+        productIds: z.array(z.string()).min(1).max(10),
+        origin: z.string().url(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const products = input.productIds.map(id => {
+        const p = AVAILABLE_PRODUCTS.find(p => p.id === id);
+        if (!p) throw new Error(`Produit introuvable : ${id}`);
+        if (p.category === "don") throw new Error("Les dons ne peuvent pas être dans le panier.");
+        return p;
+      });
+
+      const lineItems = products.map(p => ({
+        price_data: {
+          currency: p.currency,
+          product_data: {
+            name: p.name,
+            description: p.description,
+          },
+          unit_amount: p.price,
+        },
+        quantity: 1,
+      }));
+
+      const productIds = products.map(p => p.id).join(",");
+      const skinIds = products.filter(p => p.skinId).map(p => p.skinId).join(",");
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "payment",
+        line_items: lineItems,
+        customer_email: ctx.gameProfile.email ?? undefined,
+        client_reference_id: ctx.gameProfile.id.toString(),
+        metadata: {
+          profile_id: ctx.gameProfile.id.toString(),
+          product_ids: productIds,
+          skin_ids: skinIds,
+          product_category: "cart",
+          customer_email: ctx.gameProfile.email ?? "",
+        },
+        allow_promotion_codes: true,
+        success_url: `${input.origin}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${input.origin}/?shop=cancelled`,
+      });
+
+      return { url: session.url };
+    }),
+
   /** Créer une session Stripe Checkout pour un don à montant libre */
   createDonCheckout: protectedProcedure
     .input(

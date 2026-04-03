@@ -106,11 +106,24 @@ export async function getGameProfileById(id: number): Promise<GameProfile | null
   const db = await getDb();
   if (!db) return null;
 
-  const results = await db
-    .select()
-    .from(gameProfiles)
-    .where(eq(gameProfiles.id, id))
-    .limit(1);
+  try {
+    const results = await db
+      .select()
+      .from(gameProfiles)
+      .where(eq(gameProfiles.id, id))
+      .limit(1);
 
-  return results.length > 0 ? results[0] : null;
+    return results.length > 0 ? results[0] : null;
+  } catch (e: any) {
+    // Log the underlying cause for debugging
+    const cause = e.cause ?? e;
+    console.error('[gameProfileDb] getGameProfileById error:', {
+      message: cause.message,
+      code: cause.code,
+      sqlState: cause.sqlState,
+      sqlMessage: cause.sqlMessage,
+      errno: cause.errno,
+    });
+    throw e;
+  }
 }

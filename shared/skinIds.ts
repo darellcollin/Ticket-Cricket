@@ -9,6 +9,9 @@ export const SKIN_IDS = [
   "glace",
   "feu",
   "royal",
+  "foret",
+  "metal",
+  "prestige",
 ] as const;
 
 export type SkinId = typeof SKIN_IDS[number];

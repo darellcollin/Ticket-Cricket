@@ -425,3 +425,34 @@
 - [x] Serveur : limite de cartes personnalisables illimitée pour les admins (au lieu de 100)
 - [x] Frontend : boutique affiche tous les skins comme débloqués pour l'admin
 - [x] Frontend : CustomCardCreator n'affiche pas la limite pour l'admin
+
+## Session 48 — Corrections boutons + skins premium
+- [x] Corriger les bugs de textures des boutons dans tout le jeu
+- [x] Relier le bouton "Soutenir le projet" (header menu) à la fonction de don dans la boutique
+- [x] Agrandir les previews de skins dans la boutique (plus grandes cartes)
+- [x] Ajouter zoom au clic sur les cartes de skins dans la boutique (overlay avec animation)
+- [x] Ajouter skin "Forêt" (texture bois, couleurs bois) à 4,99 $
+- [x] Ajouter skin "Métal" (texture métallique) à 4,99 $
+- [x] Ajouter skin "Prestige" (texture lustre diamant, shading) à 4,99 $
+- [x] Créer les produits Stripe pour les 3 nouveaux skins
+- [x] Mettre à jour SKIN_IDS et skinConfig.ts avec les 3 nouveaux skins
+
+## Session 49 — VIP packs + responsive complet + corrections
+- [ ] VIP admin : packs de cartes personnalisables débloqués (toutes les catégories de packs)
+- [ ] Corriger bugs de textures des boutons dans tout le jeu
+- [ ] Relier bouton "Soutenir le projet" (modal info) à la fonction de don dans la boutique
+- [ ] Responsive complet Home.tsx : boutons s'adaptent à toutes tailles d'écran
+- [ ] Responsive complet RulesScreen.tsx : plein écran sur PC et mobile
+- [ ] Responsive complet LobbyScreen.tsx : layout 2 colonnes PC fonctionnel
+- [ ] Responsive complet GameScreen solo : panneau latéral PC, carte adaptée
+- [ ] Responsive complet MultiplayerGameScreen : panneau latéral PC similaire au solo
+- [ ] Responsive complet ShopModal : toutes vues adaptées PC/mobile
+- [ ] Responsive complet CustomCardCreator : adapté PC/mobile
+
+## Session 50 — Panier boutique + checkout Stripe groupé + compte simplifié
+- [x] Boutique : système de panier (état global, bouton panier avec compteur dans le header)
+- [x] Boutique : ajout/suppression d'articles au panier (skins + packs)
+- [x] Boutique : checkout Stripe groupé (session avec tous les articles du panier)
+- [ ] Compte joueur : simplifier ProfileModal (uniquement liste achats + skins débloqués)
+- [x] Skin activé : bouton Activer/Activé dans la boutique
+- [x] Skin activé : s'applique aux 324 cartes + cartes personnalisées pendant le jeu

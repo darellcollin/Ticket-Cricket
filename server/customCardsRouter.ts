@@ -1,17 +1,18 @@
 /**
  * customCardsRouter — CRUD pour les cartes personnalisées des joueurs.
  * Toutes les procédures sont protégées par gameAuthProtectedProcedure.
- * Maximum 100 cartes par joueur.
+ * Quota : 15 cartes gratuites + cartes des packs achetés.
+ * Admins VIP : quota illimité (bypass complet).
  */
 import { z } from "zod";
 import { router } from "./_core/trpc";
 import { gameAuthProtectedProcedure } from "./gameAuthRouter";
 import { getDb } from "./db";
-import { customCards } from "../drizzle/schema";
+import { customCards, purchases } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 const MAX_CARDS_FREE = 15;
-const MAX_CARDS_ADMIN = 999999; // Illimité pour les admins
+const MAX_CARDS_ADMIN = 999999; // Illimité pour les admins VIP
 
 const ALLOWED_FEES = [0, 10, 20, 30, 40, 50] as const;
 
@@ -40,6 +41,18 @@ const createCardSchema = z.discriminatedUnion("category", [
   }),
 ]);
 
+/** Calcule le quota total de cartes d'un joueur (free + packs achetés) */
+async function getCardQuota(profileId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return MAX_CARDS_FREE;
+  const packPurchases = await db
+    .select({ cardsUnlocked: purchases.cardsUnlocked })
+    .from(purchases)
+    .where(eq(purchases.profileId, profileId));
+  const packBonus = packPurchases.reduce((sum, p) => sum + (p.cardsUnlocked ?? 0), 0);
+  return MAX_CARDS_FREE + packBonus;
+}
+
 export const customCardsRouter = router({
   /** Lister toutes les cartes personnalisées du joueur connecté */
   list: gameAuthProtectedProcedure.query(async ({ ctx }) => {
@@ -53,7 +66,7 @@ export const customCardsRouter = router({
     return cards;
   }),
 
-  /** Créer une nouvelle carte personnalisée (max 100) */
+  /** Créer une nouvelle carte personnalisée */
   create: gameAuthProtectedProcedure
     .input(createCardSchema)
     .mutation(async ({ ctx, input }) => {
@@ -61,15 +74,18 @@ export const customCardsRouter = router({
 
       if (!db) throw new Error("Base de données non disponible");
 
-      // Vérifier la limite (admins : illimité)
+      // Vérifier la limite (admins VIP : illimité)
       const existing = await db
         .select({ id: customCards.id })
         .from(customCards)
         .where(eq(customCards.profileId, ctx.gameProfile.id));
 
-      const limit = ctx.gameProfile.isAdmin ? MAX_CARDS_ADMIN : MAX_CARDS_FREE;
+      const limit = ctx.gameProfile.isAdmin
+        ? MAX_CARDS_ADMIN
+        : await getCardQuota(ctx.gameProfile.id);
+
       if (existing.length >= limit) {
-        throw new Error(`LIMIT_REACHED:${MAX_CARDS_FREE}`);
+        throw new Error(`LIMIT_REACHED:${limit}`);
       }
 
       // Construire les valeurs selon la catégorie
@@ -143,10 +159,12 @@ export const customCardsRouter = router({
       return { success: true };
     }),
 
-  /** Compter les cartes du joueur */
+  /** Compter les cartes du joueur et retourner le quota total */
   count: gameAuthProtectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
-    const max = ctx.gameProfile.isAdmin ? MAX_CARDS_ADMIN : MAX_CARDS_FREE;
+    const max = ctx.gameProfile.isAdmin
+      ? MAX_CARDS_ADMIN
+      : await getCardQuota(ctx.gameProfile.id);
     if (!db) return { count: 0, max, isAdmin: ctx.gameProfile.isAdmin };
     const rows = await db
       .select({ id: customCards.id })
