@@ -240,3 +240,19 @@ export const userActiveSkin = mysqlTable("user_active_skin", {
 
 export type UserActiveSkin = typeof userActiveSkin.$inferSelect;
 export type InsertUserActiveSkin = typeof userActiveSkin.$inferInsert;
+
+/**
+ * Packs d'extension débloqués par un joueur (achat Stripe).
+ * Chaque pack ajoute définitivement ses cartes au deck de base du joueur.
+ */
+export const userExpansionPacks = mysqlTable("user_expansion_packs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID du profil de jeu du joueur */
+  profileId: int("profileId").notNull(),
+  /** Identifiant du pack d'extension : halloween | noel | ... */
+  packId: varchar("packId", { length: 30 }).notNull(),
+  /** Date de déblocage */
+  unlockedAt: timestamp("unlockedAt").defaultNow().notNull(),
+});
+export type UserExpansionPack = typeof userExpansionPacks.$inferSelect;
+export type InsertUserExpansionPack = typeof userExpansionPacks.$inferInsert;

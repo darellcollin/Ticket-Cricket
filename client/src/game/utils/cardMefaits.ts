@@ -333,6 +333,38 @@ const CARD_MEFAITS: Record<number, string> = {
   322: "Sois meilleur, sois plus fort, la force du mental, pense mindset",
   323: "Pour avoir essayé de siffler l\'hymne national du Canada avec ton cul",
   324: "Malheureusement fallait bien que quelqu\'un se ramasse avec le ticket le plus élevé, félicitations champion",
+
+  // ── PACK HALLOWEEN — Contraventions (325–340) ────────────────────────────
+  325: "Avoir fait peur aux enfants en sortant déguisé en clown tueur avec une scie à chaîne",
+  326: "Avoir volé toutes les citrouilles du quartier car t'aime pas l'halloween",
+  327: "T'être plaint à ta municipalité que les maisons décorées étaient trop effrayantes pour ton esprit faible mentalement",
+  328: "Avoir mis du ketchup sur son costume de zombie pour faire « plus réaliste »",
+  329: "Avoir fait un striptease déguisé en sorcière durant un party d'halloween de job",
+  330: "Avoir fait du nudisme déguisé en squelette fluorescent en pleine rue",
+  331: "Avoir mis des vers en jujube dans de la poutine pour faire thématique",
+  332: "T'étais tellement gelé que t'as pensé que le stop était une suggestion du gouvernement",
+  333: "Avoir crié « Tabarnak ! » super fort en pleine nuit dans un quartier résidentiel",
+  334: "Avoir mis du sirop d'érable dans ta tank à gaz pour rendre le char plus canadien",
+  335: "Avoir fait un « squeegee » sur le windshield d'une auto arrêtée au feu rouge avec une moppe",
+  336: "Pour avoir tenté de faire cuire un steak sur le moteur de ton char pendant un traffic d'heure de pointe sur le pont Champlain",
+  337: "Pour avoir pissé dans une bouteille de Pepsi en conduisant pis l'avoir laissée traîner dans l'auto 3 ans de temps",
+  338: "Pour avoir fait de la drift dans le stationnement du IGA avec un panier d'épicerie",
+  339: "Avoir traité le préposé du dépanneur de cave parce qu'il refusait de vendre de la bière après 23h",
+  340: "Avoir tenu la porte à une famille… en leur disant de se dépêcher parce que t'avais frette",
+  // ── PACK HALLOWEEN — Contribuables (341–346) ─────────────────────────────
+  341: "Avoir volé le déguisement de la police pour faire un faux policier pendant l'Halloween, t'évitant un ticket",
+  342: "Pour avoir conduit son char en pantoufles avec une tuque sur la tête en été",
+  343: "Pour avoir enfin dit que t'avais couché avec la blonde de ton meilleur ami",
+  344: "Pour avoir essayé de payer son Big Mac avec 47 pièces de 5 cents en disant « C'est légal c'est de l'argent canadien »",
+  345: "Pour avoir demandé une poutine dans un burger, avec un coke plat, une fritte molle extra pierre au rein, et un chausson aux pommes pour emporter",
+  346: "Pour avoir donné son dernier morceau de pizza… après avoir craché dessus pour marquer son territoire",
+  // ── PACK HALLOWEEN — Investisseurs (347–352) ─────────────────────────────
+  347: "Ticket au prochain criminel",
+  348: "Ticket au prochain criminel",
+  349: "Ticket au prochain criminel",
+  350: "Ticket au prochain criminel",
+  351: "Ticket au prochain criminel",
+  352: "Ticket au prochain criminel",
 };
 
 export function getCardMefait(id: number): string | undefined {

@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus, Globe, Wand2, Package } from "lucide-react";
+import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus, Globe, Wand2, Package, Ghost } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { GeneratedCard } from "@/game/components/GeneratedCard";
@@ -97,6 +97,11 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   const { data: ownedSkins = [], refetch: refetchOwnedSkins } = trpc.skins.listOwnedSkins.useQuery(undefined, {
     enabled: isLoggedIn,
   });
+  // Packs d'extension débloqués par le joueur
+  const { data: ownedExpansionPacks = [] } = trpc.shop.listExpansionPacks.useQuery(undefined, {
+    enabled: isLoggedIn,
+  });
+  const hasHalloweenPack = ownedExpansionPacks.includes("halloween");
 
   // Skin actif du joueur
   const { data: activeSkinId, refetch: refetchActiveSkin } = trpc.skins.getActiveSkin.useQuery(undefined, {
@@ -202,13 +207,14 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
     onClose();
   }
 
-  const headerTitle = {
+  const HEADER_TITLES: Record<string, string> = {
     home: "BOUTIQUE",
     packs: "PACKS DE CARTES",
     don: "SOUTENIR LE PROJET",
     skins: "SKINS DE CARTES",
     cart: "MON PANIER",
-  }[view];
+  };
+  const headerTitle = HEADER_TITLES[view] ?? "BOUTIQUE";
 
   return (
     <>
@@ -299,6 +305,58 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                       </p>
                     </div>
                   )}
+
+                  {/* ── PACK HALLOWEEN EXCLUSIF ── */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      if (hasHalloweenPack) { toast.success("Pack Halloween déjà débloqué !"); return; }
+                      if (!isLoggedIn) { toast.error("Connectez-vous pour acheter."); return; }
+                      setLoadingId("expansion_halloween");
+                      checkoutMutation.mutate({ productId: "expansion_halloween", origin: window.location.origin });
+                    }}
+                    disabled={loadingId === "expansion_halloween"}
+                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden disabled:opacity-80"
+                    style={{ boxShadow: "4px 4px 0px #000" }}
+                  >
+                    <div
+                      className="w-full py-1 border-b-[2px] border-black text-center"
+                      style={{ background: "linear-gradient(90deg, #FF6B00 0%, #8B0000 100%)", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#FFD700" }}
+                    >
+                      PACK EXCLUSIF — 28 NOUVELLES CARTES
+                    </div>
+                    <div
+                      className="flex items-center gap-4 px-4 py-4"
+                      style={{ background: "linear-gradient(135deg, rgba(255,107,0,0.18) 0%, rgba(139,0,0,0.22) 100%)" }}
+                    >
+                      <div
+                        className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
+                        style={{ background: "linear-gradient(135deg, #FF6B00 0%, #8B0000 100%)", boxShadow: "3px 3px 0px #000" }}
+                      >
+                        {loadingId === "expansion_halloween"
+                          ? <Loader2 className="w-7 h-7 text-white animate-spin" />
+                          : hasHalloweenPack
+                          ? <Check className="w-7 h-7 text-yellow-300" />
+                          : <Ghost className="w-7 h-7 text-white" />}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem", color: "#FF8C42" }} className="leading-none">
+                          PACK HALLOWEEN
+                        </div>
+                        <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
+                          {hasHalloweenPack
+                            ? "Déjà débloqué — 28 cartes actives dans votre deck"
+                            : "16 contraventions + 6 contribuables + 6 investisseurs"}
+                        </div>
+                      </div>
+                      {hasHalloweenPack ? (
+                        <div style={{ ...FONT_BANGERS, fontSize: "0.9rem", color: "#4ADE80" }} className="flex-shrink-0">DÉBLOQUÉ</div>
+                      ) : (
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", color: "#FF8C42" }} className="flex-shrink-0">8,99 $</div>
+                      )}
+                    </div>
+                  </motion.button>
 
                   {/* Bouton Packs de cartes */}
                   <motion.button

@@ -4,7 +4,7 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { SHOP_PRODUCTS, AVAILABLE_PRODUCTS, ALL_PAID_SKIN_IDS } from "./products";
 import { gameAuthProtectedProcedure } from "./gameAuthRouter";
 import { getDb } from "./db";
-import { purchases } from "../drizzle/schema";
+import { purchases, userExpansionPacks } from "../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -138,6 +138,17 @@ export const shopRouter = router({
 
       return { url: session.url };
     }),
+
+  /** Lister les packs d'extension débloqués par le joueur connecté */
+  listExpansionPacks: gameAuthProtectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return [];
+    const rows = await db
+      .select()
+      .from(userExpansionPacks)
+      .where(eq(userExpansionPacks.profileId, ctx.gameProfile.id));
+    return rows.map(r => r.packId);
+  }),
 
   /** Créer une session Stripe Checkout pour un don à montant libre */
   createDonCheckout: protectedProcedure

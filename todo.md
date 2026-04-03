@@ -471,3 +471,18 @@
 - [x] Transmettre le taux choisi au moteur de jeu (GameScreen solo + MultiplayerGameScreen)
 - [x] Tests vitest pour les nouvelles fonctionnalités (110 tests passent)
 - [x] "Mes cartes" : afficher les cartes créées avec le skin actif du joueur (skinId transmis à GeneratedCard)
+
+## Session 52 — Pack exclusif Halloween (8,99$)
+
+- [x] cardConfig.ts : ajouter les 28 cartes Halloween (IDs 325-352) avec catégorie correcte
+- [x] cardMefaits.ts : ajouter les méfaits des 28 cartes Halloween
+- [x] cardPrices.ts : ajouter les prix/frais/impôts/taxes des 28 cartes Halloween
+- [x] DB : table user_expansion_packs (profileId, packId, purchasedAt) pour tracker les packs achetés
+- [x] tRPC : endpoint listExpansionPacks (protectedProcedure)
+- [x] tRPC : endpoint unlockExpansionPack (appelé par webhook Stripe)
+- [x] Produit Stripe : créer le produit "Pack Halloween" à 899 cents
+- [x] Webhook Stripe : débloquer le pack Halloween en DB lors de checkout.session.completed
+- [x] Boutique : section "Pack exclusif Halloween" avec design thématique orange/rouge, prix 8,99$
+- [x] Moteur solo (GameScreen) : inclure automatiquement les cartes 325-352 si le pack est acheté
+- [x] Moteur multi (MultiplayerGameScreen) : inclure automatiquement les cartes 325-352 si le pack est acheté
+- [x] Tests vitest : 110 tests passent

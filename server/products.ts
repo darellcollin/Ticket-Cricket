@@ -3,12 +3,13 @@
  * Paiement unique et permanent via Stripe Checkout.
  *
  * Catégories :
- *  - "card_pack" : packs de cartes personnalisables (disponibles)
- *  - "don"       : don à montant libre (disponible)
- *  - "skin"      : skins de cartes (disponibles)
- *  - "bundle"    : forfait groupé (tous les skins)
- *  - "deck"      : decks exclusifs (bientôt)
- *  - "pack"      : packs de personnalisation (bientôt)
+ *  - "card_pack"      : packs de cartes personnalisables (disponibles)
+ *  - "don"            : don à montant libre (disponible)
+ *  - "skin"           : skins de cartes (disponibles)
+ *  - "bundle"         : forfait groupé (tous les skins)
+ *  - "expansion_pack" : packs d'extension — nouvelles cartes ajoutées au deck de base
+ *  - "deck"           : decks exclusifs (bientôt)
+ *  - "pack"           : packs de personnalisation (bientôt)
  */
 
 export interface ShopProduct {
@@ -17,7 +18,7 @@ export interface ShopProduct {
   description: string;
   price: number; // en cents CAD
   currency: string;
-  category: "card_pack" | "skin" | "deck" | "pack" | "don" | "bundle";
+  category: "card_pack" | "skin" | "deck" | "pack" | "don" | "bundle" | "expansion_pack";
   icon: string;
   color: string;
   available: boolean;
@@ -29,6 +30,10 @@ export interface ShopProduct {
   bundleSkinIds?: string[];
   /** Skin premium */
   premium?: boolean;
+  /** Identifiant unique du pack d'extension (pour expansion_pack) */
+  expansionPackId?: string;
+  /** IDs des cartes d'extension incluses dans le pack (pour expansion_pack) */
+  expansionCardIds?: number[];
 }
 
 // Tous les IDs de skins payants (hors classique qui est gratuit)
@@ -37,7 +42,25 @@ export const ALL_PAID_SKIN_IDS = [
   "cosmic", "magique", "foret", "metal", "prestige",
 ];
 
+// IDs des cartes du Pack Halloween (325-352)
+export const HALLOWEEN_PACK_CARD_IDS: number[] = Array.from({ length: 28 }, (_, i) => i + 325);
+
 export const SHOP_PRODUCTS: ShopProduct[] = [
+  // ── PACK D'EXTENSION HALLOWEEN (disponible — 8,99 $) ──
+  {
+    id: "expansion_halloween",
+    name: "Pack Halloween",
+    description: "28 nouvelles cartes exclusives thème Halloween — 16 contraventions, 6 contribuables et 6 investisseurs. S'ajoutent automatiquement et définitivement à votre deck de 324 cartes.",
+    price: 899, // 8.99 CAD
+    currency: "cad",
+    category: "expansion_pack",
+    icon: "ghost",
+    color: "#FF6B00",
+    available: true,
+    expansionPackId: "halloween",
+    expansionCardIds: HALLOWEEN_PACK_CARD_IDS,
+  },
+
   // ── PACKS DE CARTES PERSONNALISABLES (disponibles) ──
   {
     id: "card_pack_35",
@@ -233,17 +256,6 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   },
 
   // ── DECKS EXCLUSIFS (bientôt) ──
-  {
-    id: "deck_halloween",
-    name: "Deck Halloween",
-    description: "50 nouvelles contraventions spéciales Halloween.",
-    price: 399,
-    currency: "cad",
-    category: "deck",
-    icon: "ghost",
-    color: "#FF9500",
-    available: false,
-  },
   {
     id: "deck_noel",
     name: "Deck Noël",

@@ -75,7 +75,7 @@ async function startServer() {
       if (profileId && rawProductIds.length > 0 && session.id) {
         try {
           const { getDb } = await import("../db");
-          const { purchases, userSkins } = await import("../../drizzle/schema");
+          const { purchases, userSkins, userExpansionPacks } = await import("../../drizzle/schema");
           const { SHOP_PRODUCTS, ALL_PAID_SKIN_IDS } = await import("../products");
           const { and, eq } = await import("drizzle-orm");
           const db = await getDb();
@@ -127,6 +127,18 @@ async function startServer() {
                     await db.insert(userSkins).values({ profileId, skinId });
                     console.log(`[Stripe Webhook] Skin bundle "${skinId}" débloqué pour profile=${profileId}`);
                   }
+                }
+              }
+              // Pack d'extension (nouvelles cartes ajoutées au deck)
+              if (product.category === "expansion_pack" && product.expansionPackId) {
+                const existing = await db
+                  .select()
+                  .from(userExpansionPacks)
+                  .where(and(eq(userExpansionPacks.profileId, profileId), eq(userExpansionPacks.packId, product.expansionPackId)))
+                  .then(r => r[0]);
+                if (!existing) {
+                  await db.insert(userExpansionPacks).values({ profileId, packId: product.expansionPackId });
+                  console.log(`[Stripe Webhook] Pack d'extension "${product.expansionPackId}" débloqué pour profile=${profileId}`);
                 }
               }
             }
