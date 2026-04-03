@@ -441,13 +441,13 @@
 - [x] VIP admin : packs de cartes personnalisables débloqués (quota illimité via bypass admin dans customCardsRouter)
 - [x] Corriger bugs de textures des boutons dans tout le jeu
 - [x] Relier bouton "Soutenir le projet" (modal info) à la fonction de don dans la boutique (ouvre la boutique)
-- [ ] Responsive complet Home.tsx : boutons s'adaptent à toutes tailles d'écran
-- [ ] Responsive complet RulesScreen.tsx : plein écran sur PC et mobile
-- [ ] Responsive complet LobbyScreen.tsx : layout 2 colonnes PC fonctionnel
-- [ ] Responsive complet GameScreen solo : panneau latéral PC, carte adaptée
-- [ ] Responsive complet MultiplayerGameScreen : panneau latéral PC similaire au solo
-- [ ] Responsive complet ShopModal : toutes vues adaptées PC/mobile
-- [ ] Responsive complet CustomCardCreator : adapté PC/mobile
+- [x] Responsive complet Home.tsx : boutons max-w-md centrés sur PC
+- [x] Responsive complet RulesScreen.tsx : contenu max-w-2xl centré sur PC
+- [x] Responsive complet LobbyScreen.tsx : layout 2 colonnes PC (md:flex-row) déjà implémenté
+- [x] Responsive complet GameScreen solo : panneau latéral PC, carte adaptée (déjà implémenté)
+- [x] Responsive complet MultiplayerGameScreen : panneau latéral PC similaire au solo (déjà implémenté)
+- [x] Responsive complet ShopModal : max-w-3xl + md:flex-row déjà implémenté
+- [x] Responsive complet CustomCardCreator : lg:flex-row + max-w-5xl déjà implémenté
 
 ## Session 50 — Panier boutique + checkout Stripe groupé + compte simplifié
 - [x] Boutique : système de panier (état global, bouton panier avec compteur dans le header)

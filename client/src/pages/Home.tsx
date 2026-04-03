@@ -422,7 +422,7 @@ export default function Home() {
             </div>
 
             {/* Ligne 1 : JOUER + RÈGLES côte à côte */}
-            <div className="flex flex-row items-center justify-center gap-3 w-full">
+            <div className="flex flex-row items-center justify-center gap-3 w-full max-w-md mx-auto">
               {/* ── JOUER BUTTON ── */}
               <div className="relative flex-1">
                 <motion.div
@@ -481,7 +481,7 @@ export default function Home() {
             </div>
 
             {/* Ligne 2 : PERSONNALISATION + BOUTIQUE */}
-            <div className="flex flex-row items-center justify-center gap-3 w-full">
+            <div className="flex flex-row items-center justify-center gap-3 w-full max-w-md mx-auto">
             {/* ── PERSONNALISATION BUTTON ── */}
             <div className="relative flex-1">
               <motion.button

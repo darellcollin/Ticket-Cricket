@@ -591,7 +591,8 @@ export function RulesScreen() {
       </div>
 
       {/* ── Contenu scrollable ── */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3 min-h-0">
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="max-w-2xl mx-auto px-3 pb-3">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSection}
@@ -606,6 +607,7 @@ export function RulesScreen() {
             {activeSection === "goal"      && <SectionGoal />}
           </motion.div>
         </AnimatePresence>
+        </div>
       </div>
 
       {/* ── Navigation précédent / suivant ── */}
