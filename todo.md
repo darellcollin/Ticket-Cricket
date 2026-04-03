@@ -587,3 +587,11 @@
 ## Session 60 — Boutons d'achat toujours visibles sur les packs
 
 - [x] Boutons ACHETER/SE CONNECTER toujours visibles sur Pack Starter, Pro, Ultimate (pas cachés par overflow)
+
+## Session 61 — Nouvelles fonctionnalités boutique + accueil
+
+- [x] Bouton "Acheter tous les skins — 24,99$" dans la vue skins de ShopModal
+- [x] Navigation par flèches (gauche/droite) pour défiler les skins sur PC dans ShopModal
+- [x] Bouton rond Politiques sur l'accueil (centré avec le bouton Partager)
+- [x] Modal de politiques avec texte Remboursement + Confidentialité
+- [x] Corriger les symboles de skins dans le compte joueur (ProfileModal)

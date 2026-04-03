@@ -1,8 +1,28 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Layers, Heart, ShoppingBag, ExternalLink, Sparkles } from "lucide-react";
+import { Layers, Heart, ShoppingBag, ExternalLink, Sparkles, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, Globe, Wand2, Ghost, Star } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SKIN_CATALOG } from "@/game/utils/skinConfig";
+import type { CardSkinId } from "@/game/utils/skinConfig";
+
+// Map des icônes par skin
+const SKIN_ICON_MAP: Record<CardSkinId, React.ComponentType<{ className?: string }>> = {
+  classique: Star,
+  neon: Zap,
+  retro: Cog,
+  glace: Snowflake,
+  feu: Flame,
+  royal: Crown,
+  foret: Trees,
+  metal: Gem,
+  prestige: Sparkles,
+  cosmic: Globe,
+  magique: Wand2,
+  negatif: Ghost,
+  bonbon: Heart,
+  glitch: Zap,
+  pastel: Star,
+};
 
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive", letterSpacing: "0.05em" };
@@ -175,25 +195,18 @@ export function ProfileModal({ profile, onClose, onLogout, onOpenShop }: Profile
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                       >
-                        {/* Couleur du skin */}
-                        <div
-                          className="w-9 h-9 rounded-lg border-2 border-black flex-shrink-0"
-                          style={{
-                            background: skin.id === "classique" ? "#FFD700"
-                              : skin.id === "neon" ? "#00FFFF"
-                              : skin.id === "retro" ? "#FF6B35"
-                              : skin.id === "glace" ? "#87CEEB"
-                              : skin.id === "feu" ? "#FF4500"
-                              : skin.id === "royal" ? "#8B008B"
-                              : skin.id === "foret" ? "#228B22"
-                              : skin.id === "metal" ? "#708090"
-                              : skin.id === "prestige" ? "#B8860B"
-                              : skin.id === "cosmic" ? "#1a0a3e"
-                              : skin.id === "magique" ? "#9B59B6"
-                              : "#555",
-                            boxShadow: "2px 2px 0px #000",
-                          }}
-                        />
+                        {/* Icône + couleur du skin */}
+                        {(() => {
+                          const Icon = SKIN_ICON_MAP[skin.id as CardSkinId] ?? Star;
+                          return (
+                            <div
+                              className="w-9 h-9 rounded-lg border-2 border-black flex-shrink-0 flex items-center justify-center"
+                              style={{ background: skin.color, boxShadow: "2px 2px 0px #000" }}
+                            >
+                              <Icon className="w-5 h-5 text-white" />
+                            </div>
+                          );
+                        })()}
 
                         {/* Nom + statut */}
                         <div className="flex-1 min-w-0">

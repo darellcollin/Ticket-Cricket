@@ -9,7 +9,7 @@ import { ProfileModal } from "@/game/components/ProfileModal";
 import { GameInfoModal } from "@/game/components/GameInfoModal";
 import { ShopModal } from "@/game/components/ShopModal";
 import { useGameAuth } from "@/hooks/useGameAuth";
-import { Info, Share2, X, Copy, Check, ShoppingBag, Layers, Heart } from "lucide-react";
+import { Info, Share2, X, Copy, Check, ShoppingBag, Layers, Heart, FileText, ChevronDown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -230,6 +230,8 @@ export default function Home() {
   });
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [showPoliciesModal, setShowPoliciesModal] = useState(false);
+  const [policiesTab, setPoliciesTab] = useState<'remboursement' | 'confidentialite'>('remboursement');
   const { profile, isAuthenticated, logout } = useGameAuth();
 
   const handleRulesClick = () => {
@@ -534,8 +536,8 @@ export default function Home() {
 
             </div>
 
-            {/* Ligne 3 : bouton partage centré — même taille que le bouton compte */}
-            <div className="flex items-center justify-center w-full">
+            {/* Ligne 3 : boutons Partager + Politiques centrés */}
+            <div className="flex items-center justify-center gap-3 w-full">
               <motion.button
                 className="w-10 h-10 rounded-full border-[2.5px] border-white/30 bg-white/10 flex items-center justify-center"
                 style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
@@ -545,6 +547,16 @@ export default function Home() {
                 title="Partager le jeu"
               >
                 <Share2 size={18} color="white" />
+              </motion.button>
+              <motion.button
+                className="w-10 h-10 rounded-full border-[2.5px] border-white/30 bg-white/10 flex items-center justify-center"
+                style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
+                whileHover={{ scale: 1.12, borderColor: 'rgba(100,200,255,0.6)', backgroundColor: 'rgba(255,255,255,0.18)' } as any}
+                whileTap={{ scale: 0.9 } as any}
+                onClick={() => setShowPoliciesModal(true)}
+                title="Politiques du jeu"
+              >
+                <FileText size={18} color="white" />
               </motion.button>
             </div>
           </div>
@@ -681,6 +693,104 @@ export default function Home() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   SMS
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Modal Politiques ── */}
+      <AnimatePresence>
+        {showPoliciesModal && (
+          <motion.div
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.75)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowPoliciesModal(false)}
+          >
+            <motion.div
+              className="w-full max-w-md mx-4 mb-4 sm:mb-0 rounded-2xl border-[3px] border-black overflow-hidden flex flex-col"
+              style={{ background: 'linear-gradient(160deg, #0c1a4e 0%, #1a083d 100%)', boxShadow: '6px 6px 0px #000', maxHeight: '85dvh' }}
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/10 flex-shrink-0">
+                <span style={{ ...FONT_FREDOKA, fontSize: '1.3rem', color: '#FFD700', letterSpacing: '0.05em' }}>POLITIQUES DU JEU</span>
+                <button onClick={() => setShowPoliciesModal(false)} className="text-white/60 hover:text-white transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              {/* Onglets */}
+              <div className="flex border-b border-white/10 flex-shrink-0">
+                {(['remboursement', 'confidentialite'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setPoliciesTab(tab)}
+                    className="flex-1 py-2.5 text-xs transition-colors"
+                    style={{
+                      ...FONT_FREDOKA,
+                      color: policiesTab === tab ? '#FFD700' : 'rgba(255,255,255,0.45)',
+                      borderBottom: policiesTab === tab ? '2px solid #FFD700' : '2px solid transparent',
+                      background: 'transparent',
+                    }}
+                  >
+                    {tab === 'remboursement' ? 'REMBOURSEMENT' : 'CONFIDENTIALITÉ'}
+                  </button>
+                ))}
+              </div>
+              {/* Contenu scrollable */}
+              <div className="flex-1 overflow-y-auto px-5 py-4" style={{ scrollbarWidth: 'thin' }}>
+                {policiesTab === 'remboursement' ? (
+                  <div className="space-y-3 text-white/80 text-sm">
+                    <p style={FONT_FREDOKA} className="text-yellow-300 text-base">Politique de remboursement</p>
+                    {[
+                      { n: '1. Objet', t: 'La présente politique encadre les conditions applicables aux remboursements des achats effectués dans le jeu TICKET CRICKET, incluant notamment les extensions de cartes, skins et packs personnalisables.' },
+                      { n: '2. Nature des produits', t: 'Les produits offerts sont des contenus numériques non tangibles, livrés immédiatement après confirmation de l’achat.' },
+                      { n: '3. Principe général', t: 'Conformément aux lois applicables, les achats de contenu numérique sont considérés comme fermes et définitifs dès leur livraison, sauf exceptions prévues à la présente politique ou exigées par la loi.' },
+                      { n: '4. Cas admissibles au remboursement', t: 'Un remboursement peut être accordé dans les situations suivantes\u00a0: transaction non autorisée ou frauduleuse\u00a0; achat effectué par erreur, signalé dans un délai de 48\u00a0heures\u00a0; défaut technique empêchant l’utilisation du contenu\u00a0; contenu non conforme à sa description.' },
+                      { n: '5. Conditions d’admissibilité', t: 'La demande doit être soumise dans un délai maximal de 14\u00a0jours suivant l’achat, accompagnée d’une preuve d’achat, et concerner un contenu non utilisé ou utilisé de manière limitée.' },
+                      { n: '6. Exclusions', t: 'Aucun remboursement ne sera accordé pour un contenu consommé ou activé, un changement d’avis après utilisation, des demandes répétées ou abusives, ou une violation des conditions d’utilisation.' },
+                      { n: '7. Procédure', t: 'Toute demande doit être transmise à ticketcricketlejeu@gmail.com avec l’identifiant du compte, la preuve d’achat et une description détaillée du problème.' },
+                      { n: '8. Délai de traitement', t: 'Les demandes sont traitées dans un délai de 5 à 10 jours ouvrables.' },
+                      { n: '9. Plateformes tierces', t: 'Les achats effectués via des plateformes externes sont soumis aux politiques de remboursement de ces plateformes.' },
+                      { n: '10. Réserve de droit', t: 'TICKET CRICKET se réserve le droit de refuser toute demande en cas de fraude, d’abus ou de non-respect des présentes conditions.' },
+                    ].map(({ n, t }) => (
+                      <div key={n}>
+                        <p style={FONT_FREDOKA} className="text-white text-xs mb-0.5">{n}</p>
+                        <p className="text-white/60 text-xs leading-relaxed">{t}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3 text-white/80 text-sm">
+                    <p style={FONT_FREDOKA} className="text-blue-300 text-base">Politique de confidentialité</p>
+                    {[
+                      { n: '1. Objet', t: 'La présente politique décrit la manière dont les données personnelles des utilisateurs sont collectées, utilisées, conservées et protégées dans le cadre de l’utilisation du jeu TICKET CRICKET.' },
+                      { n: '2. Données collectées', t: 'Adresse courriel, nom d’utilisateur, mot de passe chiffré, données de jeu (progression, statistiques, achats), données techniques (adresse IP, appareil, journaux d’activité).' },
+                      { n: '3. Finalités', t: 'Créer et gérer les comptes, fournir l’accès aux services, traiter les transactions, assurer la sécurité et améliorer l’expérience utilisateur.' },
+                      { n: '4. Base légale', t: 'Le traitement repose sur le consentement de l’utilisateur, l’exécution du contrat et les obligations légales applicables.' },
+                      { n: '5. Partage des données', t: 'Les données peuvent être partagées avec des fournisseurs de services (hébergement, paiement, sécurité) et les autorités compétentes. Aucune donnée personnelle n’est vendue à des tiers.' },
+                      { n: '6. Conservation', t: 'Les données sont conservées tant que le compte est actif et aussi longtemps que nécessaire pour respecter les obligations légales.' },
+                      { n: '7. Sécurité', t: 'Chiffrement des mots de passe, contrôle d’accès aux données, surveillance des accès non autorisés.' },
+                      { n: '8. Droits des utilisateurs', t: 'Accès, rectification, suppression du compte et retrait du consentement. Toute demande : ticketcricketlejeu@gmail.com.' },
+                      { n: '9. Cookies', t: 'Le jeu peut utiliser des technologies permettant d’analyser l’utilisation du service et d’améliorer les performances.' },
+                      { n: '10. Mineurs', t: 'Le service est destiné aux utilisateurs âgés de 13\u00a0ans et plus, ou selon l’âge minimal requis par la législation applicable.' },
+                      { n: '11. Modifications', t: 'La présente politique peut être modifiée à tout moment. Les utilisateurs seront informés en cas de modification substantielle.' },
+                      { n: '12. Contact', t: 'ticketcricketlejeu@gmail.com' },
+                    ].map(({ n, t }) => (
+                      <div key={n}>
+                        <p style={FONT_FREDOKA} className="text-white text-xs mb-0.5">{n}</p>
+                        <p className="text-white/60 text-xs leading-relaxed">{t}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
