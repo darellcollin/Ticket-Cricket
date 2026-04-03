@@ -20,34 +20,37 @@ interface ShopModalProps {
 
 const CARD_PACKS = [
   {
-    id: "pack_35",
+    id: "card_pack_35",
     name: "Pack Starter",
     cards: 35,
+    total: 50,
     price: "2,99 $",
     priceCents: 299,
     color: "#34C759",
     badge: "POPULAIRE",
-    perks: ["35 cartes permanentes", "Idéal pour commencer", "Accès immédiat"],
+    perks: ["+ 35 cartes personnalisables", "Idéal pour commencer", "Accès immédiat"],
   },
   {
-    id: "pack_55",
+    id: "card_pack_55",
     name: "Pack Pro",
     cards: 55,
+    total: 70,
     price: "6,99 $",
     priceCents: 699,
     color: "#007AFF",
     badge: "MEILLEURE VALEUR",
-    perks: ["55 cartes permanentes", "Meilleur rapport qualité/prix", "Accès immédiat"],
+    perks: ["+ 55 cartes personnalisables", "Meilleur rapport qualité/prix", "Accès immédiat"],
   },
   {
-    id: "pack_85",
+    id: "card_pack_85",
     name: "Pack Ultimate",
     cards: 85,
+    total: 100,
     price: "9,99 $",
     priceCents: 999,
     color: "#AF52DE",
     badge: "MAXIMUM",
-    perks: ["85 cartes permanentes", "Collection complète", "Accès immédiat"],
+    perks: ["+ 85 cartes personnalisables", "Collection complète", "Accès immédiat"],
   },
 ];
 
@@ -300,7 +303,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   style={{ scrollbarWidth: "thin" }}
                 >
                   <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
-                    15 cartes gratuites incluses — débloquez-en plus de façon permanente.
+                    Vous avez déjà 15 cartes personnalisables gratuites. Les packs s’ajoutent par-dessus.
                   </p>
 
                   {!isLoggedIn && (
@@ -341,11 +344,11 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                             {p.name}
                           </div>
                           <div style={{ ...FONT_BANGERS, fontSize: "1.45rem", lineHeight: 1.1 }}>
-                            <span style={{ color: p.color }}>{p.cards}</span>
-                            <span style={{ ...FONT_FREDOKA, fontSize: "0.8rem", color: "rgba(255,255,255,0.6)", marginLeft: "4px" }}>cartes</span>
+                            <span style={{ color: p.color }}>+{p.cards}</span>
+                            <span style={{ ...FONT_FREDOKA, fontSize: "0.75rem", color: "rgba(255,255,255,0.6)", marginLeft: "4px" }}>cartes</span>
                           </div>
-                          <div style={{ ...FONT_FREDOKA, fontSize: "0.65rem" }} className="text-white/45 leading-tight">
-                            {p.perks[1]}
+                          <div style={{ ...FONT_FREDOKA, fontSize: "0.62rem" }} className="text-white/45 leading-tight">
+                            Total avec les 15 gratuites : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
                           </div>
                         </div>
 

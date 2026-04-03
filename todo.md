@@ -322,3 +322,19 @@
 
 ## Corrections session 34 — Refonte vue packs boutique
 - [x] Boutique vue packs : refaire le design (layout propre, visuellement attrayant, bien équilibré)
+
+## Session 35 — 6 nouveaux types de skins de cartes
+- [ ] Analyser la structure GeneratedCard et les skins existants
+- [ ] Implémenter 6 types de skins (chacun décliné pour les 3 catégories : Contravention, Contribuable, Investisseur)
+- [ ] Les skins s'appliquent aux cartes du jeu ET aux cartes personnalisables
+- [ ] Intégrer la sélection de skin dans CustomCardCreator
+- [ ] Intégrer la sélection de skin dans DifficultyModal (solo) et LobbyScreen (multijoueur)
+- [ ] Tests et checkpoint
+
+## Corrections session 35b — Textes boutique packs
+- [x] Boutique : corriger les textes des packs (packs = ajout aux 15 cartes de base, pas remplacement)
+- [x] Boutique : afficher le total (ex: 15 + 35 = 50 cartes) dans chaque carte pack
+- [x] Boutique : corriger le sous-titre "15 cartes gratuites incluses" → clarifier que c'est en plus
+
+## Bug session 35c — Erreur "Produit introuvable" boutique
+- [x] Corriger l'erreur TRPCClientError "Produit introuvable ou non disponible" lors d'un achat (IDs frontend pack_35 → card_pack_35)
