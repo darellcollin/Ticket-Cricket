@@ -524,3 +524,7 @@
 - [x] Boutique accueil : retirer "15 cartes personnalisables gratuites incluses" de la bulle Packs
 - [x] Boutique accueil : icône "Skins de cartes" → carte avec étoile SVG personnalisée
 - [x] Bug /custom-cards : "Element type is invalid" dans CustomCardCreator — import d'icône undefined
+
+## Session 55 — Corrections boutique textes + layout packs
+- [ ] Boutique : corriger les textes/phrases dans les options (descriptions des catégories)
+- [ ] Boutique vue "Packs personnalisables" : refondre le layout des bulles (éléments illisibles, chevauchements)

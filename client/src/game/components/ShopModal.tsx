@@ -326,9 +326,6 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
                     style={{ boxShadow: "4px 4px 0px #000" }}
                   >
-                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#7C3AED", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
-                      1 SKIN GRATUIT INCLUS — 10 DESIGNS EXCLUSIFS
-                    </div>
                     <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(124,58,237,0.12)" }}>
                       <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#7C3AED", boxShadow: "3px 3px 0px #000" }}>
                         {/* Carte avec étoile — icône personnalisée */}
@@ -360,9 +357,6 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
                     style={{ boxShadow: "4px 4px 0px #000" }}
                   >
-                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
-                      15 CARTES PERSONNALISABLES GRATUITES INCLUSES
-                    </div>
                     <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(52,199,89,0.12)" }}>
                       <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#34C759", boxShadow: "3px 3px 0px #000" }}>
                         <Layers className="w-7 h-7 text-white" />
@@ -464,7 +458,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     </div>
                   </div>
                   <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
-                    Ticket Cricket 2026 — Projet 100 % québécois
+                    Ticket Cricket 2026
                   </p>
                 </motion.div>
               )}
@@ -629,54 +623,56 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                       className="rounded-2xl border-[3px] border-black overflow-hidden"
                       style={{ background: p.color + "18", boxShadow: "3px 3px 0px #000" }}
                     >
-                      {/* Bandeau badge */}
+                      {/* ── HEADER : badge à gauche + prix à droite ── */}
                       <div
-                        className="w-full text-center py-1 border-b-[2px] border-black"
-                        style={{ background: p.color, fontFamily: "'Bangers', cursive", fontSize: "0.72rem", letterSpacing: "0.1em", color: "#fff" }}
+                        className="flex items-center justify-between px-3 py-2 border-b-[2px] border-black"
+                        style={{ background: p.color }}
                       >
-                        {p.badge}
+                        <span style={{ fontFamily: "'Bangers', cursive", fontSize: "0.8rem", letterSpacing: "0.1em", color: "#fff" }}>
+                          {p.badge}
+                        </span>
+                        <span
+                          className="px-2.5 py-0.5 rounded-lg border-[2px] border-black/30"
+                          style={{ background: "rgba(0,0,0,0.25)", fontFamily: "'Bangers', cursive", fontSize: "1.05rem", color: "#fff", letterSpacing: "0.04em" }}
+                        >
+                          {p.price}
+                        </span>
                       </div>
 
-                      {/* Corps : icône | infos | prix+bouton */}
-                      <div className="flex items-center gap-3 px-3 py-3">
+                      {/* ── CORPS : icône + nom + nombre de cartes ── */}
+                      <div className="flex items-center gap-3 px-3 pt-3 pb-2">
                         <div
-                          className="w-11 h-11 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
+                          className="w-12 h-12 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
                           style={{ background: p.color, boxShadow: "2px 2px 0px #000" }}
                         >
-                          <Layers className="w-5 h-5 text-white" />
+                          <Layers className="w-6 h-6 text-white" />
                         </div>
-
                         <div className="flex-1 min-w-0">
-                          <div style={{ ...FONT_BANGERS, fontSize: "1rem", lineHeight: 1 }} className="text-white">
+                          <div style={{ ...FONT_BANGERS, fontSize: "1.15rem", lineHeight: 1 }} className="text-white">
                             {p.name}
                           </div>
-                          <div style={{ ...FONT_BANGERS, fontSize: "1.45rem", lineHeight: 1.1 }}>
-                            <span style={{ color: p.color }}>+{p.cards}</span>
-                            <span style={{ ...FONT_FREDOKA, fontSize: "0.75rem", color: "rgba(255,255,255,0.6)", marginLeft: "4px" }}>cartes</span>
+                          <div className="flex items-baseline gap-1.5 mt-0.5">
+                            <span style={{ ...FONT_BANGERS, fontSize: "1.6rem", lineHeight: 1, color: p.color }}>+{p.cards}</span>
+                            <span style={{ ...FONT_FREDOKA, fontSize: "0.82rem", color: "rgba(255,255,255,0.65)" }}>cartes personnalisables</span>
                           </div>
-                          <div style={{ ...FONT_FREDOKA, fontSize: "0.62rem" }} className="text-white/45 leading-tight">
-                            Total avec les 15 gratuites : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
+                          <div style={{ ...FONT_FREDOKA, fontSize: "0.68rem" }} className="text-white/50 mt-0.5">
+                            Total dans votre collection : <span style={{ color: p.color, fontWeight: 700 }}>{p.total} cartes</span>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                          <div
-                            className="px-2.5 py-0.5 rounded-lg border-[2px] border-black"
-                            style={{ background: p.color, fontFamily: "'Bangers', cursive", fontSize: "1.1rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "1px 1px 0px #000" }}
-                          >
-                            {p.price}
-                          </div>
-                          <motion.button
-                            whileTap={{ scale: 0.93 }}
-                            onClick={() => handleBuyPack(p.id)}
-                            disabled={!isLoggedIn || !!loadingId}
-                            className="px-3 py-1.5 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-1"
-                            style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.9rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
-                          >
-                            {loadingId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                            ACHETER
-                          </motion.button>
-                        </div>
+                      {/* ── FOOTER : bouton pleine largeur ── */}
+                      <div className="px-3 pb-3">
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => handleBuyPack(p.id)}
+                          disabled={!isLoggedIn || !!loadingId}
+                          className="w-full py-2 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
+                          style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1rem", letterSpacing: "0.06em", boxShadow: "2px 2px 0px #000" }}
+                        >
+                          {loadingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                          ACHETER — {p.price}
+                        </motion.button>
                       </div>
                     </div>
                   ))}
