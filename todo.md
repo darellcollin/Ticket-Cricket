@@ -621,3 +621,8 @@
 ## Session 66 — Bouton panier forfait skins
 
 - [x] Bouton + (ajouter au panier) sur le forfait complet des skins dans ShopModal
+
+## Session 67 — Correction scroll skins (PC + mobile)
+
+- [x] PC : flèches ◄► centrent l'icône du skin sélectionné dans le sélecteur (scrollTrigger + requestAnimationFrame)
+- [x] Mobile : scroll natif non interféré (useEffect ne se déclenche que sur scrollTrigger, pas sur sélection manuelle)

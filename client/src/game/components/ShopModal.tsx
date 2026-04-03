@@ -90,28 +90,32 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
 type View = "home" | "packs" | "don" | "skins" | "cart" | "extensions";
 
 /** Rang de sélection des skins avec scroll auto vers l'élément actif */
-function SkinScrollRow({ previewSkin, ownedSkins, onSelect }: {
+function SkinScrollRow({ previewSkin, ownedSkins, onSelect, scrollTrigger }: {
   previewSkin: CardSkinId;
   ownedSkins: string[];
   onSelect: (id: CardSkinId) => void;
+  scrollTrigger?: number; // incrémenté par les flèches PC pour forcer le scroll
 }) {
   const rowRef = useRef<HTMLDivElement>(null);
-  const selectedRef = useRef<HTMLButtonElement>(null);
 
-  // Scroll auto vers le skin sélectionné dans le conteneur horizontal
+  // Scroll auto vers le skin sélectionné UNIQUEMENT quand scrollTrigger change (flèches PC)
   useEffect(() => {
-    const container = rowRef.current;
-    const selected = selectedRef.current;
-    if (!container || !selected) return;
-    // Calcule la position du bouton sélectionné relative au conteneur
-    const containerLeft = container.getBoundingClientRect().left;
-    const selectedLeft = selected.getBoundingClientRect().left;
-    const containerWidth = container.clientWidth;
-    const selectedWidth = selected.offsetWidth;
-    // Centre le bouton sélectionné dans le conteneur
-    const targetScrollLeft = container.scrollLeft + (selectedLeft - containerLeft) - (containerWidth / 2) + (selectedWidth / 2);
-    container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-  }, [previewSkin]);
+    if (!scrollTrigger) return;
+    // Attendre le prochain frame pour que le DOM soit à jour avec le nouveau skin
+    const raf = requestAnimationFrame(() => {
+      const container = rowRef.current;
+      if (!container) return;
+      const selected = container.querySelector<HTMLElement>(`[data-skinid="${previewSkin}"]`);
+      if (!selected) return;
+      const containerLeft = container.getBoundingClientRect().left;
+      const selectedLeft = selected.getBoundingClientRect().left;
+      const containerWidth = container.clientWidth;
+      const selectedWidth = selected.offsetWidth;
+      const targetScrollLeft = container.scrollLeft + (selectedLeft - containerLeft) - (containerWidth / 2) + (selectedWidth / 2);
+      container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [scrollTrigger, previewSkin]);
 
   return (
     <div
@@ -126,7 +130,7 @@ function SkinScrollRow({ previewSkin, ownedSkins, onSelect }: {
         return (
           <motion.button
             key={skin.id}
-            ref={isSelected ? selectedRef : undefined}
+            data-skinid={skin.id}
             whileTap={{ scale: 0.92 }}
             onClick={() => onSelect(skin.id)}
             className="flex flex-col items-center gap-1.5 py-2 px-2.5 rounded-xl border-[2px] transition-all flex-shrink-0"
@@ -177,6 +181,7 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
   const [donAmount, setDonAmount] = useState<string>("5");
   const [donError, setDonError] = useState<string | null>(null);
   const [previewSkin, setPreviewSkin] = useState<CardSkinId>("classique");
+  const [skinScrollTrigger, setSkinScrollTrigger] = useState(0);
   const [cart, setCart] = useState<string[]>([]); // productIds dans le panier
   const [zoomedCard, setZoomedCard] = useState<{ card: CardConfig; label: string; mefait: string } | null>(null);
 
@@ -824,7 +829,7 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                           className="hidden md:flex flex-shrink-0 w-7 h-7 rounded-lg border-[2px] border-white/20 bg-white/10 items-center justify-center hover:bg-white/20 transition-colors"
                           onClick={() => {
                             const idx = SKIN_CATALOG.findIndex(s => s.id === previewSkin);
-                            if (idx > 0) setPreviewSkin(SKIN_CATALOG[idx - 1].id);
+                            if (idx > 0) { setPreviewSkin(SKIN_CATALOG[idx - 1].id); setSkinScrollTrigger(t => t + 1); }
                           }}
                         >
                           <ChevronLeft className="w-4 h-4 text-white" />
@@ -833,13 +838,14 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                           previewSkin={previewSkin}
                           ownedSkins={ownedSkins}
                           onSelect={setPreviewSkin}
+                          scrollTrigger={skinScrollTrigger}
                         />
                         {/* Flèche droite — PC uniquement */}
                         <button
                           className="hidden md:flex flex-shrink-0 w-7 h-7 rounded-lg border-[2px] border-white/20 bg-white/10 items-center justify-center hover:bg-white/20 transition-colors"
                           onClick={() => {
                             const idx = SKIN_CATALOG.findIndex(s => s.id === previewSkin);
-                            if (idx < SKIN_CATALOG.length - 1) setPreviewSkin(SKIN_CATALOG[idx + 1].id);
+                            if (idx < SKIN_CATALOG.length - 1) { setPreviewSkin(SKIN_CATALOG[idx + 1].id); setSkinScrollTrigger(t => t + 1); }
                           }}
                         >
                           <ChevronRight className="w-4 h-4 text-white" />
