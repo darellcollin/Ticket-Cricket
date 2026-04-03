@@ -578,3 +578,8 @@
 - [x] MultiplayerGameScreen : skins par joueur appliqués sur les cartes piochées (playerSkinMap)
 - [x] MultiplayerModal : toggles skins/extensions dynamiques depuis la DB (évolutifs)
 - [x] Tests vitest : 110 tests passent
+
+## Session 59 — Correction boutons d'achat packs
+
+- [x] Corriger les boutons "ACHETER" des packs (Pack Starter, Pro, Ultimate) — grisés même quand connecté
+- [x] Rendre les boutons d'achat toujours visibles et cliquables pour les joueurs connectés

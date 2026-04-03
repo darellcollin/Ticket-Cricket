@@ -568,24 +568,29 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                               ) : (
                                 <motion.button
                                   whileTap={{ scale: 0.93 }}
-                                  onClick={() => { addToCart("expansion_plus"); }}
-                                  disabled={!isLoggedIn}
-                                  className="px-3 py-1.5 rounded-xl border-[2px] border-black flex items-center gap-1 disabled:opacity-40"
+                                  onClick={() => {
+                                    if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                                    addToCart("expansion_plus");
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl border-[2px] border-black flex items-center gap-1"
                                   style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.8rem", color: "#fff", boxShadow: "1px 1px 0px #000" }}
                                 >
                                   <Plus className="w-3 h-3" />
                                 </motion.button>
                               )}
-                              {/* Acheter direct */}
+                              {/* Acheter direct — toujours actif */}
                               <motion.button
                                 whileTap={{ scale: 0.93 }}
-                                onClick={() => handleBuyPack("expansion_plus")}
-                                disabled={!isLoggedIn || !!loadingId}
-                                className="px-3 py-1.5 rounded-xl border-[2px] border-black text-black disabled:opacity-40 flex items-center gap-1"
+                                onClick={() => {
+                                  if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                                  handleBuyPack("expansion_plus");
+                                }}
+                                disabled={!!loadingId}
+                                className="px-3 py-1.5 rounded-xl border-[2px] border-black text-black disabled:opacity-60 flex items-center gap-1"
                                 style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
                               >
-                                {loadingId === "expansion_plus" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Lock className="w-3 h-3" />}
-                                ACHETER
+                                {loadingId === "expansion_plus" ? <Loader2 className="w-3 h-3 animate-spin" /> : isLoggedIn ? <ShoppingCart className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                                {isLoggedIn ? "ACHETER" : "CONNEXION"}
                               </motion.button>
                             </div>
                           </>
@@ -722,24 +727,32 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                         ) : (
                           <motion.button
                             whileTap={{ scale: 0.93 }}
-                            onClick={() => addToCart(p.id)}
-                            disabled={!isLoggedIn}
-                            className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 disabled:opacity-40 flex-shrink-0"
+                            onClick={() => {
+                              if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                              addToCart(p.id);
+                            }}
+                            className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 flex-shrink-0"
                             style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
                           >
                             <Plus className="w-3 h-3" />
                           </motion.button>
                         )}
-                        {/* Bouton Acheter direct */}
+                        {/* Bouton Acheter direct — toujours actif, redirige vers connexion si non connecté */}
                         <motion.button
                           whileTap={{ scale: 0.96 }}
-                          onClick={() => handleBuyPack(p.id)}
-                          disabled={!isLoggedIn || !!loadingId}
-                          className="flex-1 py-2 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
-                          style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1rem", letterSpacing: "0.06em", boxShadow: "2px 2px 0px #000" }}
+                          onClick={() => {
+                            if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                            handleBuyPack(p.id);
+                          }}
+                          disabled={!!loadingId}
+                          className="flex-1 py-2.5 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                          style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.05rem", letterSpacing: "0.06em", boxShadow: "3px 3px 0px #000" }}
                         >
-                          {loadingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
-                          ACHETER — {p.price}
+                          {loadingId === p.id
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : isLoggedIn ? <ShoppingCart className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />
+                          }
+                          {isLoggedIn ? `ACHETER — ${p.price}` : "SE CONNECTER"}
                         </motion.button>
                       </div>
                     </div>
@@ -993,24 +1006,29 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                                       ) : (
                                         <motion.button
                                           whileTap={{ scale: 0.93 }}
-                                          onClick={() => addToCart(activeSkin.productId)}
-                                          disabled={!isLoggedIn}
-                                          className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1 disabled:opacity-40"
+                                          onClick={() => {
+                                            if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                                            addToCart(activeSkin.productId);
+                                          }}
+                                          className="px-3 py-2 rounded-xl border-[3px] border-black flex items-center gap-1"
                                           style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
                                         >
                                           <Plus className="w-3 h-3" />
                                         </motion.button>
                                       )}
-                                      {/* Bouton Acheter direct */}
+                                      {/* Bouton Acheter direct — toujours actif */}
                                       <motion.button
                                         whileTap={{ scale: 0.93 }}
-                                        onClick={() => handleBuySkin(activeSkin.productId)}
-                                        disabled={!isLoggedIn || !!loadingId}
-                                        className="px-4 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5"
+                                        onClick={() => {
+                                          if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                                          handleBuySkin(activeSkin.productId);
+                                        }}
+                                        disabled={!!loadingId}
+                                        className="px-4 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-60 flex items-center gap-1.5"
                                         style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
                                       >
-                                        {loadingId === activeSkin.productId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
-                                        ACHETER
+                                        {loadingId === activeSkin.productId ? <Loader2 className="w-4 h-4 animate-spin" /> : isLoggedIn ? <ShoppingCart className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                                        {isLoggedIn ? "ACHETER" : "CONNEXION"}
                                       </motion.button>
                                     </div>
                                   )}
@@ -1220,13 +1238,16 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                           <p style={FONT_FREDOKA} className="text-white/40 text-xs">Paiement unique et permanent via Stripe.</p>
                           <motion.button
                             whileTap={{ scale: 0.93 }}
-                            onClick={handleCartCheckout}
-                            disabled={!isLoggedIn || loadingId === "cart"}
-                            className="ml-3 px-5 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-40 flex items-center gap-1.5 flex-shrink-0"
+                            onClick={() => {
+                              if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                              handleCartCheckout();
+                            }}
+                            disabled={loadingId === "cart"}
+                            className="ml-3 px-5 py-2 rounded-xl border-[3px] border-black text-black disabled:opacity-60 flex items-center gap-1.5 flex-shrink-0"
                             style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.1rem", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
                           >
                             {loadingId === "cart" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
-                            PAYER
+                            {isLoggedIn ? "PAYER" : "CONNEXION"}
                           </motion.button>
                         </div>
                       </div>
