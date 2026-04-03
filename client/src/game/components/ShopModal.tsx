@@ -49,10 +49,10 @@ const CARD_PACKS = [
 ];
 
 const COMING_SOON = [
-  { icon: Sparkles, name: "Skins de cartes",          desc: "Designs exclusifs pour vos cartes",     color: "#7C3AED" },
-  { icon: Gift,     name: "Decks exclusifs",           desc: "Nouveaux tickets thématiques",           color: "#FF9500" },
-  { icon: Crown,    name: "Packs de personnalisation", desc: "Skins + Decks en bundle",                color: "#F59E0B" },
-  { icon: Star,     name: "Contenu saisonnier",        desc: "Événements et cartes limitées",          color: "#FFD700" },
+  { icon: Sparkles, name: "Skins de cartes",   desc: "Designs exclusifs pour vos cartes",  color: "#7C3AED" },
+  { icon: Gift,     name: "Decks exclusifs",   desc: "Nouveaux tickets thématiques",        color: "#FF9500" },
+  { icon: Crown,    name: "Skins + Decks",     desc: "Bundles exclusifs en préparation",   color: "#F59E0B" },
+  { icon: Star,     name: "Contenu saisonnier",desc: "Événements et cartes limitées",       color: "#FFD700" },
 ];
 
 export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
@@ -187,53 +187,58 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                   {CARD_PACKS.map((pack) => (
                     <motion.div
                       key={pack.id}
-                      className="relative p-3 rounded-2xl border-[3px] border-black flex items-center gap-3 overflow-hidden"
-                      style={{ background: pack.color + "22", boxShadow: "3px 3px 0px #000" }}
+                      className="relative rounded-2xl border-[3px] border-black overflow-hidden"
+                      style={{ background: pack.color + "18", boxShadow: "3px 3px 0px #000" }}
                       whileHover={{ scale: 1.01 }}
                     >
                       {/* Badge */}
                       {pack.badge && (
                         <div
-                          className="absolute -top-2 right-3 px-2 py-0.5 rounded-full border-2 border-black text-[0.55rem]"
-                          style={{ background: pack.color, color: "#000", fontFamily: "'Bangers', cursive", letterSpacing: "0.05em" }}
+                          className="absolute top-2 right-2 px-2 py-0.5 rounded-full border-2 border-black z-10"
+                          style={{ background: pack.color, color: "#000", fontFamily: "'Bangers', cursive", fontSize: "0.6rem", letterSpacing: "0.05em" }}
                         >
                           {pack.badge}
                         </div>
                       )}
 
-                      {/* Icône */}
-                      <div
-                        className="w-11 h-11 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
-                        style={{ background: pack.color, boxShadow: "2px 2px 0px #000" }}
-                      >
-                        <Layers className="w-5 h-5 text-white" />
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div style={{ ...FONT_BANGERS, fontSize: "1rem" }} className="text-white leading-none">
-                          {pack.name}
-                        </div>
-                        <div style={FONT_FREDOKA} className="text-white/55 text-xs mt-0.5 leading-tight">
-                          {pack.description}
-                        </div>
-                      </div>
-
-                      {/* Prix + bouton */}
-                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", color: pack.color }}>
-                          {pack.price}
-                        </div>
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleBuyPack(pack.id)}
-                          disabled={!isLoggedIn || !!loadingId}
-                          className="px-3 py-1.5 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center gap-1"
-                          style={{ background: pack.color, fontFamily: "'Bangers', cursive", fontSize: "0.9rem", boxShadow: "2px 2px 0px #000" }}
+                      <div className="flex items-center gap-3 p-3">
+                        {/* Icône */}
+                        <div
+                          className="w-12 h-12 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
+                          style={{ background: pack.color, boxShadow: "2px 2px 0px #000" }}
                         >
-                          {loadingId === pack.id ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                          ACHETER
-                        </motion.button>
+                          <Layers className="w-6 h-6 text-white" />
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div style={{ ...FONT_BANGERS, fontSize: "1.05rem", lineHeight: 1.1 }} className="text-white">
+                            {pack.name}
+                          </div>
+                          <div style={{ ...FONT_FREDOKA, fontSize: "0.72rem" }} className="text-white/60 mt-0.5 leading-tight">
+                            {pack.description}
+                          </div>
+                        </div>
+
+                        {/* Prix + bouton — colonne fixe */}
+                        <div className="flex flex-col items-center gap-1.5 flex-shrink-0 w-[72px]">
+                          <div
+                            className="w-full text-center rounded-lg border-[2px] border-black py-0.5"
+                            style={{ background: pack.color, fontFamily: "'Bangers', cursive", fontSize: "1.05rem", color: "#fff", letterSpacing: "0.04em", boxShadow: "1px 1px 0px #000" }}
+                          >
+                            {pack.price}
+                          </div>
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleBuyPack(pack.id)}
+                            disabled={!isLoggedIn || !!loadingId}
+                            className="w-full py-1.5 rounded-xl border-[3px] border-black text-black transition-opacity disabled:opacity-40 flex items-center justify-center gap-1"
+                            style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.9rem", boxShadow: "2px 2px 0px #000" }}
+                          >
+                            {loadingId === pack.id ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                            ACHETER
+                          </motion.button>
+                        </div>
                       </div>
                     </motion.div>
                   ))}

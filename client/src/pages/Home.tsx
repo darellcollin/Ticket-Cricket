@@ -5,10 +5,12 @@ import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
 import { MultiplayerModal } from "@/game/components/MultiplayerModal";
 import { AccountModal } from "@/game/components/AccountModal";
+import { ProfileModal } from "@/game/components/ProfileModal";
 import { GameInfoModal } from "@/game/components/GameInfoModal";
 import { ShopModal } from "@/game/components/ShopModal";
 import { useGameAuth } from "@/hooks/useGameAuth";
-import { Info, Share2, X, Copy, Check } from "lucide-react";
+import { Info, Share2, X, Copy, Check, ShoppingBag, Layers, Heart } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
 
@@ -680,55 +682,12 @@ export default function Home() {
       <AnimatePresence>
         {showAccountModal && (
           isAuthenticated ? (
-            <motion.div
-              className="fixed inset-0 z-[100] flex items-center justify-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowAccountModal(false)} />
-              <motion.div
-                className="relative w-[85%] max-w-[340px] rounded-2xl overflow-hidden p-5"
-                style={{
-                  background: 'linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)',
-                  border: '3px solid rgba(255,215,0,0.4)',
-                  boxShadow: '0 0 40px rgba(255,215,0,0.15), 0 20px 60px rgba(0,0,0,0.5)',
-                }}
-                initial={{ scale: 0.8, y: 40 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 40 }}
-                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-              >
-                <button
-                  onClick={() => setShowAccountModal(false)}
-                  className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                >
-                  <span className="text-white text-lg leading-none">&times;</span>
-                </button>
-
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-yellow-400 border-[3px] border-black flex items-center justify-center" style={{ boxShadow: '4px 4px 0px #000' }}>
-                    <span style={{ ...FONT_FREDOKA, fontSize: '1.8rem', color: '#000' }}>
-                      {profile?.pseudo?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="text-center">
-                    <h3 style={{ ...FONT_FREDOKA, fontSize: '1.3rem' }} className="text-yellow-400">{profile?.pseudo}</h3>
-                    <p className="text-white/50 text-sm mt-1">{profile?.email}</p>
-                  </div>
-
-                  <motion.button
-                    className="w-full py-2.5 bg-red-500 border-[3px] border-black rounded-xl text-white"
-                    style={{ ...FONT_FREDOKA, fontSize: '0.95rem', boxShadow: '4px 4px 0px #000' }}
-                    whileHover={{ scale: 1.03 } as any}
-                    whileTap={{ scale: 0.97 } as any}
-                    onClick={async () => { await logout(); setShowAccountModal(false); }}
-                  >
-                    SE DECONNECTER
-                  </motion.button>
-                </div>
-              </motion.div>
-            </motion.div>
+            <ProfileModal
+              profile={profile}
+              onClose={() => setShowAccountModal(false)}
+              onLogout={async () => { await logout(); setShowAccountModal(false); }}
+              onOpenShop={() => { setShowAccountModal(false); setShowShopModal(true); }}
+            />
           ) : (
             <AccountModal onClose={() => setShowAccountModal(false)} />
           )

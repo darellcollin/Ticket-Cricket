@@ -180,3 +180,29 @@ export const gameConfigs = mysqlTable("game_configs", {
 
 export type GameConfig = typeof gameConfigs.$inferSelect;
 export type InsertGameConfig = typeof gameConfigs.$inferInsert;
+
+/**
+ * Achats Stripe — packs de cartes personnalisables et dons.
+ * Enregistrés lors de checkout.session.completed via webhook.
+ */
+export const purchases = mysqlTable("purchases", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ID du profil de jeu du joueur */
+  profileId: int("profileId").notNull(),
+  /** ID produit Stripe (ex: pack_35, pack_55, pack_85, donation) */
+  productId: varchar("productId", { length: 50 }).notNull(),
+  /** Nom lisible du produit */
+  productName: varchar("productName", { length: 100 }).notNull(),
+  /** Montant payé en centimes (ex: 299 = 2,99$) */
+  amountCents: int("amountCents").notNull().default(0),
+  /** Devise (ex: cad) */
+  currency: varchar("currency", { length: 10 }).notNull().default("cad"),
+  /** ID de session Stripe pour déduplication */
+  stripeSessionId: varchar("stripeSessionId", { length: 255 }).notNull().unique(),
+  /** Nombre de cartes débloquées (0 pour les dons) */
+  cardsUnlocked: int("cardsUnlocked").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Purchase = typeof purchases.$inferSelect;
+export type InsertPurchase = typeof purchases.$inferInsert;

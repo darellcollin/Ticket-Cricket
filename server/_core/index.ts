@@ -61,10 +61,33 @@ async function startServer() {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as import("stripe").Stripe.Checkout.Session;
       const productId = session.metadata?.product_id;
-      const userId = session.metadata?.user_id;
-      const productName = session.metadata?.product_name;
-      console.log(`[Stripe Webhook] Paiement complet — user=${userId}, product=${productId} (${productName})`);
-      // TODO: Enregistrer l'achat en DB si nécessaire (skins, decks, etc.)
+      const profileId = session.metadata?.user_id ? parseInt(session.metadata.user_id) : null;
+      const productName = session.metadata?.product_name ?? "Achat";
+      const extraCards = session.metadata?.extra_cards ? parseInt(session.metadata.extra_cards) : 0;
+      const amountTotal = session.amount_total ?? 0;
+      const currency = session.currency ?? "cad";
+      console.log(`[Stripe Webhook] Paiement complet — profile=${profileId}, product=${productId} (${productName})`);
+      if (profileId && productId && session.id) {
+        try {
+          const { getDb } = await import("../db");
+          const { purchases } = await import("../../drizzle/schema");
+          const db = await getDb();
+          if (db) {
+            await db.insert(purchases).values({
+              profileId,
+              productId,
+              productName,
+              amountCents: amountTotal,
+              currency,
+              stripeSessionId: session.id,
+              cardsUnlocked: extraCards,
+            }).onDuplicateKeyUpdate({ set: { productId } }); // déduplication
+            console.log(`[Stripe Webhook] Achat enregistré en DB — profile=${profileId}, ${extraCards} cartes débloquées`);
+          }
+        } catch (dbErr: any) {
+          console.error("[Stripe Webhook] Erreur DB:", dbErr.message);
+        }
+      }
     }
     res.json({ received: true });
   });

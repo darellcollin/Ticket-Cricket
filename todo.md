@@ -298,3 +298,18 @@
 - [x] Cartes perso : message + lien boutique quand limite atteint- [x] Boutique : packs de cartes personnalisables disponibles (2,99\$/35 cartes, 6,99\$/55 cartes, 9,99\$/85 cartes)- [x] Boutique : dons à montant libre (champ de saisie)
 - [x] Boutique : skins/decks verrouillés, packs cartes + dons accessibles
 - [x] Serveur : vérifier la limite de cartes côté backend selon le quota acheté
+
+## Modifications session 30 — Section Mes Achats dans le profil
+- [x] DB : table purchases (id, userId, productId, productName, amountCents, currency, stripeSessionId, createdAt)
+- [x] tRPC : endpoint listPurchases (protectedProcedure) — retourner les achats du joueur connecté
+- [x] Webhook Stripe : enregistrer l'achat en DB lors de checkout.session.completed
+- [x] Profil : section "Mes Achats" avec liste des packs débloqués et dons effectués
+- [x] Profil : afficher le quota total de cartes personnalisables (15 gratuits + cartes achetées)
+
+## Corrections session 31 — Boutique + Stripe + Serveur
+- [x] Redémarrer le serveur de développement
+- [x] Corriger erreur TS : import `getDb` au lieu de `db` dans shopRouter.ts
+- [x] Boutique : corriger le layout des bulles de prix (texte visible, bien cadrd)
+- [x] Boutique : supprimer "Packs personnalisables" de la section "Bientôt disponible"
+- [x] Vérifier la connexion Stripe (clés configurées)
+- [x] Webhook Stripe : enregistrer l'achat en DB lors de checkout.session.completed
