@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
+import { MusicControl } from "@/game/components/MusicControl";
 import {
   getCardConfig, ALL_CARD_IDS, PLUS_CARD_IDS,
   computePlayerTotal, drawerNetAmount, formatPrice,
@@ -1338,6 +1339,8 @@ export function GameScreen() {
           >
             <Shuffle className="w-4 h-4 text-white" />
           </motion.button>
+          {/* Contrôle musique — à côté du bouton accueil */}
+          <MusicControl size="sm" />
         </div>
 
         {/* CENTRE : Limite de ticket */}

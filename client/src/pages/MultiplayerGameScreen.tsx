@@ -34,6 +34,7 @@ import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/
 import { MiniGame } from "@/game/components/MiniGame";
 import { rollMiniGame, type MiniGameLevel } from "@/game/utils/miniGameUtils";
 import { trpc } from "@/lib/trpc";
+import { MusicControl } from "@/game/components/MusicControl";
 
 const FONT_BANGERS: React.CSSProperties = { fontFamily: "'Bangers', cursive" };
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -2697,6 +2698,8 @@ export function MultiplayerGameScreen() {
               </motion.button>
             </>
           )}
+          {/* Contrôle musique — accessible à tous les joueurs */}
+          <MusicControl size="sm" />
         </div>
 
         {/* CENTRE : Limite de ticket */}

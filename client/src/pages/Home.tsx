@@ -10,6 +10,7 @@ import { GameInfoModal } from "@/game/components/GameInfoModal";
 import { ShopModal } from "@/game/components/ShopModal";
 import { useGameAuth } from "@/hooks/useGameAuth";
 import { Info, Share2, X, Copy, Check, ShoppingBag, Layers, Heart, FileText, ChevronDown } from "lucide-react";
+import { MusicControl } from "@/game/components/MusicControl";
 import { trpc } from "@/lib/trpc";
 
 const FONT_FREDOKA: React.CSSProperties = { fontFamily: "'Fredoka One', cursive" };
@@ -264,8 +265,8 @@ export default function Home() {
         </motion.button>
       </div>
 
-      {/* ── ICONE COMPTE — haut à droite ── */}
-      <div className="absolute top-[22px] right-3 z-50" style={{marginTop: '8px'}}>
+      {/* ── ICONE COMPTE + MUSIQUE — haut à droite ── */}
+      <div className="absolute top-[22px] right-3 z-50 flex flex-col items-center gap-2" style={{marginTop: '8px'}}>
         {isAuthenticated ? (
           <div className="flex items-center gap-2">
             <span
@@ -302,6 +303,8 @@ export default function Home() {
             </svg>
           </motion.button>
         )}
+        {/* Icône musique — sous l'icône compte */}
+        <MusicControl size="sm" />
       </div>
 
       {/* ── ZONE BLEUE CENTRALE avec particules confinées ── */}

@@ -626,3 +626,11 @@
 
 - [x] PC : flèches ◄► centrent l'icône du skin sélectionné dans le sélecteur (scrollTrigger + requestAnimationFrame)
 - [x] Mobile : scroll natif non interféré (useEffect ne se déclenche que sur scrollTrigger, pas sur sélection manuelle)
+
+## Session 68 — Système de musique de fond
+
+- [x] Uploader les 3 soundtracks sur le CDN (Goofy, Trippy, Shiny)
+- [x] MusicContext global : lecture en boucle, volume, mute, sélection de soundtrack
+- [x] Icône musique sous l'icône compte sur l'accueil avec panneau de sélection
+- [x] Icône musique dans le header solo (GameScreen.tsx) à côté du bouton accueil
+- [x] Icône musique dans le header multijoueur (MultiplayerGameScreen.tsx) à côté du bouton accueil et mélanger
