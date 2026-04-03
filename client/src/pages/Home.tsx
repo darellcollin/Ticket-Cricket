@@ -265,7 +265,7 @@ export default function Home() {
       </div>
 
       {/* ── ICONE COMPTE — haut à droite ── */}
-      <div className="absolute top-[22px] right-3 z-50">
+      <div className="absolute top-[22px] right-3 z-50" style={{marginTop: '8px'}}>
         {isAuthenticated ? (
           <div className="flex items-center gap-2">
             <span
