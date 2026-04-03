@@ -634,3 +634,7 @@
 - [x] Icône musique sous l'icône compte sur l'accueil avec panneau de sélection
 - [x] Icône musique dans le header solo (GameScreen.tsx) à côté du bouton accueil
 - [x] Icône musique dans le header multijoueur (MultiplayerGameScreen.tsx) à côté du bouton accueil et mélanger
+
+## Session 69 — Autoplay musique
+
+- [x] Musique démarre au premier clic utilisateur (contournement politique autoplay navigateurs)
