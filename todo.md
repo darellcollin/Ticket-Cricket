@@ -280,3 +280,7 @@
 - [x] Client : afficher le mini-jeu à tous les joueurs dès qu'il est créé (polling)
 - [x] Client : joueur principal voit un écran d'attente pendant que les autres jouent
 - [x] Client : une fois tous terminés, joueur principal peut finir son tour (sans pioche)
+
+## Modifications session 27 — Bouton partage lien du jeu
+- [x] Accueil : bouton partage lien du jeu en bas au centre (icône partage)
+- [x] Partage : Web Share API sur mobile, fallback X/Facebook/WhatsApp/SMS/copie sur PC
