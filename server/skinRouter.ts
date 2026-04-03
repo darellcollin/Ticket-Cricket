@@ -9,6 +9,10 @@ import { SKIN_IDS } from "../shared/skinIds";
 export const skinRouter = router({
   /** Lister les skins débloqués par le joueur connecté */
   listOwnedSkins: gameAuthProtectedProcedure.query(async ({ ctx }) => {
+    // Accès VIP admin : tous les skins débloqués
+    if (ctx.gameProfile.isAdmin) {
+      return [...SKIN_IDS] as string[];
+    }
     const db = await getDb();
     if (!db) return [];
     const rows = await db
@@ -42,8 +46,8 @@ export const skinRouter = router({
       const db = await getDb();
       if (!db) throw new Error("DB indisponible");
 
-      // Vérifier que le skin est débloqué (classique toujours autorisé)
-      if (input.skinId !== "classique") {
+      // Accès VIP admin : bypass de la vérification
+      if (!ctx.gameProfile.isAdmin && input.skinId !== "classique") {
         const owned = await db
           .select()
           .from(userSkins)

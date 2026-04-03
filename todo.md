@@ -418,3 +418,10 @@
 ## Session 46 — Zoom skins boutique + designs plus éclatants
 - [ ] Boutique skins : clic sur une carte pour l'agrandir en overlay (zoom)
 - [ ] Boutique skins : dégradés plus prononcés, effets glow, bandes plus contrastées pour tous les skins
+
+## Session 47 — Accès VIP admin (Sandot1245)
+- [x] Attribuer le rôle admin au compte Sandot1245 en base de données
+- [x] Serveur : listOwnedSkins retourne tous les skins pour les admins (sans achat)
+- [x] Serveur : limite de cartes personnalisables illimitée pour les admins (au lieu de 100)
+- [x] Frontend : boutique affiche tous les skins comme débloqués pour l'admin
+- [x] Frontend : CustomCardCreator n'affiche pas la limite pour l'admin

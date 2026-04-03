@@ -1,0 +1,1 @@
+ALTER TABLE `game_profiles` ADD `isAdmin` boolean DEFAULT false NOT NULL;

@@ -221,7 +221,9 @@ export default function CustomCardCreator() {
   }
 
   const cardCount = countData?.count ?? cards.length;
-  const atLimit = cardCount >= MAX_CARDS_FREE;
+  const isAdminVip = countData?.isAdmin ?? false;
+  const effectiveMax = isAdminVip ? 999999 : MAX_CARDS_FREE;
+  const atLimit = !isAdminVip && cardCount >= MAX_CARDS_FREE;
 
   // Synchroniser le skin actif depuis le serveur
   const currentSkin: CardSkinId = (savedActiveSkin as CardSkinId | undefined) ?? activeSkin;
@@ -441,13 +443,15 @@ export default function CustomCardCreator() {
             <div className="mb-6">
               <div className="flex justify-between items-center mb-1">
                 <span style={FONT_FREDOKA} className="text-white/60 text-xs">Cartes créées</span>
-                <span style={FONT_FREDOKA} className="text-white/60 text-xs">{cardCount} / {MAX_CARDS_FREE}</span>
+                <span style={FONT_FREDOKA} className="text-white/60 text-xs">
+                  {isAdminVip ? `${cardCount} (illimité 👑)` : `${cardCount} / ${MAX_CARDS_FREE}`}
+                </span>
               </div>
               <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-yellow-400 rounded-full"
+                  className={`h-full rounded-full ${isAdminVip ? 'bg-yellow-400' : 'bg-yellow-400'}`}
                   initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((cardCount / MAX_CARDS_FREE) * 100, 100)}%` }}
+                  animate={{ width: isAdminVip ? '100%' : `${Math.min((cardCount / MAX_CARDS_FREE) * 100, 100)}%` }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
                 />
               </div>

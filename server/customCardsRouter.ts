@@ -11,6 +11,7 @@ import { customCards } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 const MAX_CARDS_FREE = 15;
+const MAX_CARDS_ADMIN = 999999; // Illimité pour les admins
 
 const ALLOWED_FEES = [0, 10, 20, 30, 40, 50] as const;
 
@@ -60,13 +61,14 @@ export const customCardsRouter = router({
 
       if (!db) throw new Error("Base de données non disponible");
 
-      // Vérifier la limite
+      // Vérifier la limite (admins : illimité)
       const existing = await db
         .select({ id: customCards.id })
         .from(customCards)
         .where(eq(customCards.profileId, ctx.gameProfile.id));
 
-      if (existing.length >= MAX_CARDS_FREE) {
+      const limit = ctx.gameProfile.isAdmin ? MAX_CARDS_ADMIN : MAX_CARDS_FREE;
+      if (existing.length >= limit) {
         throw new Error(`LIMIT_REACHED:${MAX_CARDS_FREE}`);
       }
 
@@ -144,11 +146,12 @@ export const customCardsRouter = router({
   /** Compter les cartes du joueur */
   count: gameAuthProtectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
-    if (!db) return { count: 0, max: MAX_CARDS_FREE };
+    const max = ctx.gameProfile.isAdmin ? MAX_CARDS_ADMIN : MAX_CARDS_FREE;
+    if (!db) return { count: 0, max, isAdmin: ctx.gameProfile.isAdmin };
     const rows = await db
       .select({ id: customCards.id })
       .from(customCards)
       .where(eq(customCards.profileId, ctx.gameProfile.id));
-    return { count: rows.length, max: MAX_CARDS_FREE };
+    return { count: rows.length, max, isAdmin: ctx.gameProfile.isAdmin };
   }),
 });

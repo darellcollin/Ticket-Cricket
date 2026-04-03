@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow (Manus OAuth).
@@ -33,11 +33,12 @@ export const gameProfiles = mysqlTable("game_profiles", {
   passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
   /** Lien optionnel vers le compte Manus OAuth */
   userId: int("userId"),
+  /** Accès VIP admin — débloque tous les skins et la limite illimitée de cartes */
+  isAdmin: boolean("isAdmin").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
-
 export type GameProfile = typeof gameProfiles.$inferSelect;
 export type InsertGameProfile = typeof gameProfiles.$inferInsert;
 

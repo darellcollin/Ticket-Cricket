@@ -70,6 +70,7 @@ export const gameAuthProtectedProcedure = publicProcedure.use(async ({ ctx, next
         id: profile.id,
         pseudo: profile.pseudo,
         email: profile.email,
+        isAdmin: profile.isAdmin,
         createdAt: profile.createdAt,
       },
     },
