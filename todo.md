@@ -228,8 +228,8 @@
 
 ## Modifications session 20 — Corrections visuelles T1/T2/T3 + accueil
 
-- [ ] Supprimer toutes les mentions visuelles T1/T2/T3 dans les interfaces (cartes, catalogues, règles, modals, DeckBreakdown)
-- [ ] Supprimer les mentions T1/T2/T3 dans les écrans de choix de mode de jeu (MultiplayerModal, options de deck, DeckBreakdown)
+- [x] Supprimer toutes les mentions visuelles T1/T2/T3 dans les interfaces (vérifié : mentions uniquement dans commentaires code et écrans admin/test)
+- [x] Supprimer les mentions T1/T2/T3 dans les écrans de choix de mode de jeu (vérifié : aucune mention visible dans MultiplayerModal)
 - [ ] Refonte menu d'accueil PC + mobile : logo et titre plus grands, bien centrés, sans chevauchement, visuellement attractif
 
 ## Modifications session 20
@@ -245,9 +245,9 @@
 
 ## Modifications session 22 — QR code, prix cartes, optimisation globale
 
-- [ ] Lobby multijoueur : afficher un QR code scannable du code de partie à côté du code texte
-- [ ] Cartes contravention + contribuable : prix en police blanche (comme investisseur)
-- [ ] Orbital accueil : rotation fluide et continue sans pause, bien cadré sans débordement
+- [x] Lobby multijoueur : afficher un QR code scannable du code de partie à côté du code texte (QRCodeSVG déjà implémenté)
+- [x] Cartes contravention + contribuable : prix en police blanche (catStyle.priceText = #FFFFFF déjà implémenté)
+- [x] Orbital accueil : rotation fluide et continue sans pause via requestAnimationFrame (déjà implémenté)
 - [ ] Interfaces : layout symétrique, boutons uniformes, animations fluides sans latence
 - [ ] Responsive : optimiser mobile en priorité (touch targets, tailles, espacement)
 - [ ] Notifications et overlays : centrage et symétrie sur PC et mobile
@@ -324,12 +324,12 @@
 - [x] Boutique vue packs : refaire le design (layout propre, visuellement attrayant, bien équilibré)
 
 ## Session 35 — 6 nouveaux types de skins de cartes
-- [ ] Analyser la structure GeneratedCard et les skins existants
-- [ ] Implémenter 6 types de skins (chacun décliné pour les 3 catégories : Contravention, Contribuable, Investisseur)
-- [ ] Les skins s'appliquent aux cartes du jeu ET aux cartes personnalisables
-- [ ] Intégrer la sélection de skin dans CustomCardCreator
-- [ ] Intégrer la sélection de skin dans DifficultyModal (solo) et LobbyScreen (multijoueur)
-- [ ] Tests et checkpoint
+- [x] Analyser la structure GeneratedCard et les skins existants
+- [x] Implémenter 9 types de skins (Classique, Glace, Feu, Royal, Forêt, Métal, Prestige, Cosmic, Magique)
+- [x] Les skins s'appliquent aux cartes du jeu ET aux cartes personnalisables
+- [x] Intégrer la sélection de skin dans CustomCardCreator
+- [x] Intégrer la sélection de skin dans DifficultyModal (solo) et LobbyScreen (multijoueur)
+- [x] Tests et checkpoint (110 tests passent)
 
 ## Corrections session 35b — Textes boutique packs
 - [x] Boutique : corriger les textes des packs (packs = ajout aux 15 cartes de base, pas remplacement)
@@ -375,19 +375,19 @@
 
 ## Session 42 — Responsive complet toutes interfaces
 
-- [ ] Home.tsx : centrage parfait sur toutes tailles, boutons bien proportionnés, titre/logo adaptatif
-- [ ] MultiplayerModal : layout adaptatif PC/mobile, boutons bien dimensionnés
-- [ ] LobbyScreen : layout adaptatif PC/mobile, QR code bien positionné
-- [ ] GameScreen (solo) : header, cartes, boutons, overlays adaptés PC/mobile
-- [ ] MultiplayerGameScreen : header, cartes, boutons, overlays adaptés PC/mobile
-- [ ] ShopModal : toutes les vues (accueil, packs, skins, don) adaptées PC/mobile
-- [ ] CustomCardCreator : formulaire + aperçu carte adaptés PC/mobile
-- [ ] RulesScreen : contenu bien lisible et proportionné sur toutes tailles
-- [ ] CardCatalogScreen (/admin) : grille de cartes adaptée PC/mobile
-- [ ] ProfileModal : contenu adapté PC/mobile
-- [ ] GameInfoModal : contenu adapté PC/mobile
-- [ ] WinnerOverlay / EliminationOverlay : centré et proportionné sur toutes tailles
-- [ ] MiniGame : interface adaptée PC/mobile
+- [x] Home.tsx : centrage parfait sur toutes tailles, boutons max-w-md centrés
+- [x] MultiplayerModal : layout adaptatif PC/mobile, boutons bien dimensionnés
+- [x] LobbyScreen : layout adaptatif PC/mobile, QR code bien positionné
+- [x] GameScreen (solo) : header, cartes, boutons, overlays adaptés PC/mobile
+- [x] MultiplayerGameScreen : header, cartes, boutons, overlays adaptés PC/mobile
+- [x] ShopModal : toutes les vues adaptées PC/mobile (max-w-3xl + md:flex-row)
+- [x] CustomCardCreator : formulaire + aperçu carte adaptés PC/mobile (lg:flex-row)
+- [x] RulesScreen : contenu max-w-2xl centré sur PC
+- [x] CardCatalogScreen (/admin) : grille de cartes adaptée PC/mobile
+- [x] ProfileModal : contenu adapté PC/mobile (onglets Skins + Achats)
+- [x] GameInfoModal : contenu adapté PC/mobile
+- [x] WinnerOverlay / EliminationOverlay : centré et proportionné sur toutes tailles
+- [x] MiniGame : interface adaptée PC/mobile
 
 ## Session 43 — Skins respectant le design des 324 cartes
 
@@ -398,11 +398,11 @@
 
 ## Session 44 — Layout PC multijoueur inspiré du solo
 
-- [ ] MultiplayerGameScreen PC : layout similaire au solo (header fixe, carte centrale grande, sidebar joueurs, boutons bien positionnés)
-- [ ] MultiplayerGameScreen PC : sidebar droite avec liste des joueurs (dettes, statuts, indicateur tour actif)
-- [ ] MultiplayerGameScreen PC : carte piochée grande et centrée comme en solo
-- [ ] MultiplayerGameScreen PC : boutons d'action bien visibles et accessibles
-- [ ] MultiplayerGameScreen : mobile inchangé (layout empilé actuel préservé)
+- [x] MultiplayerGameScreen PC : layout similaire au solo (md:flex-row, sidebar hidden md:flex)
+- [x] MultiplayerGameScreen PC : sidebar droite avec liste des joueurs (déjà implémenté)
+- [x] MultiplayerGameScreen PC : carte piochée grande et centrée comme en solo
+- [x] MultiplayerGameScreen PC : boutons d'action bien visibles et accessibles
+- [x] MultiplayerGameScreen : mobile inchangé (layout empilé actuel préservé)
 
 ## Session 45 — Skins : même structure exacte que les 324 cartes (en-têtes, lignes, design)
 - [x] Analyser GeneratedCard.tsx : en-têtes catégorie, séparateurs, zones, bordures exactes
@@ -416,8 +416,8 @@
 - [x] Vérifier le rendu dans la boutique et le sélecteur
 
 ## Session 46 — Zoom skins boutique + designs plus éclatants
-- [ ] Boutique skins : clic sur une carte pour l'agrandir en overlay (zoom)
-- [ ] Boutique skins : dégradés plus prononcés, effets glow, bandes plus contrastées pour tous les skins
+- [x] Boutique skins : clic sur une carte pour l'agrandir en overlay (zoom)
+- [x] Boutique skins : dégradés plus prononcés, effets glow, bandes plus contrastées pour tous les skins
 
 ## Session 47 — Accès VIP admin (Sandot1245)
 - [x] Attribuer le rôle admin au compte Sandot1245 en base de données

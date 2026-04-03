@@ -91,6 +91,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   const [donError, setDonError] = useState<string | null>(null);
   const [previewSkin, setPreviewSkin] = useState<CardSkinId>("classique");
   const [cart, setCart] = useState<string[]>([]); // productIds dans le panier
+  const [zoomedCard, setZoomedCard] = useState<{ card: CardConfig; label: string; mefait: string } | null>(null);
 
   // Skins débloqués par le joueur
   const { data: ownedSkins = [], refetch: refetchOwnedSkins } = trpc.skins.listOwnedSkins.useQuery(undefined, {
@@ -210,6 +211,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   }[view];
 
   return (
+    <>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -627,7 +629,10 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                               ].map(({ card, label, mefait }) => (
                                 <div key={label} className="flex flex-col items-center gap-1.5 group">
                                   {/* Desktop : sm */}
-                                  <div className="hidden md:block relative cursor-zoom-in">
+                                  <div
+                                    className="hidden md:block relative cursor-zoom-in"
+                                    onClick={() => setZoomedCard({ card, label, mefait })}
+                                  >
                                     <motion.div
                                       whileHover={{ scale: 1.08, zIndex: 10 }}
                                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -637,7 +642,10 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                                     </motion.div>
                                   </div>
                                   {/* Mobile : xs */}
-                                  <div className="md:hidden relative cursor-zoom-in">
+                                  <div
+                                    className="md:hidden relative cursor-zoom-in"
+                                    onClick={() => setZoomedCard({ card, label, mefait })}
+                                  >
                                     <motion.div
                                       whileHover={{ scale: 1.12, zIndex: 10 }}
                                       whileTap={{ scale: 1.15 }}
@@ -990,5 +998,44 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
         </motion.div>
       )}
     </AnimatePresence>
+
+    {/* ── Overlay zoom carte ── */}
+    <AnimatePresence>
+      {zoomedCard && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[200] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(8px)" }}
+          onClick={() => setZoomedCard(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0, y: 40 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.5, opacity: 0, y: 40 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="flex flex-col items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GeneratedCard
+              card={zoomedCard.card}
+              size="lg"
+              skinId={previewSkin}
+              mefaitOverride={zoomedCard.mefait}
+            />
+            <div className="flex flex-col items-center gap-1">
+              <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", color: "#fff" }}>
+                {zoomedCard.label.toUpperCase()}
+              </span>
+              <span style={FONT_FREDOKA} className="text-white/40 text-xs">
+                Appuyez n'importe où pour fermer
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
