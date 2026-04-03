@@ -188,16 +188,16 @@
 
 ## Modifications session 17 — Sauvegarde de configurations de partie
 
-- [ ] DB: table game_configs (id, userId, name, difficulty, disableT2, disableT3, includeCustom, createdAt)
-- [ ] tRPC: endpoint saveGameConfig (protectedProcedure, max 10 configs par joueur)
-- [ ] tRPC: endpoint listGameConfigs (protectedProcedure)
-- [ ] tRPC: endpoint deleteGameConfig (protectedProcedure)
-- [ ] tRPC: endpoint loadGameConfig (protectedProcedure)
-- [ ] UI: bouton "Sauvegarder cette config" dans la fenêtre de sélection solo/multi (si connecté)
-- [ ] UI: section "Configs sauvegardées" dans la fenêtre de sélection pour charger rapidement une config
-- [ ] UI: modal de nommage de la configuration avant sauvegarde
-- [ ] UI: option de suppression d'une config sauvegardée
-- [ ] Tests vitest pour saveGameConfig, listGameConfigs, deleteGameConfig
+- [x] DB: table game_configs (id, userId, name, difficulty, disableT2, disableT3, includeCustom, createdAt)
+- [x] tRPC: endpoint saveGameConfig (protectedProcedure, max 10 configs par joueur)
+- [x] tRPC: endpoint listGameConfigs (protectedProcedure)
+- [x] tRPC: endpoint deleteGameConfig (protectedProcedure)
+- [x] tRPC: chargement d'une config via list + application locale dans MultiplayerModal
+- [x] UI: bouton "Sauvegarder cette config" dans la fenêtre de sélection solo/multi (si connecté)
+- [x] UI: section "Configs sauvegardées" dans la fenêtre de sélection pour charger rapidement une config
+- [x] UI: modal de nommage de la configuration avant sauvegarde
+- [x] UI: option de suppression d'une config sauvegardée
+- [x] Tests vitest pour saveGameConfig, listGameConfigs, deleteGameConfig
 
 ## Modifications session 18 — Mini-jeux perquisition refonte
 
