@@ -512,18 +512,33 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                               </span>
                             </div>
 
-                            {/* 3 cartes — plus grandes sur PC */}
-                            <div className="flex gap-3 justify-center items-start mb-4">
+                            {/* 3 cartes — taille adaptée selon l'écran */}
+                            <div className="flex gap-2 md:gap-4 justify-center items-start mb-4">
                               <div className="flex flex-col items-center gap-1.5">
-                                <GeneratedCard card={DEMO_CONTRAVENTION} size="xs" skinId={previewSkin} mefaitOverride="Excès de vitesse en zone scolaire" style={{ width: 110, height: 154 }} />
+                                <div className="hidden md:block">
+                                  <GeneratedCard card={DEMO_CONTRAVENTION} size="sm" skinId={previewSkin} mefaitOverride="Excès de vitesse en zone scolaire" />
+                                </div>
+                                <div className="md:hidden">
+                                  <GeneratedCard card={DEMO_CONTRAVENTION} size="xs" skinId={previewSkin} mefaitOverride="Excès de vitesse en zone scolaire" style={{ width: 90, height: 126 }} />
+                                </div>
                                 <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Contravention</span>
                               </div>
                               <div className="flex flex-col items-center gap-1.5">
-                                <GeneratedCard card={DEMO_CONTRIBUABLE} size="xs" skinId={previewSkin} mefaitOverride="Remboursement d'impôt reçu" style={{ width: 110, height: 154 }} />
+                                <div className="hidden md:block">
+                                  <GeneratedCard card={DEMO_CONTRIBUABLE} size="sm" skinId={previewSkin} mefaitOverride="Remboursement d'impôt reçu" />
+                                </div>
+                                <div className="md:hidden">
+                                  <GeneratedCard card={DEMO_CONTRIBUABLE} size="xs" skinId={previewSkin} mefaitOverride="Remboursement d'impôt reçu" style={{ width: 90, height: 126 }} />
+                                </div>
                                 <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Contribuable</span>
                               </div>
                               <div className="flex flex-col items-center gap-1.5">
-                                <GeneratedCard card={DEMO_INVESTISSEUR} size="xs" skinId={previewSkin} mefaitOverride="Dividendes versés aux actionnaires" style={{ width: 110, height: 154 }} />
+                                <div className="hidden md:block">
+                                  <GeneratedCard card={DEMO_INVESTISSEUR} size="sm" skinId={previewSkin} mefaitOverride="Dividendes versés aux actionnaires" />
+                                </div>
+                                <div className="md:hidden">
+                                  <GeneratedCard card={DEMO_INVESTISSEUR} size="xs" skinId={previewSkin} mefaitOverride="Dividendes versés aux actionnaires" style={{ width: 90, height: 126 }} />
+                                </div>
                                 <span style={FONT_FREDOKA} className="text-white/50 text-[0.6rem]">Investisseur</span>
                               </div>
                             </div>

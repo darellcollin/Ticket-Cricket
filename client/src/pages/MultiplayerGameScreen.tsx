@@ -3207,7 +3207,7 @@ export function MultiplayerGameScreen() {
       </div>
 
       {/* ── Zone carte + bouton piocher ── */}
-      <div className="flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center px-4 gap-4 pb-1 min-h-0 md:gap-8">
+      <div className="flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center px-4 gap-4 pb-1 min-h-0 md:gap-6">
 
         {/* Bulle "carte précédente" — bouton pour voir la carte du joueur précédent */}
         <AnimatePresence>
@@ -3241,7 +3241,7 @@ export function MultiplayerGameScreen() {
         </AnimatePresence>
 
         {/* Wrapper qui aligne la carte et les boutons sur la même largeur */}
-        <div className="flex flex-col gap-2 items-stretch" style={{ width: "min(calc(50dvh * 5 / 7), 257px)" }}>
+        <div className="flex flex-col gap-2 items-stretch flex-shrink-0" style={{ width: "min(calc(57dvh * 5 / 7), clamp(240px, 30vw, 360px))" }}>
         {/* Carte */}
         <div className="relative flex-shrink-0" style={{ aspectRatio: "5/7", perspective: "1200px" }}>
           <AnimatePresence mode="wait">
@@ -3468,6 +3468,173 @@ export function MultiplayerGameScreen() {
             {error}
           </div>
         )}
+
+        {/* ── Panneau latéral desktop — classement + historique ── */}
+        <div className="hidden md:flex flex-col gap-4 flex-1 min-w-0 py-2 overflow-y-auto">
+
+          {/* Ma dette */}
+          <div
+            className="rounded-2xl border-[3px] p-4 flex flex-col gap-1"
+            style={{
+              background: amEliminated ? "rgba(239,68,68,0.12)" : "rgba(255,215,0,0.08)",
+              borderColor: amEliminated ? "rgba(239,68,68,0.4)" : "rgba(234,179,8,0.35)",
+            }}
+          >
+            <span style={{ ...FONT_FREDOKA }} className="text-white/40 text-xs uppercase tracking-wider">Ma dette totale</span>
+            <span
+              style={{ ...FONT_BANGERS, fontSize: "2.2rem", letterSpacing: "0.04em", lineHeight: 1 }}
+              className={amEliminated ? "text-red-400" : "text-yellow-400"}
+            >
+              {formatPrice(myTotal)}
+            </span>
+            {amEliminated && (
+              <span style={FONT_FREDOKA} className="text-red-400/60 text-xs">Éliminé — limite dépassée</span>
+            )}
+          </div>
+
+          {/* Classement en temps réel */}
+          <div
+            className="rounded-2xl border-[3px] border-white/10 p-4 flex flex-col gap-3"
+            style={{ background: "rgba(0,0,0,0.35)" }}
+          >
+            <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.08em" }} className="text-white/60 flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-yellow-400/60" />
+              CLASSEMENT
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {playerTotals
+                .sort((a, b) => {
+                  const aElim = eliminated.includes(a.pid);
+                  const bElim = eliminated.includes(b.pid);
+                  if (aElim && !bElim) return 1;
+                  if (!aElim && bElim) return -1;
+                  return a.total - b.total;
+                })
+                .map((pt, rank) => {
+                  const player = session.players.find(p => p.id === pt.pid);
+                  const isMe = pt.pid === playerId;
+                  const isActive = pt.pid === currentPlayer?.id && !isFinished;
+                  const isElim = eliminated.includes(pt.pid);
+                  const pIdx = session.turnOrder.indexOf(pt.pid);
+                  const pColor = isMe
+                    ? MY_COLOR
+                    : PLAYER_COLOR_PALETTE[pIdx % PLAYER_COLOR_PALETTE.length];
+                  return (
+                    <div
+                      key={pt.pid}
+                      className="flex items-center gap-2 rounded-xl border px-3 py-2"
+                      style={{
+                        background: isElim
+                          ? "rgba(239,68,68,0.06)"
+                          : isActive
+                          ? (isMe ? "rgba(59,130,246,0.18)" : pColor.bg)
+                          : isMe
+                          ? "rgba(59,130,246,0.08)"
+                          : "rgba(255,255,255,0.04)",
+                        borderColor: isElim
+                          ? "rgba(239,68,68,0.2)"
+                          : isActive
+                          ? (isMe ? "rgba(96,165,250,0.7)" : pColor.border)
+                          : isMe
+                          ? "rgba(96,165,250,0.25)"
+                          : "rgba(255,255,255,0.08)",
+                        boxShadow: isActive && !isElim ? `0 0 12px ${isMe ? "rgba(59,130,246,0.3)" : pColor.border}` : "none",
+                      }}
+                    >
+                      {/* Rang */}
+                      <span
+                        style={{ ...FONT_BANGERS, fontSize: "0.85rem" }}
+                        className={isElim ? "text-white/20" : "text-yellow-400/70"}
+                      >
+                        #{rank + 1}
+                      </span>
+                      {/* Icône statut */}
+                      <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                        {isElim
+                          ? <Skull className="w-3.5 h-3.5 text-red-400/50" />
+                          : isActive
+                          ? <motion.div
+                              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.4, 1] }}
+                              transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                              <Target className="w-3.5 h-3.5" style={{ color: isMe ? "#60a5fa" : pColor.dot }} />
+                            </motion.div>
+                          : pt.pid === session.hostId
+                          ? <Crown className="w-3 h-3" style={{ color: pColor.dot, opacity: 0.55 }} />
+                          : <div className="w-2 h-2 rounded-full" style={{ background: pColor.dot, opacity: 0.5 }} />
+                        }
+                      </div>
+                      {/* Nom */}
+                      <span
+                        style={{
+                          ...FONT_FREDOKA,
+                          color: isElim ? "rgba(255,255,255,0.25)" : isMe ? "#93c5fd" : pColor.text,
+                          fontSize: "0.88rem",
+                        }}
+                        className="flex-1 truncate leading-none"
+                      >
+                        {isMe ? "Toi" : (player?.name ?? pt.pid)}
+                        {isActive && !isElim && (
+                          <span style={{ fontSize: "0.65rem", opacity: 0.7 }}> ▶</span>
+                        )}
+                      </span>
+                      {/* Dette */}
+                      <span
+                        style={{ ...FONT_BANGERS, fontSize: "0.9rem", letterSpacing: "0.03em" }}
+                        className={isElim ? "text-red-400/50" : isMe ? "text-yellow-300" : "text-white/65"}
+                      >
+                        {formatPrice(pt.total)}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Historique des dernières cartes */}
+          <div
+            className="rounded-2xl border-[3px] border-white/10 p-4 flex flex-col gap-3 flex-1"
+            style={{ background: "rgba(0,0,0,0.3)" }}
+          >
+            <div style={{ ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.08em" }} className="text-white/60">DERNIÈRES CARTES</div>
+            {session.drawn.length === 0 ? (
+              <div style={FONT_FREDOKA} className="text-white/25 text-sm text-center py-4">Aucune carte piochée</div>
+            ) : (
+              <div className="flex flex-col gap-2 overflow-y-auto">
+                {(() => {
+                  const cardOwnerMap = new Map<number, string>();
+                  for (const [pid, cards] of Object.entries(session.playerCards ?? {})) {
+                    for (const c of (cards as number[])) cardOwnerMap.set(c, pid);
+                  }
+                  return [...session.drawn].reverse().slice(0, 8).map((cardId) => {
+                    const cfg = getCardConfigMp(cardId);
+                    const amt = drawerNetAmount(cfg);
+                    const catInfo = CATEGORY_INFO[cfg.category as CardCategory];
+                    const ownerId = cardOwnerMap.get(cardId);
+                    const owner = session.players.find(p => p.id === ownerId);
+                    const isMe = ownerId === playerId;
+                    return (
+                      <div key={cardId} className="flex items-center gap-2 rounded-xl border border-white/8 px-3 py-2" style={{ background: "rgba(255,255,255,0.04)" }}>
+                        <div className="w-7 h-7 rounded-lg border border-black/30 flex items-center justify-center flex-shrink-0" style={{ background: catInfo?.color ?? "#333" }}>
+                          <span style={{ ...FONT_BANGERS, fontSize: "0.65rem" }} className="text-white">{cardId}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div style={FONT_FREDOKA} className="text-white/70 text-xs truncate">
+                            {isMe ? "Toi" : (owner?.name ?? "?")}
+                          </div>
+                          <div style={FONT_FREDOKA} className="text-white/35 text-[0.6rem] truncate">{cfg.category}</div>
+                        </div>
+                        <span style={{ ...FONT_BANGERS, fontSize: "0.85rem" }} className={amt > 0 ? "text-red-400" : amt < 0 ? "text-green-400" : "text-white/30"}>
+                          {amt > 0 ? `+${formatPrice(amt)}` : amt < 0 ? formatPrice(amt) : "—"}
+                        </span>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div

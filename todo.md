@@ -395,3 +395,26 @@
 - [x] Refaire les tokens visuels des 5 skins (Néon, Rétro, Glace, Feu, Royal) en respectant la même structure de carte que le skin Classique
 - [x] Chaque skin doit avoir les mêmes zones (header catégorie, zone méfait, zone prix, footer) avec les nouvelles couleurs
 - [x] Vérifier le rendu dans la boutique, le sélecteur et le jeu
+
+## Session 44 — Layout PC multijoueur inspiré du solo
+
+- [ ] MultiplayerGameScreen PC : layout similaire au solo (header fixe, carte centrale grande, sidebar joueurs, boutons bien positionnés)
+- [ ] MultiplayerGameScreen PC : sidebar droite avec liste des joueurs (dettes, statuts, indicateur tour actif)
+- [ ] MultiplayerGameScreen PC : carte piochée grande et centrée comme en solo
+- [ ] MultiplayerGameScreen PC : boutons d'action bien visibles et accessibles
+- [ ] MultiplayerGameScreen : mobile inchangé (layout empilé actuel préservé)
+
+## Session 45 — Skins : même structure exacte que les 324 cartes (en-têtes, lignes, design)
+- [x] Analyser GeneratedCard.tsx : en-têtes catégorie, séparateurs, zones, bordures exactes
+- [x] Refaire skinConfig.ts : chaque skin garde la même structure visuelle (même en-têtes, mêmes lignes) avec uniquement les couleurs qui changent
+- [x] Vérifier que les en-têtes de catégorie (Contribuable/Investisseur/Fonctionnaire) ont le même style que le Classique
+- [x] Vérifier le rendu dans la boutique et le sélecteur de skins
+
+## Session 45b — Skins : correction finale structure graphique identique au Classique
+- [x] Vérifier que chaque skin a exactement les mêmes lignes graphiques, en-têtes, typographie et structure que le Classique
+- [x] Corriger les tokens pour que les différences visuelles entre skins soient fortes et immédiatement reconnaissables
+- [x] Vérifier le rendu dans la boutique et le sélecteur
+
+## Session 46 — Zoom skins boutique + designs plus éclatants
+- [ ] Boutique skins : clic sur une carte pour l'agrandir en overlay (zoom)
+- [ ] Boutique skins : dégradés plus prononcés, effets glow, bandes plus contrastées pour tous les skins

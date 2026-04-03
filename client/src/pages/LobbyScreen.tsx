@@ -173,7 +173,7 @@ export function LobbyScreen() {
 
   return (
     <div
-      className="h-[100dvh] max-w-md md:max-w-lg lg:max-w-xl mx-auto flex flex-col overflow-hidden"
+      className="h-[100dvh] flex flex-col overflow-hidden"
       style={{ background: "linear-gradient(160deg, #0c1a4e 0%, #1a083d 60%, #0c1a4e 100%)" }}
     >
       {/* Header */}
@@ -187,7 +187,11 @@ export function LobbyScreen() {
 
       <PoliceTape />
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
+      {/* Layout 2 colonnes sur PC */}
+      <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+
+      {/* Colonne gauche : code + QR */}
+      <div className="md:w-[380px] md:flex-shrink-0 overflow-y-auto px-4 py-3 flex flex-col gap-3 md:border-r-4 md:border-yellow-400/20">
 
         {/* ── Code de session ── */}
         <motion.div
@@ -296,9 +300,9 @@ export function LobbyScreen() {
           </AnimatePresence>
         </div>
 
-        {/* ── Message si 1 seul joueur ── */}
+        {/* ── Message si 1 seul joueur (mobile seulement) ── */}
         {session.players.length < 2 && (
-          <div style={FONT_FREDOKA} className="text-center text-white/40 text-sm px-4 py-2">
+          <div style={FONT_FREDOKA} className="md:hidden text-center text-white/40 text-sm px-4 py-2">
             En attente d'un autre joueur…
           </div>
         )}
@@ -310,19 +314,176 @@ export function LobbyScreen() {
           </div>
         )}
 
-        {/* ── Bouton HOST : Commencer ── */}
+        {/* ── Boutons d'action (mobile seulement — sur PC ils sont dans la colonne droite) ── */}
+        <div className="md:hidden flex flex-col gap-3">
+
+          {/* Bouton HOST : Commencer */}
+          {isHost && (
+            <motion.button
+              whileHover={canStart ? { scale: 1.04, y: -2 } as any : {}}
+              whileTap={canStart ? { scale: 0.96 } as any : {}}
+              onClick={handleStart}
+              disabled={!canStart || starting}
+              className={`w-full py-4 border-[5px] border-black rounded-2xl text-black relative overflow-hidden transition-opacity ${
+                canStart ? "bg-yellow-400" : "bg-yellow-400/30 cursor-not-allowed"
+              }`}
+              style={{
+                ...FONT_BANGERS,
+                fontSize: "1.45rem",
+                letterSpacing: "0.08em",
+                boxShadow: canStart ? "6px 6px 0px #000" : "3px 3px 0px #000",
+              }}
+            >
+              {canStart && (
+                <motion.div
+                  className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                  animate={{ x: ["-100%", "400%"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }}
+                />
+              )}
+              {starting
+                ? "DÉMARRAGE..."
+                : canStart
+                ? "COMMENCER LE JEU"
+                : session.players.length < 2
+                ? "ATTENTE DE JOUEURS"
+                : "ATTENTE DES JOUEURS"}
+            </motion.button>
+          )}
+
+          {/* Bouton HOST : Annuler la création */}
+          {isHost && (
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={() => setShowConfirmCancel(true)}
+              className="w-full py-2.5 bg-red-900/30 border-[3px] border-red-500/50 rounded-2xl text-red-400 flex items-center justify-center gap-2"
+              style={FONT_FREDOKA}
+            >
+              <X className="w-4 h-4" />
+              Annuler la création de partie
+            </motion.button>
+          )}
+
+          {/* Bouton INVITÉ : Prêt */}
+          {!isHost && (
+            <motion.button
+              whileHover={{ scale: 1.04, y: -2 } as any}
+              whileTap={{ scale: 0.96 } as any}
+              onClick={handleReady}
+              disabled={togglingReady}
+              className="w-full py-4 border-[5px] border-black rounded-2xl text-white relative overflow-hidden"
+              style={{
+                ...FONT_BANGERS,
+                fontSize: "1.45rem",
+                letterSpacing: "0.08em",
+                background: amReady ? "#22c55e" : "#1565C0",
+                boxShadow: "6px 6px 0px #000",
+              }}
+            >
+              {amReady ? "JE SUIS PRÊT !" : "PRÊT ?"}
+            </motion.button>
+          )}
+
+          {/* Quitter (invités seulement) */}
+          {!isHost && (
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={() => setShowConfirmLeave(true)}
+              className="w-full py-2.5 bg-transparent border-[3px] border-white/20 rounded-2xl text-white/40 flex items-center justify-center gap-2"
+              style={FONT_FREDOKA}
+            >
+              <Home className="w-4 h-4" />
+              Quitter la partie
+            </motion.button>
+          )}
+
+        </div>{/* /boutons mobile */}
+
+      </div>{/* /colonne gauche */}
+
+      {/* Colonne droite : liste joueurs + boutons action — visible uniquement sur PC */}
+      <div className="hidden md:flex flex-col flex-1 overflow-y-auto px-4 py-3 gap-3">
+
+        {/* Titre */}
+        <div className="flex items-center gap-2 px-1">
+          <Users className="w-5 h-5 text-yellow-400/70" />
+          <span style={{ ...FONT_BANGERS, fontSize: "1.1rem", letterSpacing: "0.08em" }} className="text-yellow-400/70">
+            JOUEURS ({session.players.length}/10)
+          </span>
+        </div>
+
+        {/* Liste des joueurs */}
+        <div className="flex flex-col gap-2">
+          <AnimatePresence>
+            {session.players.map((player, idx) => (
+              <motion.div
+                key={player.id}
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 20, opacity: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border-[3px] border-black ${
+                  player.id === playerId ? "ring-2 ring-yellow-400 ring-offset-2 ring-offset-transparent" : ""
+                }`}
+                style={{
+                  background: player.ready ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.06)",
+                  boxShadow: "3px 3px 0px #000",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  {player.id === session.hostId && (
+                    <Crown className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                  )}
+                  <span style={{ ...FONT_FREDOKA, fontSize: "1rem" }} className="text-white font-medium">
+                    {player.name}
+                    {player.id === playerId && (
+                      <span className="text-yellow-400/60 text-sm ml-1">(vous)</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {player.id === session.hostId ? (
+                    <span style={FONT_FREDOKA} className="text-yellow-400 text-sm bg-yellow-400/10 px-3 py-1 rounded-full border border-yellow-400/30 flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Host
+                    </span>
+                  ) : player.ready ? (
+                    <span style={FONT_FREDOKA} className="text-green-400 text-sm bg-green-400/10 px-3 py-1 rounded-full border border-green-400/30 flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Prêt
+                    </span>
+                  ) : (
+                    <span style={FONT_FREDOKA} className="text-white/40 text-sm bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                      En attente…
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* Message si 1 seul joueur */}
+        {session.players.length < 2 && (
+          <div style={FONT_FREDOKA} className="text-center text-white/40 text-sm px-4 py-2">
+            En attente d'un autre joueur…
+          </div>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Bouton HOST : Commencer */}
         {isHost && (
           <motion.button
             whileHover={canStart ? { scale: 1.04, y: -2 } as any : {}}
             whileTap={canStart ? { scale: 0.96 } as any : {}}
             onClick={handleStart}
             disabled={!canStart || starting}
-            className={`w-full py-4 border-[5px] border-black rounded-2xl text-black relative overflow-hidden transition-opacity ${
+            className={`w-full py-5 border-[5px] border-black rounded-2xl text-black relative overflow-hidden transition-opacity ${
               canStart ? "bg-yellow-400" : "bg-yellow-400/30 cursor-not-allowed"
             }`}
             style={{
               ...FONT_BANGERS,
-              fontSize: "1.45rem",
+              fontSize: "1.6rem",
               letterSpacing: "0.08em",
               boxShadow: canStart ? "6px 6px 0px #000" : "3px 3px 0px #000",
             }}
@@ -344,12 +505,12 @@ export function LobbyScreen() {
           </motion.button>
         )}
 
-        {/* ── Bouton HOST : Annuler la création ── */}
+        {/* Bouton HOST : Annuler */}
         {isHost && (
           <motion.button
             whileTap={{ scale: 0.94 }}
             onClick={() => setShowConfirmCancel(true)}
-            className="w-full py-2.5 bg-red-900/30 border-[3px] border-red-500/50 rounded-2xl text-red-400 flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-transparent border-[3px] border-red-500/30 rounded-2xl text-red-400/50 flex items-center justify-center gap-2"
             style={FONT_FREDOKA}
           >
             <X className="w-4 h-4" />
@@ -357,17 +518,16 @@ export function LobbyScreen() {
           </motion.button>
         )}
 
-        {/* ── Bouton INVITÉ : Prêt ── */}
+        {/* Bouton INVITÉ : Prêt */}
         {!isHost && (
           <motion.button
-            whileHover={{ scale: 1.04, y: -2 } as any}
-            whileTap={{ scale: 0.96 } as any}
+            whileTap={{ scale: 0.94 }}
             onClick={handleReady}
             disabled={togglingReady}
-            className="w-full py-4 border-[5px] border-black rounded-2xl text-white relative overflow-hidden"
+            className="w-full py-5 border-[5px] border-black rounded-2xl text-white relative overflow-hidden"
             style={{
               ...FONT_BANGERS,
-              fontSize: "1.45rem",
+              fontSize: "1.6rem",
               letterSpacing: "0.08em",
               background: amReady ? "#22c55e" : "#1565C0",
               boxShadow: "6px 6px 0px #000",
@@ -377,7 +537,7 @@ export function LobbyScreen() {
           </motion.button>
         )}
 
-        {/* ── Quitter (invités seulement) ── */}
+        {/* Bouton INVITÉ : Quitter */}
         {!isHost && (
           <motion.button
             whileTap={{ scale: 0.94 }}
@@ -390,7 +550,9 @@ export function LobbyScreen() {
           </motion.button>
         )}
 
-      </div>
+      </div>{/* /colonne droite */}
+
+      </div>{/* /layout 2 colonnes */}
 
       <div className="w-full bg-[#111] py-1 text-center flex-shrink-0" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
         <span style={FONT_FREDOKA} className="text-yellow-400/50 text-[0.65rem] tracking-widest">
