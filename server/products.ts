@@ -1,10 +1,13 @@
 /**
  * Produits de la boutique Ticket Cricket.
- * Chaque produit a un priceId Stripe (à créer dans le dashboard Stripe)
- * et des métadonnées pour l'affichage dans la boutique.
- * 
- * Pour l'instant, les produits utilisent le mode "payment" (paiement unique).
- * Les priceId seront des prix créés dans le dashboard Stripe.
+ * Paiement unique et permanent via Stripe Checkout.
+ *
+ * Catégories :
+ *  - "card_pack" : packs de cartes personnalisables (disponibles)
+ *  - "don"       : don à montant libre (disponible)
+ *  - "skin"      : skins de cartes (bientôt)
+ *  - "deck"      : decks exclusifs (bientôt)
+ *  - "pack"      : packs de personnalisation (bientôt)
  */
 
 export interface ShopProduct {
@@ -13,45 +16,63 @@ export interface ShopProduct {
   description: string;
   price: number; // en cents CAD
   currency: string;
-  category: "skin" | "deck" | "pack" | "don";
+  category: "card_pack" | "skin" | "deck" | "pack" | "don";
   icon: string;
   color: string;
-  available: boolean; // false = bientôt disponible
+  available: boolean;
+  /** Nombre de cartes supplémentaires accordées (pour card_pack uniquement) */
+  extraCards?: number;
 }
 
 export const SHOP_PRODUCTS: ShopProduct[] = [
-  // ── DONS ──
+  // ── PACKS DE CARTES PERSONNALISABLES (disponibles) ──
   {
-    id: "don_5",
-    name: "Soutenir le projet",
-    description: "Un petit coup de pouce pour faire avancer Ticket Cricket !",
-    price: 500, // 5.00 CAD
+    id: "card_pack_35",
+    name: "Pack 35 cartes",
+    description: "Débloquez 35 cartes personnalisables supplémentaires, de façon permanente.",
+    price: 299, // 2.99 CAD
     currency: "cad",
-    category: "don",
-    icon: "heart",
-    color: "#FF3B30",
+    category: "card_pack",
+    icon: "layers",
+    color: "#34C759",
     available: true,
+    extraCards: 35,
   },
   {
-    id: "don_10",
-    name: "Soutenir généreusement",
-    description: "Merci ! Votre soutien aide à créer la version physique.",
-    price: 1000, // 10.00 CAD
+    id: "card_pack_55",
+    name: "Pack 55 cartes",
+    description: "Débloquez 55 cartes personnalisables supplémentaires, de façon permanente.",
+    price: 699, // 6.99 CAD
     currency: "cad",
-    category: "don",
-    icon: "heart",
-    color: "#FF3B30",
+    category: "card_pack",
+    icon: "layers",
+    color: "#007AFF",
     available: true,
+    extraCards: 55,
   },
   {
-    id: "don_25",
-    name: "Grand soutien",
-    description: "Vous êtes incroyable. Ce don va directement dans le développement.",
-    price: 2500, // 25.00 CAD
+    id: "card_pack_85",
+    name: "Pack 85 cartes",
+    description: "Débloquez 85 cartes personnalisables supplémentaires, de façon permanente.",
+    price: 999, // 9.99 CAD
+    currency: "cad",
+    category: "card_pack",
+    icon: "layers",
+    color: "#AF52DE",
+    available: true,
+    extraCards: 85,
+  },
+
+  // ── DON LIBRE (disponible) ──
+  {
+    id: "don_libre",
+    name: "Faire un don",
+    description: "Soutenir le développement de Ticket Cricket. Vous choisissez le montant.",
+    price: 0, // montant libre — géré côté client
     currency: "cad",
     category: "don",
     icon: "heart",
-    color: "#FF3B30",
+    color: "#EF4444",
     available: true,
   },
 
@@ -60,7 +81,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     id: "skin_neon",
     name: "Skin Néon",
     description: "Des cartes qui brillent dans le noir. Style néon vibrant.",
-    price: 299, // 2.99 CAD
+    price: 299,
     currency: "cad",
     category: "skin",
     icon: "sparkles",

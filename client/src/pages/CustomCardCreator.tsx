@@ -34,7 +34,7 @@ const CATEGORY_COLORS: Record<CardCategory, { bg: string; text: string; border: 
 const FEE_OPTIONS = [0, 10, 20, 30, 40, 50] as const;
 type FeeOption = typeof FEE_OPTIONS[number];
 
-const MAX_CARDS = 100;
+const MAX_CARDS_FREE = 15;
 
 // ─── Convertir une carte DB en CardConfig pour la prévisualisation ───────────
 function dbCardToConfig(card: {
@@ -185,7 +185,7 @@ export default function CustomCardCreator() {
   }
 
   const cardCount = countData?.count ?? cards.length;
-  const atLimit = cardCount >= MAX_CARDS;
+  const atLimit = cardCount >= MAX_CARDS_FREE;
 
   // ── Mur d'authentification ──
   if (!isAuthenticated) {
@@ -247,7 +247,7 @@ export default function CustomCardCreator() {
           </div>
           <div style={FONT_FREDOKA} className="text-white/50 text-xs">
             {view === "list"
-              ? `${cardCount} / ${MAX_CARDS} cartes — ${profile?.pseudo ?? ""}`
+              ? `${cardCount} / ${MAX_CARDS_FREE} cartes gratuites — ${profile?.pseudo ?? ""}`
               : "Personnalise ta carte"}
           </div>
         </div>
@@ -278,13 +278,13 @@ export default function CustomCardCreator() {
             <div className="mb-6">
               <div className="flex justify-between items-center mb-1">
                 <span style={FONT_FREDOKA} className="text-white/60 text-xs">Cartes créées</span>
-                <span style={FONT_FREDOKA} className="text-white/60 text-xs">{cardCount} / {MAX_CARDS}</span>
+                <span style={FONT_FREDOKA} className="text-white/60 text-xs">{cardCount} / {MAX_CARDS_FREE}</span>
               </div>
               <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-yellow-400 rounded-full"
                   initial={{ width: 0 }}
-                  animate={{ width: `${(cardCount / MAX_CARDS) * 100}%` }}
+                  animate={{ width: `${Math.min((cardCount / MAX_CARDS_FREE) * 100, 100)}%` }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
                 />
               </div>
@@ -297,9 +297,18 @@ export default function CustomCardCreator() {
                 className="mb-4 p-3 bg-red-500/20 border-2 border-red-500/50 rounded-xl flex items-center gap-2"
               >
                 <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <span style={FONT_FREDOKA} className="text-red-300 text-sm">
-                  Limite de {MAX_CARDS} cartes atteinte. Supprime des cartes pour en créer de nouvelles.
-                </span>
+                <div className="flex-1">
+                  <span style={FONT_FREDOKA} className="text-red-300 text-sm block">
+                    Limite de {MAX_CARDS_FREE} cartes gratuites atteinte.
+                  </span>
+                  <button
+                    onClick={() => navigate("/")}
+                    style={{ ...FONT_FREDOKA, fontSize: "0.8rem" }}
+                    className="text-yellow-400 underline mt-0.5 hover:text-yellow-300 transition-colors"
+                  >
+                    → Débloquer plus de cartes dans la Boutique
+                  </button>
+                </div>
               </motion.div>
             )}
 

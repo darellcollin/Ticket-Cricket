@@ -291,3 +291,10 @@
 - [x] Stripe : intégrer le système de paiement dans la boutique (skins, decks, dons)
 - [x] Boutique : déverrouiller les produits avec Stripe Checkout (paiement réel)
 - [x] Boutique : page de confirmation après paiement réussi — toast + redirection Stripe natif
+
+## Modifications session 29 — Limite cartes + Boutique packs
+- [x] Accueil : bouton PARTAGER LE JEU réduit (même taille que le bouton compte)
+- [x] Cartes perso : limite 15 cartes gratuites (au lieu de 100)
+- [x] Cartes perso : message + lien boutique quand limite atteint- [x] Boutique : packs de cartes personnalisables disponibles (2,99\$/35 cartes, 6,99\$/55 cartes, 9,99\$/85 cartes)- [x] Boutique : dons à montant libre (champ de saisie)
+- [x] Boutique : skins/decks verrouillés, packs cartes + dons accessibles
+- [x] Serveur : vérifier la limite de cartes côté backend selon le quota acheté

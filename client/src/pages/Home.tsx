@@ -528,24 +528,17 @@ export default function Home() {
 
             </div>
 
-            {/* Ligne 3 : PARTAGER LE JEU — centré sous Boutique */}
+            {/* Ligne 3 : bouton partage centré — même taille que le bouton compte */}
             <div className="flex items-center justify-center w-full">
               <motion.button
-                className="flex items-center justify-center gap-2 px-6 py-2 rounded-2xl border-[3px] border-white/30 text-white/80 relative overflow-hidden"
-                style={{
-                  ...FONT_FREDOKA,
-                  fontSize: '1rem',
-                  letterSpacing: '0.08em',
-                  background: 'rgba(255,255,255,0.08)',
-                  boxShadow: '3px 3px 0px rgba(0,0,0,0.4)',
-                  backdropFilter: 'blur(4px)',
-                }}
-                whileHover={{ scale: 1.05, borderColor: 'rgba(255,215,0,0.5)', color: '#FFD700' } as any}
-                whileTap={{ scale: 0.95 } as any}
+                className="w-10 h-10 rounded-full border-[2.5px] border-white/30 bg-white/10 flex items-center justify-center"
+                style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
+                whileHover={{ scale: 1.12, borderColor: 'rgba(255,215,0,0.6)', backgroundColor: 'rgba(255,255,255,0.18)' } as any}
+                whileTap={{ scale: 0.9 } as any}
                 onClick={() => setShowShareModal(true)}
+                title="Partager le jeu"
               >
-                <Share2 size={16} />
-                PARTAGER LE JEU
+                <Share2 size={18} color="white" />
               </motion.button>
             </div>
           </div>

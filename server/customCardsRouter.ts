@@ -10,7 +10,7 @@ import { getDb } from "./db";
 import { customCards } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
-const MAX_CARDS = 100;
+const MAX_CARDS_FREE = 15;
 
 const ALLOWED_FEES = [0, 10, 20, 30, 40, 50] as const;
 
@@ -66,8 +66,8 @@ export const customCardsRouter = router({
         .from(customCards)
         .where(eq(customCards.profileId, ctx.gameProfile.id));
 
-      if (existing.length >= MAX_CARDS) {
-        throw new Error(`Limite de ${MAX_CARDS} cartes personnalisées atteinte.`);
+      if (existing.length >= MAX_CARDS_FREE) {
+        throw new Error(`LIMIT_REACHED:${MAX_CARDS_FREE}`);
       }
 
       // Construire les valeurs selon la catégorie
@@ -144,11 +144,11 @@ export const customCardsRouter = router({
   /** Compter les cartes du joueur */
   count: gameAuthProtectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
-    if (!db) return { count: 0, max: MAX_CARDS };
+    if (!db) return { count: 0, max: MAX_CARDS_FREE };
     const rows = await db
       .select({ id: customCards.id })
       .from(customCards)
       .where(eq(customCards.profileId, ctx.gameProfile.id));
-    return { count: rows.length, max: MAX_CARDS };
+    return { count: rows.length, max: MAX_CARDS_FREE };
   }),
 });
