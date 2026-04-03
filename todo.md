@@ -617,3 +617,7 @@
 ## Session 65 — Correction scroll skins PC
 
 - [x] Icônes de skins scrollent en même temps que la prévisualisation (SkinScrollRow dans ShopModal)
+
+## Session 66 — Bouton panier forfait skins
+
+- [x] Bouton + (ajouter au panier) sur le forfait complet des skins dans ShopModal

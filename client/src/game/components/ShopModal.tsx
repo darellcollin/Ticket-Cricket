@@ -1073,19 +1073,35 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                                     {SKIN_CATALOG.filter(s => s.id !== "classique").length} skins inclus
                                   </p>
                                 </div>
-                                <motion.button
-                                  whileTap={{ scale: 0.96 }}
-                                  onClick={() => {
-                                    if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
-                                    handleBuyPack("bundle_all_skins");
-                                  }}
-                                  disabled={!!loadingId}
-                                  className="flex-shrink-0 px-4 py-2.5 rounded-xl border-[3px] border-black text-black disabled:opacity-60 flex items-center gap-1.5"
-                                  style={{ background: "#FFD700", ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em", boxShadow: "3px 3px 0px #000" }}
-                                >
-                                  {loadingId === "bundle_all_skins" ? <Loader2 className="w-4 h-4 animate-spin" /> : isLoggedIn ? <ShoppingCart className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />}
-                                  {isLoggedIn ? "ACHETER TOUT" : "SE CONNECTER"}
-                                </motion.button>
+                                <div className="flex items-center gap-2">
+                                  {/* Bouton + panier */}
+                                  <motion.button
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => {
+                                      if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour ajouter au panier."); return; }
+                                      addToCart("bundle_all_skins");
+                                    }}
+                                    className="w-10 h-10 rounded-full border-[3px] border-black flex items-center justify-center flex-shrink-0"
+                                    style={{ background: "#22C55E", boxShadow: "3px 3px 0px #000" }}
+                                    title="Ajouter au panier"
+                                  >
+                                    <Plus className="w-5 h-5 text-white" />
+                                  </motion.button>
+                                  {/* Bouton achat direct */}
+                                  <motion.button
+                                    whileTap={{ scale: 0.96 }}
+                                    onClick={() => {
+                                      if (!isLoggedIn) { if (onLogin) { handleClose(); onLogin(); } else toast.error("Connectez-vous pour acheter."); return; }
+                                      handleBuyPack("bundle_all_skins");
+                                    }}
+                                    disabled={!!loadingId}
+                                    className="flex-shrink-0 px-4 py-2.5 rounded-xl border-[3px] border-black text-black disabled:opacity-60 flex items-center gap-1.5"
+                                    style={{ background: "#FFD700", ...FONT_BANGERS, fontSize: "1rem", letterSpacing: "0.05em", boxShadow: "3px 3px 0px #000" }}
+                                  >
+                                    {loadingId === "bundle_all_skins" ? <Loader2 className="w-4 h-4 animate-spin" /> : isLoggedIn ? <ShoppingCart className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />}
+                                    {isLoggedIn ? "ACHETER" : "SE CONNECTER"}
+                                  </motion.button>
+                                </div>
                               </div>
                             </div>
 
