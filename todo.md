@@ -595,3 +595,10 @@
 - [x] Bouton rond Politiques sur l'accueil (centré avec le bouton Partager)
 - [x] Modal de politiques avec texte Remboursement + Confidentialité
 - [x] Corriger les symboles de skins dans le compte joueur (ProfileModal)
+
+## Session 62 — Corrections boutique + deck
+
+- [x] Flèches skins : scroll auto vers le skin sélectionné dans le sélecteur
+- [x] Compteur de cartes du deck déjà dynamique (solo + multi) — vérifié
+- [x] Corriger le symbole de la catégorie "Skins de cartes" dans la boutique
+- [x] Texte descriptif skins : "Changez l'apparence de toutes vos cartes — 1,99 $ chacun"

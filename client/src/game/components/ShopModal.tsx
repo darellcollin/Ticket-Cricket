@@ -3,7 +3,7 @@
  * Vue principale avec boutons de navigation.
  * Vues : accueil → packs | skins | don
  */
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Lock, Layers, Heart, Sparkles, Gift, Star, ShoppingBag, Loader2, ChevronLeft, ChevronRight, Check, Flame, Snowflake, Crown, Trees, Cog, Gem, Zap, ShoppingCart, Trash2, Plus, Minus, Globe, Wand2, Package, Ghost } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -88,6 +88,80 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
 };
 
 type View = "home" | "packs" | "don" | "skins" | "cart" | "extensions";
+
+/** Rang de sélection des skins avec scroll auto vers l'élément actif */
+function SkinScrollRow({ previewSkin, ownedSkins, onSelect }: {
+  previewSkin: CardSkinId;
+  ownedSkins: string[];
+  onSelect: (id: CardSkinId) => void;
+}) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef<HTMLButtonElement>(null);
+
+  // Scroll auto vers le skin sélectionné chaque fois qu'il change
+  useEffect(() => {
+    if (selectedRef.current && rowRef.current) {
+      selectedRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [previewSkin]);
+
+  return (
+    <div
+      ref={rowRef}
+      className="flex gap-2 overflow-x-auto pb-1 flex-1"
+      style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+    >
+      {SKIN_CATALOG.map((skin: SkinMeta) => {
+        const Icon = SKIN_ICON_MAP[skin.id];
+        const isOwned = ownedSkins.includes(skin.id);
+        const isSelected = previewSkin === skin.id;
+        return (
+          <motion.button
+            key={skin.id}
+            ref={isSelected ? selectedRef : undefined}
+            whileTap={{ scale: 0.92 }}
+            onClick={() => onSelect(skin.id)}
+            className="flex flex-col items-center gap-1.5 py-2 px-2.5 rounded-xl border-[2px] transition-all flex-shrink-0"
+            style={{
+              minWidth: 64,
+              background: isSelected ? skin.color + "33" : "rgba(255,255,255,0.06)",
+              borderColor: isSelected ? skin.color : "rgba(255,255,255,0.12)",
+              boxShadow: isSelected ? `0 0 10px ${skin.color}66` : "none",
+            }}
+          >
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center relative flex-shrink-0"
+              style={{
+                background: isSelected ? skin.color : skin.color + "55",
+                boxShadow: isSelected ? `0 2px 8px ${skin.color}88` : "none",
+              }}
+            >
+              <Icon className="w-5 h-5 text-white" />
+              {isOwned && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-400 border-2 border-black flex items-center justify-center">
+                  <Check className="w-2.5 h-2.5 text-black" />
+                </div>
+              )}
+            </div>
+            <span
+              style={{
+                fontFamily: "'Fredoka One', cursive",
+                fontSize: "0.65rem",
+                lineHeight: 1.1,
+                color: isSelected ? skin.color : "rgba(255,255,255,0.55)",
+                maxWidth: 60,
+                textAlign: "center",
+              }}
+              className="leading-tight"
+            >
+              {skin.name}
+            </span>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
 
 export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps) {
   const [view, setView] = useState<View>("home");
@@ -338,22 +412,15 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                     style={{ boxShadow: "4px 4px 0px #000" }}
                   >
                     <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(124,58,237,0.12)" }}>
-                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#7C3AED", boxShadow: "3px 3px 0px #000" }}>
-                        {/* Carte avec étoile — icône personnalisée */}
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          {/* Carte */}
-                          <rect x="3" y="6" width="18" height="22" rx="2.5" fill="white" fillOpacity="0.25" stroke="white" strokeWidth="2"/>
-                          <rect x="3" y="6" width="18" height="5" rx="2.5" fill="white" fillOpacity="0.5"/>
-                          {/* Étoile en haut à droite */}
-                          <path d="M21 2 L22.2 5.5 L26 5.5 L23 7.8 L24.2 11.3 L21 9 L17.8 11.3 L19 7.8 L16 5.5 L19.8 5.5 Z" fill="#FFD700" stroke="#000" strokeWidth="0.5"/>
-                        </svg>
+                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)", boxShadow: "3px 3px 0px #000" }}>
+                        <Sparkles className="w-8 h-8 text-white" />
                       </div>
                       <div className="flex-1 text-left">
                         <div style={{ ...FONT_BANGERS, fontSize: "1.3rem" }} className="text-white leading-none">
                           SKINS DE CARTES
                         </div>
                         <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          Changez l'apparence de toutes vos cartes — 1,99 $ chacun ou 15,99 $ pour tous
+                          Changez l'apparence de toutes vos cartes — 1,99 $ chacun
                         </div>
                       </div>
                       <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
@@ -786,58 +853,11 @@ export function ShopModal({ open, onClose, isLoggedIn, onLogin }: ShopModalProps
                         >
                           <ChevronLeft className="w-4 h-4 text-white" />
                         </button>
-                        <div
-                          className="flex gap-2 overflow-x-auto pb-1 flex-1"
-                          style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
-                        >
-                          {SKIN_CATALOG.map((skin: SkinMeta) => {
-                            const Icon = SKIN_ICON_MAP[skin.id];
-                            const isOwned = ownedSkins.includes(skin.id);
-                            const isSelected = previewSkin === skin.id;
-                            return (
-                              <motion.button
-                                key={skin.id}
-                                whileTap={{ scale: 0.92 }}
-                                onClick={() => setPreviewSkin(skin.id)}
-                                className="flex flex-col items-center gap-1.5 py-2 px-2.5 rounded-xl border-[2px] transition-all flex-shrink-0"
-                                style={{
-                                  minWidth: 64,
-                                  background: isSelected ? skin.color + "33" : "rgba(255,255,255,0.06)",
-                                  borderColor: isSelected ? skin.color : "rgba(255,255,255,0.12)",
-                                  boxShadow: isSelected ? `0 0 10px ${skin.color}66` : "none",
-                                }}
-                              >
-                                <div
-                                  className="w-9 h-9 rounded-xl flex items-center justify-center relative flex-shrink-0"
-                                  style={{
-                                    background: isSelected ? skin.color : skin.color + "55",
-                                    boxShadow: isSelected ? `0 2px 8px ${skin.color}88` : "none",
-                                  }}
-                                >
-                                  <Icon className="w-5 h-5 text-white" />
-                                  {isOwned && (
-                                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-400 border-2 border-black flex items-center justify-center">
-                                      <Check className="w-2.5 h-2.5 text-black" />
-                                    </div>
-                                  )}
-                                </div>
-                                <span
-                                  style={{
-                                    fontFamily: "'Fredoka One', cursive",
-                                    fontSize: "0.65rem",
-                                    lineHeight: 1.1,
-                                    color: isSelected ? skin.color : "rgba(255,255,255,0.55)",
-                                    maxWidth: 60,
-                                    textAlign: "center",
-                                  }}
-                                  className="leading-tight"
-                                >
-                                  {skin.name}
-                                </span>
-                              </motion.button>
-                            );
-                          })}
-                        </div>
+                        <SkinScrollRow
+                          previewSkin={previewSkin}
+                          ownedSkins={ownedSkins}
+                          onSelect={setPreviewSkin}
+                        />
                         {/* Flèche droite — PC uniquement */}
                         <button
                           className="hidden md:flex flex-shrink-0 w-7 h-7 rounded-lg border-[2px] border-white/20 bg-white/10 items-center justify-center hover:bg-white/20 transition-colors"
