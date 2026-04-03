@@ -953,22 +953,30 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 )}
 
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  onClick={handlePlaySolo}
-                  className="w-full py-4 bg-yellow-400 border-[4px] border-black rounded-2xl flex items-center justify-center gap-2 text-black relative overflow-hidden"
-                  style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", boxShadow: "5px 5px 0px #000" }}
-                >
+                <div className="relative w-full">
                   <motion.div
-                    className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
-                    animate={{ x: ["-100%", "400%"] }}
-                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.8 }}
+                    className="absolute inset-0 rounded-2xl bg-[#34C759] -z-10"
+                    animate={{ scale: [1, 1.08, 1], opacity: [0.7, 0, 0.7] }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   />
-                  <span className="relative z-10 flex items-center gap-2">
-                    <img src={ticketImg} alt="" style={{ width: "1.5rem" }} />
-                    JOUER — {selectedDiff.threshold.toLocaleString("fr-CA")}$
-                  </span>
-                </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.04, y: -2, boxShadow: "7px 7px 0px #000" } as any}
+                    whileTap={{ scale: 0.96, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                    onClick={handlePlaySolo}
+                    className="w-full py-4 bg-[#34C759] border-[4px] border-black rounded-2xl flex items-center justify-center gap-3 text-white relative overflow-hidden"
+                    style={{ ...FONT_BANGERS, fontSize: "1.6rem", letterSpacing: "0.10em", boxShadow: "5px 5px 0px #000", textShadow: "2px 2px 0px rgba(0,0,0,0.4)" }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                      animate={{ x: ["-100%", "400%"] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.8 }}
+                    />
+                    <span className="relative z-10 flex items-center gap-3">
+                      <img src={ticketImg} alt="" style={{ width: "1.8rem", filter: "drop-shadow(1px 1px 0px rgba(0,0,0,0.4))" }} />
+                      JOUER — {selectedDiff.threshold.toLocaleString("fr-CA")} $
+                    </span>
+                  </motion.button>
+                </div>
               </motion.div>
             )}
 
@@ -1142,15 +1150,30 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 )}
 
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  onClick={handleCreate}
-                  disabled={loading}
-                  className="w-full py-4 bg-[#1565C0] border-[4px] border-black rounded-2xl text-white disabled:opacity-50"
-                  style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", boxShadow: "5px 5px 0px #000" }}
-                >
-                  {loading ? "CRÉATION..." : "CRÉER LA PARTIE"}
-                </motion.button>
+                <div className="relative w-full">
+                  <motion.div
+                    className="absolute inset-0 rounded-2xl bg-[#007AFF] -z-10"
+                    animate={{ scale: [1, 1.08, 1], opacity: [0.7, 0, 0.7] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.04, y: -2, boxShadow: "7px 7px 0px #000" } as any}
+                    whileTap={{ scale: 0.96, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                    onClick={handleCreate}
+                    disabled={loading}
+                    className="w-full py-4 bg-[#007AFF] border-[4px] border-black rounded-2xl text-white disabled:opacity-50 relative overflow-hidden"
+                    style={{ ...FONT_BANGERS, fontSize: "1.6rem", letterSpacing: "0.10em", boxShadow: "5px 5px 0px #000", textShadow: "2px 2px 0px rgba(0,0,0,0.4)" }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                      animate={{ x: ["-100%", "400%"] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.8 }}
+                    />
+                    <span className="relative z-10">
+                      {loading ? "CRÉATION..." : "CRÉER LA PARTIE"}
+                    </span>
+                  </motion.button>
+                </div>
               </motion.div>
             )}
 
@@ -1208,15 +1231,30 @@ export function MultiplayerModal({ onClose }: Props) {
                   </div>
                 )}
 
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  onClick={handleJoin}
-                  disabled={loading}
-                  className="w-full py-4 border-[4px] border-black rounded-2xl text-white disabled:opacity-50"
-                  style={{ ...FONT_BANGERS, fontSize: "1.4rem", letterSpacing: "0.08em", background: "#9C27B0", boxShadow: "5px 5px 0px #000" }}
-                >
-                  {loading ? "CONNEXION..." : "REJOINDRE"}
-                </motion.button>
+                <div className="relative w-full">
+                  <motion.div
+                    className="absolute inset-0 rounded-2xl bg-[#AF52DE] -z-10"
+                    animate={{ scale: [1, 1.08, 1], opacity: [0.7, 0, 0.7] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.04, y: -2, boxShadow: "7px 7px 0px #000" } as any}
+                    whileTap={{ scale: 0.96, y: 2, boxShadow: "3px 3px 0px #000" } as any}
+                    onClick={handleJoin}
+                    disabled={loading}
+                    className="w-full py-4 border-[4px] border-black rounded-2xl text-white disabled:opacity-50 relative overflow-hidden"
+                    style={{ ...FONT_BANGERS, fontSize: "1.6rem", letterSpacing: "0.10em", background: "#9C27B0", boxShadow: "5px 5px 0px #000", textShadow: "2px 2px 0px rgba(0,0,0,0.4)" }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 w-1/3 bg-white/20 skew-x-[-20deg]"
+                      animate={{ x: ["-100%", "400%"] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.8 }}
+                    />
+                    <span className="relative z-10">
+                      {loading ? "CONNEXION..." : "REJOINDRE"}
+                    </span>
+                  </motion.button>
+                </div>
               </motion.div>
             )}
 

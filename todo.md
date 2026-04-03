@@ -258,3 +258,10 @@
 - [x] Créer composant GameInfoModal.tsx avec l'histoire du jeu complète
 - [x] Créer composant ShopModal.tsx avec présentation boutique verrouillée
 - [x] Créer page MiniGamePresentationModal.tsx avec présentation des fonctionnalités mini-jeux
+
+## Modifications session 24 — Couleurs boutons + amélioration bouton Jouer
+- [x] Accueil : bouton Infos en bleu (fond bleu au lieu de blanc/transparent)
+- [x] Accueil : bouton JOUER en vert
+- [x] Accueil : bouton RÈGLES en jaune
+- [x] MultiplayerModal : bouton Jouer plus beau (meilleure typo, design amélioré)
+- [x] Solo modal : bouton Jouer plus beau (meilleure typo, design amélioré)

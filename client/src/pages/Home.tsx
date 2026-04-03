@@ -243,9 +243,9 @@ export default function Home() {
       {/* ── ICONE INFOS — haut à gauche ── */}
       <div className="absolute top-[22px] left-3 z-50">
         <motion.button
-          className="w-10 h-10 rounded-full bg-white/15 border-[2px] border-white/30 flex items-center justify-center backdrop-blur-sm"
-          style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.3)', marginTop: '9px' }}
-          whileHover={{ scale: 1.1, borderColor: 'rgba(255,215,0,0.6)' } as any}
+          className="w-10 h-10 rounded-full bg-[#007AFF] border-[3px] border-black flex items-center justify-center"
+          style={{ boxShadow: '3px 3px 0px #000', marginTop: '9px' }}
+          whileHover={{ scale: 1.1, y: -2 } as any}
           whileTap={{ scale: 0.9 } as any}
           onClick={() => setShowInfoModal(true)}
           title="Infos sur le jeu"
@@ -422,12 +422,12 @@ export default function Home() {
               {/* ── JOUER BUTTON ── */}
               <div className="relative w-full max-w-[220px]">
                 <motion.div
-                  className="absolute inset-0 rounded-2xl bg-yellow-400 -z-10"
+                  className="absolute inset-0 rounded-2xl bg-[#34C759] -z-10"
                   animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <motion.button
-                  className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-black relative overflow-hidden"
+                  className="w-full py-2.5 bg-[#34C759] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
                   style={{
                     ...FONT_FREDOKA,
                     letterSpacing: "0.1em",
@@ -450,12 +450,12 @@ export default function Home() {
               {/* ── RÈGLES BUTTON ── */}
               <div className="relative w-full max-w-[220px]">
                 <motion.div
-                  className="absolute inset-0 rounded-2xl bg-blue-500 -z-10"
+                  className="absolute inset-0 rounded-2xl bg-yellow-400 -z-10"
                   animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <motion.button
-                  className="w-full py-2.5 bg-[#1565C0] border-[4px] border-black rounded-2xl text-white relative overflow-hidden"
+                  className="w-full py-2.5 bg-yellow-400 border-[4px] border-black rounded-2xl text-black relative overflow-hidden"
                   style={{
                     ...FONT_FREDOKA,
                     letterSpacing: "0.1em",
