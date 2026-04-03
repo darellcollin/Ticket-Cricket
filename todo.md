@@ -638,3 +638,7 @@
 ## Session 69 — Autoplay musique
 
 - [x] Musique démarre au premier clic utilisateur (contournement politique autoplay navigateurs)
+
+## Session 70 — Alignement bouton musique
+
+- [x] Bouton musique aligné parfaitement en dessous du bouton compte sur l'accueil (Home.tsx)

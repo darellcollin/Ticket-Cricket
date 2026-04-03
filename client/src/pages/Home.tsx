@@ -266,18 +266,21 @@ export default function Home() {
       </div>
 
       {/* ── ICONE COMPTE + MUSIQUE — haut à droite ── */}
-      <div className="absolute top-[22px] right-3 z-50 flex flex-col items-center gap-2" style={{marginTop: '8px'}}>
-        {isAuthenticated ? (
-          <div className="flex items-center gap-2">
+      <div className="absolute top-[30px] right-3 z-50 flex flex-col items-end gap-2">
+        {/* Rangée compte : pseudo à gauche, bouton à droite */}
+        <div className="flex items-center gap-2">
+          {isAuthenticated && (
             <span
               style={{ ...FONT_FREDOKA, fontSize: '0.75rem' }}
               className="text-yellow-400/80 hidden sm:inline"
             >
               {profile?.pseudo}
             </span>
+          )}
+          {isAuthenticated ? (
             <motion.button
               className="w-10 h-10 rounded-full bg-yellow-400 border-[3px] border-black flex items-center justify-center"
-              style={{ boxShadow: '3px 3px 0px #000', marginTop: '9px' }}
+              style={{ boxShadow: '3px 3px 0px #000' }}
               whileHover={{ scale: 1.1 } as any}
               whileTap={{ scale: 0.9 } as any}
               onClick={() => setShowAccountModal(true)}
@@ -287,24 +290,26 @@ export default function Home() {
                 {profile?.pseudo?.charAt(0).toUpperCase()}
               </span>
             </motion.button>
-          </div>
-        ) : (
-          <motion.button
-            className="w-10 h-10 rounded-full bg-white/15 border-[2px] border-white/30 flex items-center justify-center backdrop-blur-sm"
-            style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.3)' }}
-            whileHover={{ scale: 1.1, borderColor: 'rgba(255,215,0,0.6)' } as any}
-            whileTap={{ scale: 0.9 } as any}
-            onClick={() => setShowAccountModal(true)}
-            title="Se connecter"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </motion.button>
-        )}
-        {/* Icône musique — sous l'icône compte */}
-        <MusicControl size="sm" />
+          ) : (
+            <motion.button
+              className="w-10 h-10 rounded-full bg-white/15 border-[2px] border-white/30 flex items-center justify-center backdrop-blur-sm"
+              style={{ boxShadow: '2px 2px 0px rgba(0,0,0,0.3)' }}
+              whileHover={{ scale: 1.1, borderColor: 'rgba(255,215,0,0.6)' } as any}
+              whileTap={{ scale: 0.9 } as any}
+              onClick={() => setShowAccountModal(true)}
+              title="Se connecter"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </motion.button>
+          )}
+        </div>
+        {/* Icône musique — alignée sous le bouton compte (w-10) */}
+        <div className="w-10 flex justify-center">
+          <MusicControl size="sm" />
+        </div>
       </div>
 
       {/* ── ZONE BLEUE CENTRALE avec particules confinées ── */}
