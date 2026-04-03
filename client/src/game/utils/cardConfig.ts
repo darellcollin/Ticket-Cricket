@@ -376,7 +376,7 @@ const CARD_DATA: Record<number, RawEntry> = {
   322:{ category:"contravention", cardType:1, ticketPrice:4000, frais:30  },
   323:{ category:"contravention", cardType:1, ticketPrice:4000, frais:40  },
   324:{ category:"contravention", cardType:1, ticketPrice:4000, frais:50  },
-  // ── PACK HALLOWEEN — Contraventions (cartes 325–340) ─────────────────────
+  // ── TICKET CRICKET PLUS — Contraventions (cartes 325–340) ─────────────────────
   325:{ category:"contravention", cardType:1, ticketPrice:100,  frais:0  },
   326:{ category:"contravention", cardType:1, ticketPrice:200,  frais:10 },
   327:{ category:"contravention", cardType:1, ticketPrice:300,  frais:20 },
@@ -393,20 +393,20 @@ const CARD_DATA: Record<number, RawEntry> = {
   338:{ category:"contravention", cardType:1, ticketPrice:3000, frais:10 },
   339:{ category:"contravention", cardType:1, ticketPrice:3500, frais:20 },
   340:{ category:"contravention", cardType:1, ticketPrice:4000, frais:30 },
-  // ── PACK HALLOWEEN — Contribuables (cartes 341–346) ──────────────────────
+  // ── TICKET CRICKET PLUS — Contribuables (cartes 341–346) ──────────────────────
   341:{ category:"contribuable",  cardType:2, ticketPrice:0, impots:0  },
   342:{ category:"contribuable",  cardType:2, ticketPrice:0, impots:10 },
   343:{ category:"contribuable",  cardType:2, ticketPrice:0, impots:20 },
   344:{ category:"contribuable",  cardType:2, ticketPrice:0, impots:30 },
   345:{ category:"contribuable",  cardType:2, ticketPrice:0, impots:40 },
   346:{ category:"contribuable",  cardType:2, ticketPrice:0, impots:50 },
-  // ── PACK HALLOWEEN — Investisseurs (cartes 347–352) ──────────────────────
+  // ── TICKET CRICKET PLUS — Investisseurs (cartes 347–352) ──────────────────────
   347:{ category:"investisseur",  cardType:3, ticketPrice:1000, taxe:0  },
   348:{ category:"investisseur",  cardType:3, ticketPrice:1500, taxe:10 },
-  349:{ category:"investisseur",  cardType:3, ticketPrice:2500, taxe:20 },
-  350:{ category:"investisseur",  cardType:3, ticketPrice:3000, taxe:30 },
-  351:{ category:"investisseur",  cardType:3, ticketPrice:3500, taxe:40 },
-  352:{ category:"investisseur",  cardType:3, ticketPrice:4000, taxe:50 },
+  349:{ category:"investisseur",  cardType:3, ticketPrice:2000, taxe:20 },
+  350:{ category:"investisseur",  cardType:3, ticketPrice:2500, taxe:30 },
+  351:{ category:"investisseur",  cardType:3, ticketPrice:3000, taxe:40 },
+  352:{ category:"investisseur",  cardType:3, ticketPrice:3500, taxe:0  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -522,7 +522,7 @@ export const TYPE_INFO: Record<CardTypeNum, {
 export const CATEGORY_ORDER: CardCategory[] = ["contravention", "contribuable", "investisseur"];
 export const ALL_CARD_IDS: number[]         = Array.from({ length: 324 }, (_, i) => i + 1);
 /** IDs des 28 cartes du Pack Halloween (325–352) */
-export const HALLOWEEN_CARD_IDS: number[]   = Array.from({ length: 28 }, (_, i) => i + 325);
+export const PLUS_CARD_IDS: number[]   = Array.from({ length: 28 }, (_, i) => i + 325);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  FORMATAGE

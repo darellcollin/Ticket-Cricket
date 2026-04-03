@@ -486,3 +486,21 @@
 - [x] Moteur solo (GameScreen) : inclure automatiquement les cartes 325-352 si le pack est acheté
 - [x] Moteur multi (MultiplayerGameScreen) : inclure automatiquement les cartes 325-352 si le pack est acheté
 - [x] Tests vitest : 110 tests passent
+
+## Session 53 — Refonte boutique + Extension "Ticket Cricket Plus"
+
+- [x] Remplacer les 28 cartes Halloween (IDs 325-352) par les cartes "Ticket Cricket Plus" dans cardConfig.ts
+- [x] Mettre à jour cardMefaits.ts avec les méfaits "Ticket Cricket Plus" (16 contraventions, 6 contribuables, 6 investisseurs)
+- [x] Renommer le produit Stripe "expansion_halloween" → "expansion_plus" à 299 cents (2,99$)
+- [x] Mettre à jour le webhook Stripe pour débloquer "plus" au lieu de "halloween"
+- [x] Mettre à jour shopRouter.ts : listExpansionPacks retourne "plus" au lieu de "halloween"
+- [x] Refondre ShopModal : 4 catégories (Skins, Packs personnalisables, Extensions exclusives, Soutenir)
+- [x] Boutique vue accueil : 4 boutons de navigation distincts avec design percutant
+- [x] Boutique vue "Skins de cartes" : grille des skins avec preview, prix, bouton acheter/activer
+- [x] Boutique vue "Skins de cartes" : bulle forfait "Tous les skins" bien visible (dans la vue skins)
+- [x] Boutique vue "Packs personnalisables" : liste des packs de cartes personnalisables
+- [x] Boutique vue "Extensions exclusives" : "Ticket Cricket Plus" à 2,99$ avec description des 28 cartes
+- [x] Boutique vue "Soutenir le projet" : formulaire de don
+- [x] Moteur de jeu : remplacer "halloween" par "plus" dans la clé localStorage et la logique d'injection
+- [x] Panier universel : calcul du total et affichage pour tous les types de produits (skins, packs, extensions)
+- [x] Tests vitest : 110 tests passent

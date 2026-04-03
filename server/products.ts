@@ -42,23 +42,23 @@ export const ALL_PAID_SKIN_IDS = [
   "cosmic", "magique", "foret", "metal", "prestige",
 ];
 
-// IDs des cartes du Pack Halloween (325-352)
-export const HALLOWEEN_PACK_CARD_IDS: number[] = Array.from({ length: 28 }, (_, i) => i + 325);
+// IDs des cartes du Ticket Cricket Plus (325-352)
+export const PLUS_PACK_CARD_IDS: number[] = Array.from({ length: 28 }, (_, i) => i + 325);
 
 export const SHOP_PRODUCTS: ShopProduct[] = [
-  // ── PACK D'EXTENSION HALLOWEEN (disponible — 8,99 $) ──
+  // ── TICKET CRICKET PLUS (disponible — 2,99 $) ──
   {
-    id: "expansion_halloween",
-    name: "Pack Halloween",
+    id: "expansion_plus",
+    name: "Ticket Cricket Plus",
     description: "28 nouvelles cartes exclusives thème Halloween — 16 contraventions, 6 contribuables et 6 investisseurs. S'ajoutent automatiquement et définitivement à votre deck de 324 cartes.",
-    price: 899, // 8.99 CAD
+    price: 299, // 2.99 CAD
     currency: "cad",
     category: "expansion_pack",
     icon: "ghost",
     color: "#FF6B00",
     available: true,
-    expansionPackId: "halloween",
-    expansionCardIds: HALLOWEEN_PACK_CARD_IDS,
+    expansionPackId: "plus",
+    expansionCardIds: PLUS_PACK_CARD_IDS,
   },
 
   // ── PACKS DE CARTES PERSONNALISABLES (disponibles) ──

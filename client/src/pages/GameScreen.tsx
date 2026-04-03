@@ -14,7 +14,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { useGameAuth } from "@/hooks/useGameAuth";
 import {
-  getCardConfig, ALL_CARD_IDS, HALLOWEEN_CARD_IDS,
+  getCardConfig, ALL_CARD_IDS, PLUS_CARD_IDS,
   computePlayerTotal, drawerNetAmount, formatPrice,
   CATEGORY_INFO, CATEGORY_ORDER, TYPE_INFO,
   type CardCategory,
@@ -22,7 +22,7 @@ import {
 import { filterByCategory } from "@/game/utils/cardCategories";
 import ticketImg from "@/game/utils/ticketImg";
 import { PoliceTape } from "@/game/ui/PoliceUI";
-import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY, SOLO_MINI_GAME_LEVEL_KEY, SOLO_HALLOWEEN_PACK_KEY } from "@/game/components/MultiplayerModal";
+import { SOLO_DIFFICULTY_KEY, SOLO_NO_CONTRIBUABLE_KEY, SOLO_CUSTOM_CARDS_ENABLED_KEY, SOLO_CUSTOM_CARDS_DATA_KEY, SOLO_MINI_GAME_LEVEL_KEY, SOLO_PLUS_PACK_KEY } from "@/game/components/MultiplayerModal";
 import type { CardConfig } from "@/game/utils/cardConfig";
 import { WinnerOverlay } from "@/game/ui/WinnerOverlay";
 import { GeneratedCard, CardBack as GeneratedCardBack } from "@/game/components/GeneratedCard";
@@ -141,16 +141,16 @@ function readMiniGameLevel(): MiniGameLevel {
   } catch { return 1; }
 }
 
-// ── Lire si le joueur possède le Pack Halloween ───────────────
+// ── Lire si le joueur possède le Ticket Cricket Plus ───────────────
 function readHalloweenPack(): boolean {
-  try { return localStorage.getItem(SOLO_HALLOWEEN_PACK_KEY) === "1"; } catch { return false; }
+  try { return localStorage.getItem(SOLO_PLUS_PACK_KEY) === "1"; } catch { return false; }
 }
 
 // ── Calcul dynamique du deck solo autorisé ───────────────────
 // Appelé à chaque freshDeck() pour lire les préfs actuelles du localStorage.
 function getSoloCardIds(): number[] {
   const noContribuable = readNoContribuable();
-  const hasHalloween = readHalloweenPack();
+  const hasPlus = readHalloweenPack();
   // Charger les cartes personnalisées (IDs négatifs) dans le registre
   const customIds = loadCustomCards();
   const standardIds = ALL_CARD_IDS.filter((id) => {
@@ -159,9 +159,9 @@ function getSoloCardIds(): number[] {
     if (noContribuable && cfg.category === "contribuable") return false;
     return true;
   });
-  // Cartes du Pack Halloween (IDs 325-352) — incluses si le joueur possède le pack
-  const halloweenIds = hasHalloween
-    ? HALLOWEEN_CARD_IDS.filter((id) => {
+  // Cartes du Ticket Cricket Plus (IDs 325-352) — incluses si le joueur possède le pack
+  const plusIds = hasPlus
+    ? PLUS_CARD_IDS.filter((id) => {
         const cfg = getCardConfig(id);
         if (cfg.category === "investisseur") return false; // T3 exclus en solo
         if (noContribuable && cfg.category === "contribuable") return false;
@@ -178,7 +178,7 @@ function getSoloCardIds(): number[] {
     if (noContribuable && cfg.category === "contribuable") return false;
     return true;
   });
-  return [...standardIds, ...halloweenIds, ...filteredCustom];
+  return [...standardIds, ...plusIds, ...filteredCustom];
 }
 
 // ─── Shuffle ───────────────────────────────────────────────
@@ -1119,17 +1119,17 @@ export function GameScreen() {
   });
   const currentSkin: CardSkinId = (activeSkinId as CardSkinId | undefined) ?? "classique";
 
-  // ─ Pack Halloween — synchronisation serveur → localStorage ─
+  // ─ Ticket Cricket Plus — synchronisation serveur → localStorage ─
   const { data: ownedExpansionPacks } = trpc.shop.listExpansionPacks.useQuery(undefined, {
     enabled: isAuthenticated,
   });
   useEffect(() => {
     if (!ownedExpansionPacks) return;
-    const hasHalloween = ownedExpansionPacks.includes("halloween");
-    const prev = localStorage.getItem(SOLO_HALLOWEEN_PACK_KEY);
-    const next = hasHalloween ? "1" : "0";
+    const hasPlus = ownedExpansionPacks.includes("plus");
+    const prev = localStorage.getItem(SOLO_PLUS_PACK_KEY);
+    const next = hasPlus ? "1" : "0";
     if (prev !== next) {
-      localStorage.setItem(SOLO_HALLOWEEN_PACK_KEY, next);
+      localStorage.setItem(SOLO_PLUS_PACK_KEY, next);
       // Forcer un nouveau deck pour inclure / exclure les cartes Halloween
       const newDeck = freshDeck();
       setState({ deck: newDeck, drawn: [] });

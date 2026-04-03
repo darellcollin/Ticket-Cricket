@@ -27,7 +27,7 @@ export const SOLO_NO_INVESTISSEUR_KEY       = "ticket_cricket_no_investisseur";
 export const SOLO_CUSTOM_CARDS_ENABLED_KEY  = "ticket_cricket_custom_cards_enabled";
 export const SOLO_CUSTOM_CARDS_DATA_KEY     = "ticket_cricket_custom_cards_data";
 export const SOLO_MINI_GAME_LEVEL_KEY       = "ticket_cricket_mini_game_level";
-export const SOLO_HALLOWEEN_PACK_KEY        = "ticket_cricket_halloween_pack";
+export const SOLO_PLUS_PACK_KEY        = "ticket_cricket_plus_pack";
 
 // ── Niveaux de difficulté ──────────────────────────────────────
 export const DIFFICULTIES = [

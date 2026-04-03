@@ -82,7 +82,7 @@ const SKIN_ICON_MAP: Record<CardSkinId, React.ElementType> = {
   prestige: Gem,
 };
 
-type View = "home" | "packs" | "don" | "skins" | "cart";
+type View = "home" | "packs" | "don" | "skins" | "cart" | "extensions";
 
 export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   const [view, setView] = useState<View>("home");
@@ -101,7 +101,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
   const { data: ownedExpansionPacks = [] } = trpc.shop.listExpansionPacks.useQuery(undefined, {
     enabled: isLoggedIn,
   });
-  const hasHalloweenPack = ownedExpansionPacks.includes("halloween");
+  const hasPlusPack = ownedExpansionPacks.includes("plus");
 
   // Skin actif du joueur
   const { data: activeSkinId, refetch: refetchActiveSkin } = trpc.skins.getActiveSkin.useQuery(undefined, {
@@ -213,6 +213,7 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
     don: "SOUTENIR LE PROJET",
     skins: "SKINS DE CARTES",
     cart: "MON PANIER",
+    extensions: "EXTENSIONS EXCLUSIVES",
   };
   const headerTitle = HEADER_TITLES[view] ?? "BOUTIQUE";
 
@@ -306,86 +307,14 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     </div>
                   )}
 
-                  {/* ── PACK HALLOWEEN EXCLUSIF ── */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => {
-                      if (hasHalloweenPack) { toast.success("Pack Halloween déjà débloqué !"); return; }
-                      if (!isLoggedIn) { toast.error("Connectez-vous pour acheter."); return; }
-                      setLoadingId("expansion_halloween");
-                      checkoutMutation.mutate({ productId: "expansion_halloween", origin: window.location.origin });
-                    }}
-                    disabled={loadingId === "expansion_halloween"}
-                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden disabled:opacity-80"
-                    style={{ boxShadow: "4px 4px 0px #000" }}
-                  >
-                    <div
-                      className="w-full py-1 border-b-[2px] border-black text-center"
-                      style={{ background: "linear-gradient(90deg, #FF6B00 0%, #8B0000 100%)", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#FFD700" }}
-                    >
-                      PACK EXCLUSIF — 28 NOUVELLES CARTES
-                    </div>
-                    <div
-                      className="flex items-center gap-4 px-4 py-4"
-                      style={{ background: "linear-gradient(135deg, rgba(255,107,0,0.18) 0%, rgba(139,0,0,0.22) 100%)" }}
-                    >
-                      <div
-                        className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
-                        style={{ background: "linear-gradient(135deg, #FF6B00 0%, #8B0000 100%)", boxShadow: "3px 3px 0px #000" }}
-                      >
-                        {loadingId === "expansion_halloween"
-                          ? <Loader2 className="w-7 h-7 text-white animate-spin" />
-                          : hasHalloweenPack
-                          ? <Check className="w-7 h-7 text-yellow-300" />
-                          : <Ghost className="w-7 h-7 text-white" />}
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem", color: "#FF8C42" }} className="leading-none">
-                          PACK HALLOWEEN
-                        </div>
-                        <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          {hasHalloweenPack
-                            ? "Déjà débloqué — 28 cartes actives dans votre deck"
-                            : "16 contraventions + 6 contribuables + 6 investisseurs"}
-                        </div>
-                      </div>
-                      {hasHalloweenPack ? (
-                        <div style={{ ...FONT_BANGERS, fontSize: "0.9rem", color: "#4ADE80" }} className="flex-shrink-0">DÉBLOQUÉ</div>
-                      ) : (
-                        <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", color: "#FF8C42" }} className="flex-shrink-0">8,99 $</div>
-                      )}
-                    </div>
-                  </motion.button>
+                  {/* ── TITRE SECTION ── */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span style={{ ...FONT_BANGERS, fontSize: "0.85rem", letterSpacing: "0.12em" }} className="text-white/30">CATÉGORIES</span>
+                    <div className="flex-1 h-px bg-white/10" />
+                  </div>
 
-                  {/* Bouton Packs de cartes */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => setView("packs")}
-                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
-                    style={{ boxShadow: "4px 4px 0px #000" }}
-                  >
-                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
-                      15 CARTES GRATUITES INCLUSES
-                    </div>
-                    <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(52,199,89,0.12)" }}>
-                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#34C759", boxShadow: "3px 3px 0px #000" }}>
-                        <Layers className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem" }} className="text-white leading-none">
-                          PACKS DE CARTES
-                        </div>
-                        <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          Débloquez des cartes personnalisables supplémentaires — de 2,99 $ à 9,99 $
-                        </div>
-                      </div>
-                      <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
-                    </div>
-                  </motion.button>
-
-                  {/* Bouton Skins de cartes */}
+                  {/* ── 1. SKINS DE CARTES ── */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
@@ -394,59 +323,79 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                     style={{ boxShadow: "4px 4px 0px #000" }}
                   >
                     <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#7C3AED", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
-                      1 SKIN GRATUIT INCLUS
+                      1 SKIN GRATUIT INCLUS — 10 DESIGNS EXCLUSIFS
                     </div>
                     <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(124,58,237,0.12)" }}>
                       <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#7C3AED", boxShadow: "3px 3px 0px #000" }}>
                         <Sparkles className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1 text-left">
-                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem" }} className="text-white leading-none">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.3rem" }} className="text-white leading-none">
                           SKINS DE CARTES
                         </div>
                         <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          11 designs exclusifs — chacun à 1,99 $
+                          Changez l'apparence de toutes vos cartes — 1,99 $ chacun ou 15,99 $ pour tous
                         </div>
                       </div>
                       <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
                     </div>
                   </motion.button>
 
-                  {/* Bouton Forfait Tous les Skins */}
+                  {/* ── 2. PACKS PERSONNALISABLES ── */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => {
-                      if (!isLoggedIn) { toast.error("Connectez-vous pour acheter."); return; }
-                      setLoadingId("bundle_all_skins");
-                      checkoutMutation.mutate({ productId: "bundle_all_skins", origin: window.location.origin });
-                    }}
-                    disabled={loadingId === "bundle_all_skins"}
-                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden disabled:opacity-70"
+                    onClick={() => setView("packs")}
+                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
                     style={{ boxShadow: "4px 4px 0px #000" }}
                   >
-                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#F59E0B", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#000" }}>
-                      ÉCONOMISEZ PLUS DE 4 $
+                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
+                      15 CARTES PERSONNALISABLES GRATUITES INCLUSES
                     </div>
-                    <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(245,158,11,0.12)" }}>
-                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#F59E0B", boxShadow: "3px 3px 0px #000" }}>
-                        {loadingId === "bundle_all_skins" ? <Loader2 className="w-7 h-7 text-white animate-spin" /> : <Package className="w-7 h-7 text-white" />}
+                    <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(52,199,89,0.12)" }}>
+                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#34C759", boxShadow: "3px 3px 0px #000" }}>
+                        <Layers className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1 text-left">
-                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem" }} className="text-white leading-none">
-                          FORFAIT TOUS LES SKINS
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.3rem" }} className="text-white leading-none">
+                          PACKS PERSONNALISABLES
                         </div>
                         <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          Les 10 skins payants débloqués — 15,99 $ (au lieu de 19,90 $)
+                          Ajoutez des cartes à personnaliser à votre collection — de 2,99 $ à 9,99 $
                         </div>
                       </div>
-                      <div style={{ ...FONT_BANGERS, fontSize: "1.1rem", color: "#F59E0B" }} className="flex-shrink-0">
-                        15,99 $
-                      </div>
+                      <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
                     </div>
                   </motion.button>
 
-                  {/* Bouton Don */}
+                  {/* ── 3. EXTENSIONS EXCLUSIVES ── */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setView("extensions")}
+                    className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
+                    style={{ boxShadow: "4px 4px 0px #000" }}
+                  >
+                    <div className="w-full py-1 border-b-[2px] border-black text-center" style={{ background: "#FF6B00", fontFamily: "'Bangers', cursive", fontSize: "0.7rem", letterSpacing: "0.08em", color: "#fff" }}>
+                      {hasPlusPack ? "TICKET CRICKET PLUS DÉBLOQUÉ ✓" : "NOUVELLES CARTES STANDARD — S'AJOUTENT AU DECK"}
+                    </div>
+                    <div className="flex items-center gap-4 px-4 py-4" style={{ background: "rgba(255,107,0,0.12)" }}>
+                      <div className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0" style={{ background: "#FF6B00", boxShadow: "3px 3px 0px #000" }}>
+                        <Package className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.3rem" }} className="text-white leading-none">
+                          EXTENSIONS EXCLUSIVES
+                        </div>
+                        <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
+                          De nouvelles cartes thématiques intégrées directement dans votre deck — à partir de 2,99 $
+                        </div>
+                      </div>
+                      <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
+                    </div>
+                  </motion.button>
+
+                  {/* ── 4. SOUTENIR LE PROJET ── */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
@@ -459,11 +408,11 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                         <Heart className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1 text-left">
-                        <div style={{ ...FONT_BANGERS, fontSize: "1.25rem" }} className="text-white leading-none">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.3rem" }} className="text-white leading-none">
                           SOUTENIR LE PROJET
                         </div>
                         <div style={FONT_FREDOKA} className="text-white/60 text-xs mt-1 leading-tight">
-                          Don libre — vous choisissez le montant
+                          Don libre — vous choisissez le montant pour soutenir le développement
                         </div>
                       </div>
                       <ChevronRight className="w-6 h-6 text-white/60 flex-shrink-0" />
@@ -503,13 +452,143 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                       })}
                     </div>
                   </div>
-
                   <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
                     Ticket Cricket 2026 — Projet 100 % québécois
                   </p>
                 </motion.div>
               )}
+              {/* ── VUE EXTENSIONS ── */}
+              {view === "extensions" && (
+                <motion.div
+                  key="extensions"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.18 }}
+                  className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4"
+                  style={{ scrollbarWidth: "thin" }}
+                >
+                  <p style={FONT_FREDOKA} className="text-white/50 text-xs text-center">
+                    Les extensions ajoutent de nouvelles cartes standard directement et définitivement à votre deck de jeu.
+                  </p>
+                  {!isLoggedIn && (
+                    <div className="p-2.5 bg-yellow-400/10 border border-yellow-400/30 rounded-xl">
+                      <p style={FONT_FREDOKA} className="text-yellow-300 text-xs text-center">
+                        Connectez-vous pour acheter une extension.
+                      </p>
+                    </div>
+                  )}
 
+                  {/* ── TICKET CRICKET PLUS ── */}
+                  <div
+                    className="rounded-2xl border-[3px] border-black overflow-hidden"
+                    style={{ background: "rgba(255,107,0,0.10)", boxShadow: "4px 4px 0px #000" }}
+                  >
+                    {/* Bandeau */}
+                    <div
+                      className="w-full text-center py-1.5 border-b-[2px] border-black"
+                      style={{ background: "#FF6B00", fontFamily: "'Bangers', cursive", fontSize: "0.75rem", letterSpacing: "0.1em", color: "#fff" }}
+                    >
+                      {hasPlusPack ? "✓ DÉJÀ DÉBLOQUÉ — 28 CARTES ACTIVES DANS VOTRE DECK" : "28 NOUVELLES CARTES — S'AJOUTENT DÉFINITIVEMENT AU DECK"}
+                    </div>
+                    {/* Corps */}
+                    <div className="flex items-center gap-3 px-4 py-4">
+                      <div
+                        className="w-14 h-14 rounded-xl border-[3px] border-black flex items-center justify-center flex-shrink-0"
+                        style={{ background: "#FF6B00", boxShadow: "3px 3px 0px #000" }}
+                      >
+                        <Package className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div style={{ ...FONT_BANGERS, fontSize: "1.2rem", lineHeight: 1 }} className="text-white">
+                          TICKET CRICKET PLUS
+                        </div>
+                        <div style={{ ...FONT_FREDOKA, fontSize: "0.7rem" }} className="text-white/55 mt-1 leading-tight">
+                          16 contraventions · 6 contribuables · 6 investisseurs
+                        </div>
+                        <div style={{ ...FONT_FREDOKA, fontSize: "0.65rem" }} className="text-white/40 mt-0.5 leading-tight">
+                          Cartes standards du jeu — thème québécois humoristique
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        {hasPlusPack ? (
+                          <span
+                            className="px-3 py-1.5 rounded-xl border-[2px] border-black"
+                            style={{ background: "#34C759", fontFamily: "'Bangers', cursive", fontSize: "1rem", color: "#fff", letterSpacing: "0.05em", boxShadow: "2px 2px 0px #000" }}
+                          >
+                            ✓ DÉBLOQUÉ
+                          </span>
+                        ) : (
+                          <>
+                            <div
+                              className="px-3 py-1 rounded-lg border-[2px] border-black"
+                              style={{ background: "#FF6B00", fontFamily: "'Bangers', cursive", fontSize: "1.2rem", color: "#fff", boxShadow: "2px 2px 0px #000" }}
+                            >
+                              2,99 $
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              {/* Ajouter au panier */}
+                              {cart.includes("expansion_plus") ? (
+                                <motion.button
+                                  whileTap={{ scale: 0.93 }}
+                                  onClick={() => removeFromCart("expansion_plus")}
+                                  className="px-3 py-1.5 rounded-xl border-[2px] border-black flex items-center gap-1"
+                                  style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.8rem", color: "#fff", boxShadow: "1px 1px 0px #000" }}
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </motion.button>
+                              ) : (
+                                <motion.button
+                                  whileTap={{ scale: 0.93 }}
+                                  onClick={() => { addToCart("expansion_plus"); }}
+                                  disabled={!isLoggedIn}
+                                  className="px-3 py-1.5 rounded-xl border-[2px] border-black flex items-center gap-1 disabled:opacity-40"
+                                  style={{ background: "rgba(255,255,255,0.12)", fontFamily: "'Bangers', cursive", fontSize: "0.8rem", color: "#fff", boxShadow: "1px 1px 0px #000" }}
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </motion.button>
+                              )}
+                              {/* Acheter direct */}
+                              <motion.button
+                                whileTap={{ scale: 0.93 }}
+                                onClick={() => handleBuyPack("expansion_plus")}
+                                disabled={!isLoggedIn || !!loadingId}
+                                className="px-3 py-1.5 rounded-xl border-[2px] border-black text-black disabled:opacity-40 flex items-center gap-1"
+                                style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "0.85rem", letterSpacing: "0.04em", boxShadow: "2px 2px 0px #000" }}
+                              >
+                                {loadingId === "expansion_plus" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Lock className="w-3 h-3" />}
+                                ACHETER
+                              </motion.button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {/* Détail des cartes incluses */}
+                    <div className="px-4 pb-4 grid grid-cols-3 gap-2">
+                      {[
+                        { label: "Contraventions", count: 16, color: "#FF3B30", desc: "Nouvelles infractions québécoises" },
+                        { label: "Contribuables", count: 6, color: "#34C759", desc: "Situations fiscales inédites" },
+                        { label: "Investisseurs", count: 6, color: "#007AFF", desc: "Nouvelles opportunités" },
+                      ].map((cat) => (
+                        <div
+                          key={cat.label}
+                          className="rounded-xl border-[2px] border-black p-2 text-center"
+                          style={{ background: cat.color + "18", borderColor: cat.color + "55" }}
+                        >
+                          <div style={{ ...FONT_BANGERS, fontSize: "1.4rem", color: cat.color, lineHeight: 1 }}>{cat.count}</div>
+                          <div style={{ ...FONT_BANGERS, fontSize: "0.7rem", color: "#fff", lineHeight: 1.1 }}>{cat.label}</div>
+                          <div style={{ ...FONT_FREDOKA, fontSize: "0.55rem" }} className="text-white/40 mt-0.5 leading-tight">{cat.desc}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p style={FONT_FREDOKA} className="text-white/25 text-[10px] text-center pb-1">
+                    Paiement sécurisé via Stripe — Achat permanent et non remboursable.
+                  </p>
+                </motion.div>
+              )}
               {/* ── VUE PACKS ── */}
               {view === "packs" && (
                 <motion.div
@@ -961,15 +1040,15 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                         <ShoppingCart className="w-8 h-8 text-white/30" />
                       </div>
                       <p style={FONT_FREDOKA} className="text-white/40 text-sm text-center">
-                        Votre panier est vide.<br />Ajoutez des skins depuis la boutique.
+                        Votre panier est vide.<br />Ajoutez des articles depuis la boutique.
                       </p>
                       <motion.button
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setView("skins")}
+                        onClick={() => setView("home")}
                         className="px-5 py-2 rounded-xl border-[3px] border-black text-black"
                         style={{ background: "#FFD700", fontFamily: "'Bangers', cursive", fontSize: "1.1rem", boxShadow: "2px 2px 0px #000" }}
                       >
-                        VOIR LES SKINS
+                        VOIR LA BOUTIQUE
                       </motion.button>
                     </div>
                   ) : (
@@ -977,9 +1056,20 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                       {/* Liste des articles */}
                       {cart.map((productId) => {
                         const skin = SKIN_CATALOG.find(s => `skin_${s.id}` === productId || s.id === productId.replace("skin_", ""));
+                        // Résoudre le nom et prix pour tous les types de produits
+                        const knownProducts: Record<string, { name: string; price: number; color: string }> = {
+                          "expansion_plus": { name: "Ticket Cricket Plus", price: 299, color: "#FF6B00" },
+                          "card_pack_35": { name: "Pack Starter (35 cartes)", price: 299, color: "#34C759" },
+                          "card_pack_55": { name: "Pack Pro (55 cartes)", price: 699, color: "#007AFF" },
+                          "card_pack_85": { name: "Pack Ultimate (85 cartes)", price: 999, color: "#AF52DE" },
+                          "bundle_all_skins": { name: "Forfait Tous les Skins", price: 1599, color: "#F59E0B" },
+                        };
+                        const known = knownProducts[productId];
                         const Icon = skin ? SKIN_ICON_MAP[skin.id] : ShoppingCart;
-                        const priceCents: number = skin?.priceCents ?? 299;
+                        const priceCents: number = skin?.priceCents ?? known?.price ?? 199;
                         const priceLabel = (priceCents / 100).toFixed(2).replace(".", ",") + " $";
+                        const itemName = skin?.name ?? known?.name ?? productId;
+                        const itemColor = skin?.color ?? known?.color ?? "#666";
                         return (
                           <div
                             key={productId}
@@ -988,13 +1078,13 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                           >
                             <div
                               className="w-10 h-10 rounded-xl border-[2px] border-black flex items-center justify-center flex-shrink-0"
-                              style={{ background: skin?.color ?? "#666" }}
+                              style={{ background: itemColor }}
                             >
                               <Icon className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1">
-                              <div style={{ ...FONT_BANGERS, fontSize: "1rem", color: skin?.color ?? "#fff" }}>
-                                {skin?.name ?? productId}
+                              <div style={{ ...FONT_BANGERS, fontSize: "1rem", color: itemColor }}>
+                                {itemName}
                               </div>
                               <div style={FONT_FREDOKA} className="text-white/40 text-xs">
                                 {skin?.description ?? ""}
@@ -1019,8 +1109,18 @@ export function ShopModal({ open, onClose, isLoggedIn }: ShopModalProps) {
                           <span style={FONT_FREDOKA} className="text-white/70 text-sm">Total ({cart.length} article{cart.length > 1 ? "s" : ""})</span>
                           <span style={{ ...FONT_BANGERS, fontSize: "1.4rem", color: "#FFD700" }}>
                             {(cart.reduce((sum, id) => {
+                              // Chercher dans SKIN_CATALOG d'abord
                               const skin = SKIN_CATALOG.find(s => `skin_${s.id}` === id || s.id === id.replace("skin_", ""));
-                              return sum + (skin?.priceCents ?? 299);
+                              if (skin) return sum + skin.priceCents;
+                              // Produits connus par ID
+                              const knownPrices: Record<string, number> = {
+                                "expansion_plus": 299,
+                                "card_pack_35": 299,
+                                "card_pack_55": 699,
+                                "card_pack_85": 999,
+                                "bundle_all_skins": 1599,
+                              };
+                              return sum + (knownPrices[id] ?? 199);
                             }, 0) / 100).toFixed(2).replace(".", ",")} $
                           </span>
                         </div>
